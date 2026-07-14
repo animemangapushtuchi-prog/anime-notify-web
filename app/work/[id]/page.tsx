@@ -5,6 +5,7 @@ import { fetchAnimeDetail, svcRank, type AnimeDetail } from "@/lib/anilist";
 import { fetchWikipediaJa } from "@/lib/wikipedia";
 import Trailer from "@/components/Trailer";
 import Collapsible from "@/components/Collapsible";
+import RegisterButton from "@/components/RegisterButton";
 
 // ISR：1時間ごとに再生成（AniList/Wikipediaの更新を反映しつつ高速）
 export const revalidate = 3600;
@@ -115,6 +116,19 @@ export default async function WorkPage({
           </div>
         )}
       </section>
+
+      {/* 登録ボタン */}
+      <div className="mt-4">
+        <RegisterButton
+          work={{
+            id: d.id,
+            title: d.title,
+            meta: [d.type, d.seasonLabel].filter(Boolean).join("・"),
+            status: d.status === "放送中" ? "RELEASING" : "FINISHED",
+            cover: d.coverUrl,
+          }}
+        />
+      </div>
 
       {/* PV */}
       {d.trailerVideoId && (

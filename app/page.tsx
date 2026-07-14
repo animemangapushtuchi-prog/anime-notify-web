@@ -1,4 +1,3 @@
-import Link from "next/link";
 import { fetchSeasonPopular } from "@/lib/anilist";
 import WorkCard from "@/components/WorkCard";
 
@@ -10,18 +9,7 @@ export default async function Home() {
   return (
     <main className="mx-auto max-w-5xl px-4 py-6">
       <header className="border-b border-black/10 pb-4">
-        <div className="flex items-center justify-between">
-          <p className="text-sm font-semibold tracking-wide text-[#5B4FCF]">
-            アニメ・漫画 新着通知
-          </p>
-          <Link
-            href="/search"
-            className="rounded-full bg-[#ECEAFD] px-3 py-1 text-xs font-bold text-[#5B4FCF]"
-          >
-            🔍 検索
-          </Link>
-        </div>
-        <h1 className="mt-1 text-2xl font-extrabold text-[#1C1C2E]">
+        <h1 className="text-2xl font-extrabold text-[#1C1C2E]">
           今期のアニメ（人気順）
         </h1>
         <p className="mt-1 text-sm text-black/60">
