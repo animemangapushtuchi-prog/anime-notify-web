@@ -16,6 +16,7 @@ import {
   type User,
 } from "firebase/auth";
 import { auth } from "@/lib/firebase";
+import { unregisterPush } from "@/lib/fcm";
 
 const DOMAIN = "@user.anime-notify.app";
 export const idToEmail = (id: string) => `${id.trim().toLowerCase()}${DOMAIN}`;
@@ -55,7 +56,8 @@ export async function signIn(id: string, password: string) {
   await signInWithEmailAndPassword(auth, idToEmail(id), password);
 }
 export async function logout() {
-  // Phase 3 でこの端末のFCMトークン削除を追加する。今はサインアウトのみ。
+  // この端末のFCMトークン登録を消してからサインアウト（=以後この端末に通知が来ない）
+  await unregisterPush();
   await signOut(auth);
 }
 

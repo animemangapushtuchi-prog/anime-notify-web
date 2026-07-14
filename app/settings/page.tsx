@@ -7,6 +7,7 @@ import Link from "next/link";
 import { doc, getDoc, setDoc, serverTimestamp } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import { useAuth } from "@/lib/auth";
+import EnablePush from "@/components/EnablePush";
 
 type Settings = { enabled: boolean; ep: boolean; stream: boolean; adapt: boolean };
 
@@ -109,6 +110,14 @@ export default function SettingsPage() {
   return (
     <main className="mx-auto max-w-md px-4 py-8">
       <h1 className="text-2xl font-extrabold text-[#1C1C2E]">設定</h1>
+
+      <div className="mt-5 rounded-2xl border border-black/10 bg-white p-4">
+        <h2 className="mb-2 text-xs font-bold text-black/50">📱 ブラウザ通知</h2>
+        <EnablePush />
+        <p className="mt-2 text-[11px] leading-relaxed text-black/50">
+          有効にすると、この端末に新話・配信入りのブラウザ通知が届きます。ログアウトすると、この端末への通知は止まります。
+        </p>
+      </div>
 
       {!s ? (
         <p className="mt-6 text-sm text-black/50">読み込み中…</p>
