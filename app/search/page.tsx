@@ -1,84 +1,115 @@
 "use client";
 
-// 検索ページ。入力が止まって0.4秒後に検索し、古い応答は破棄（デバウンス＋abort）。18禁は除外。
+// 検索ページ。フリーワード＋種別/状態チップ＋#ジャンルタグ＋ソート。18禁除外。
+// 何も入力していない＆「アニメ」選択時は、今期のアニメ一覧を表示（ソートで並び替え可）。
+// 詳細のジャンルタップから /search?genre=◯◯ で来ると、そのジャンルが初期タグに入る。
 import { useEffect, useState } from "react";
-import Link from "next/link";
-import { searchAnime, type SeasonAnime } from "@/lib/anilist";
-import WorkCard from "@/components/WorkCard";
+import { searchMedia, genreJa, type SeasonAnime } from "@/lib/anilist";
+import WorkRow from "@/components/WorkRow";
 
-const TYPES = [
-  { key: "ALL", label: "すべて", type: null },
-  { key: "ANIME", label: "アニメ", type: "ANIME" },
-  { key: "MANGA", label: "漫画", type: "MANGA" },
+const FILTERS = [
+  { key: "anime", label: "アニメ", type: "ANIME", status: null, season: false },
+  { key: "manga", label: "漫画", type: "MANGA", status: null, season: false },
+  { key: "airing", label: "今期放送中", type: "ANIME", status: "RELEASING", season: true },
+  { key: "finished", label: "配信済", type: "ANIME", status: "FINISHED", season: false },
+  { key: "unreleased", label: "未発表", type: "ANIME", status: "NOT_YET_RELEASED", season: false },
 ] as const;
 
-type TypeKey = (typeof TYPES)[number]["key"];
+const SORTS = [
+  { key: "match", label: "関連順" },
+  { key: "trending", label: "急上昇" },
+  { key: "popular", label: "人気" },
+  { key: "score", label: "評価順" },
+  { key: "new", label: "新しい順" },
+] as const;
+
+function List({ items }: { items: SeasonAnime[] }) {
+  return (
+    <ul className="mt-3 divide-y divide-[#ECECF2] overflow-hidden rounded-2xl border border-[#ECECF2] bg-white">
+      {items.map((a) => (
+        <li key={a.id}>
+          <WorkRow {...a} />
+        </li>
+      ))}
+    </ul>
+  );
+}
 
 export default function SearchPage() {
   const [q, setQ] = useState("");
-  const [typeKey, setTypeKey] = useState<TypeKey>("ALL");
+  const [filterKey, setFilterKey] = useState<string>("anime");
+  const [sortKey, setSortKey] = useState<string>("match");
+  const [tags, setTags] = useState<string[]>([]);
   const [items, setItems] = useState<SeasonAnime[]>([]);
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
   const [searched, setSearched] = useState(false);
 
+  // URLの ?genre= を初期タグに（詳細のジャンルタップ導線）
   useEffect(() => {
-    const query = q.trim();
-    if (!query) {
-      setItems([]);
-      setLoading(false);
-      setSearched(false);
-      return;
-    }
+    const g = new URLSearchParams(window.location.search).get("genre");
+    if (g) setTags([g]);
+  }, []);
+
+  useEffect(() => {
     setLoading(true);
     const ctrl = new AbortController();
     const timer = setTimeout(async () => {
       try {
-        const type = TYPES.find((x) => x.key === typeKey)!.type;
-        const r = await searchAnime(query, type, ctrl.signal);
+        const f = FILTERS.find((x) => x.key === filterKey)!;
+        const noInput = q.trim().length === 0 && tags.length === 0;
+        const useSeason = f.season || (noInput && filterKey === "anime");
+        const r = await searchMedia(
+          {
+            search: q.trim(),
+            type: f.type,
+            status: f.status,
+            genres: tags,
+            sort: sortKey,
+            season: useSeason,
+          },
+          ctrl.signal
+        );
         setItems(r);
         setLoading(false);
         setSearched(true);
       } catch {
-        if (ctrl.signal.aborted) return; // 古い応答は破棄
+        if (ctrl.signal.aborted) return;
         setItems([]);
         setLoading(false);
         setSearched(true);
       }
-    }, 400);
+    }, 350);
     return () => {
       clearTimeout(timer);
       ctrl.abort();
     };
-  }, [q, typeKey]);
+  }, [q, filterKey, sortKey, tags]);
+
+  const removeTag = (t: string) => setTags((prev) => prev.filter((x) => x !== t));
+
+  const noInput = q.trim().length === 0 && tags.length === 0;
+  const isBrowse = noInput && filterKey === "anime";
 
   return (
-    <main className="mx-auto max-w-5xl px-4 py-6">
-      <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-extrabold text-[#1C1C2E]">検索</h1>
-        <Link href="/" className="text-sm font-semibold text-[#5B4FCF] hover:underline">
-          ← 今期一覧へ
-        </Link>
-      </div>
+    <main className="mx-auto max-w-2xl px-4 py-5">
+      <h1 className="text-xl font-extrabold text-[#1C1C2E]">検索</h1>
 
       <input
         type="text"
         value={q}
         onChange={(e) => setQ(e.target.value)}
-        placeholder="作品名を入力（例：呪術廻戦）"
-        className="mt-4 w-full rounded-xl border border-black/15 bg-white px-4 py-3 text-sm outline-none focus:border-[#5B4FCF]"
-        autoFocus
+        placeholder="作品名を入力（入力中に候補が出ます）"
+        className="mt-3 w-full rounded-xl border border-[#ECECF2] bg-white px-4 py-3 text-sm outline-none focus:border-[#5B4FCF]"
       />
 
-      <div className="mt-3 flex gap-2">
-        {TYPES.map((t) => (
+      <div className="mt-3 flex flex-wrap gap-2">
+        {FILTERS.map((t) => (
           <button
             key={t.key}
             type="button"
-            onClick={() => setTypeKey(t.key)}
+            onClick={() => setFilterKey(t.key)}
             className={`rounded-full px-3 py-1 text-xs font-bold transition ${
-              typeKey === t.key
-                ? "bg-[#5B4FCF] text-white"
-                : "bg-[#ECEAFD] text-[#5B4FCF]"
+              filterKey === t.key ? "bg-[#5B4FCF] text-white" : "bg-[#ECEAFD] text-[#5B4FCF]"
             }`}
           >
             {t.label}
@@ -86,23 +117,49 @@ export default function SearchPage() {
         ))}
       </div>
 
-      <div className="mt-5">
-        {loading && <p className="text-sm text-black/50">検索中…</p>}
-        {!loading && searched && items.length === 0 && (
-          <p className="text-sm text-black/50">
-            見つかりませんでした。表記ゆれ（ひらがな/カタカナ/英語）を変えてみてください。
-          </p>
-        )}
-        {items.length > 0 && (
-          <section className="grid grid-cols-2 gap-x-3 gap-y-5 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5">
-            {items.map((a) => (
-              <WorkCard key={a.id} {...a} />
-            ))}
-          </section>
-        )}
+      {tags.length > 0 && (
+        <div className="mt-2 flex flex-wrap gap-2">
+          {tags.map((t) => (
+            <button
+              key={t}
+              type="button"
+              onClick={() => removeTag(t)}
+              className="flex items-center gap-1 rounded-full bg-[#F1E9FE] px-3 py-1 text-xs font-bold text-[#7C3AED]"
+            >
+              #{genreJa(t)} <span className="text-[10px]">×</span>
+            </button>
+          ))}
+        </div>
+      )}
+
+      <div className="mt-3 flex items-center justify-between">
+        <h2 className="text-xs font-bold text-[#5B4FCF]">
+          {isBrowse ? "🌐 今期のアニメ" : "検索結果"}
+        </h2>
+        <select
+          value={sortKey}
+          onChange={(e) => setSortKey(e.target.value)}
+          className="rounded-full border border-[#ECECF2] bg-white px-2 py-1 text-xs font-bold text-[#1C1C2E]"
+        >
+          {SORTS.map((s) => (
+            <option key={s.key} value={s.key}>
+              {s.label}
+            </option>
+          ))}
+        </select>
       </div>
 
-      <p className="mt-8 text-[10px] text-black/40">出典：AniList</p>
+      {loading ? (
+        <p className="mt-4 text-sm text-black/50">読み込み中…</p>
+      ) : items.length === 0 && searched ? (
+        <p className="mt-4 text-sm text-black/50">
+          見つかりませんでした。条件を変えてみてください（表記ゆれ・タグ・チップ）。
+        </p>
+      ) : (
+        <List items={items} />
+      )}
+
+      <p className="mt-6 text-[10px] text-black/40">出典：AniList</p>
     </main>
   );
 }

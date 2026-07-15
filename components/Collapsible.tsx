@@ -14,13 +14,13 @@ export default function Collapsible({
 }) {
   const [open, setOpen] = useState(defaultOpen);
   return (
-    <div className="rounded-2xl border border-black/10 bg-white p-4">
+    <div className="rounded-2xl border border-[#ECECF2] bg-white p-4">
       <button
         type="button"
         onClick={() => setOpen((v) => !v)}
         className="flex w-full items-center justify-between"
       >
-        <span className="text-sm font-bold text-black/60">{title}</span>
+        <span className="text-[13px] font-bold text-[#6B7280]">{title}</span>
         <span
           className={`text-black/40 transition-transform ${open ? "rotate-180" : ""}`}
           aria-hidden

@@ -42,7 +42,7 @@ export default function LoginPage() {
         {isSignup ? "新規登録" : "ログイン"}
       </h1>
 
-      <form onSubmit={submit} className="mt-6 rounded-2xl border border-black/10 bg-white p-5">
+      <form onSubmit={submit} className="mt-6 rounded-2xl border border-[#ECECF2] bg-white p-5">
         <label className="block text-xs font-bold text-black/50">ID</label>
         <input
           value={id}

@@ -67,7 +67,7 @@ export default function MePage() {
       {works === null ? (
         <p className="mt-6 text-sm text-black/50">読み込み中…</p>
       ) : works.length === 0 ? (
-        <div className="mt-6 rounded-2xl border border-black/10 bg-white p-6 text-sm text-black/50">
+        <div className="mt-6 rounded-2xl border border-[#ECECF2] bg-white p-6 text-sm text-black/50">
           まだ登録がありません。
           <Link href="/" className="ml-1 font-bold text-[#5B4FCF]">
             作品を探す →

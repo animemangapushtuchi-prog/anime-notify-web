@@ -385,4 +385,189 @@ query (${typeVar}$search: String) {
     status: statusJa(String(m.status ?? "")),
   }));
 }
+// ---- 汎用検索（フリーワード＋種別＋状態＋#ジャンルタグ＋ソート・18禁除外） ----
+export type SearchOpts = {
+  search: string;
+  type: "ANIME" | "MANGA" | null;
+  status: string | null; // RELEASING / FINISHED / NOT_YET_RELEASED
+  genres: string[];
+  sort: string; // match / trending / popular / score / new
+  season?: boolean; // trueで今期に限定
+};
+const SORT_MAP: Record<string, string> = {
+  match: "SEARCH_MATCH",
+  trending: "TRENDING_DESC",
+  popular: "POPULARITY_DESC",
+  score: "SCORE_DESC",
+  new: "START_DATE_DESC",
+};
+export async function searchMedia(
+  opts: SearchOpts,
+  signal?: AbortSignal
+): Promise<SeasonAnime[]> {
+  const { search, type, status, genres, sort } = opts;
+  const sortVal =
+    sort === "match" && !search ? "POPULARITY_DESC" : SORT_MAP[sort] ?? "SEARCH_MATCH";
+  const vars: Record<string, unknown> = { sort: [sortVal], isAdult: false };
+  const args = ["sort: $sort", "isAdult: $isAdult"];
+  const defs = ["$sort: [MediaSort]", "$isAdult: Boolean"];
+  if (search) {
+    vars.search = search;
+    args.push("search: $search");
+    defs.push("$search: String");
+  }
+  if (type) {
+    vars.type = type;
+    args.push("type: $type");
+    defs.push("$type: MediaType");
+  }
+  if (status) {
+    vars.status = status;
+    args.push("status: $status");
+    defs.push("$status: MediaStatus");
+  }
+  if (genres.length > 0) {
+    vars.genres = genres;
+    args.push("genre_in: $genres");
+    defs.push("$genres: [String]");
+  }
+  if (opts.season) {
+    const cs = currentSeason();
+    vars.season = cs.season;
+    vars.seasonYear = cs.seasonYear;
+    args.push("season: $season", "seasonYear: $seasonYear");
+    defs.push("$season: MediaSeason", "$seasonYear: Int");
+  }
+  const q = `query (${defs.join(", ")}) {
+  Page(page: 1, perPage: 30) {
+    media(${args.join(", ")}) {
+      id title { native romaji } format status coverImage { large }
+    }
+  }
+}`;
+  const res = await fetch(ANILIST, {
+    method: "POST",
+    headers: { "Content-Type": "application/json", Accept: "application/json" },
+    body: JSON.stringify({ query: q, variables: vars }),
+    signal,
+  });
+  if (!res.ok) throw new Error(`AniList ${res.status}`);
+  const json = await res.json();
+  const media = json?.data?.Page?.media ?? [];
+  return media.map((m: any) => ({
+    id: m.id,
+    title: String(m.title?.native ?? m.title?.romaji ?? ""),
+    coverUrl: String(m.coverImage?.large ?? ""),
+    format: formatJa(String(m.format ?? "")),
+    status: statusJa(String(m.status ?? "")),
+  }));
+}
+
+// ---- シリーズ関連作品（前作・続編チェーンをたどって全期・全クールを復元） ----
+export type SeriesEntry = {
+  id: number;
+  title: string;
+  format: string;
+  episodes: number | null;
+  isCurrent: boolean;
+};
+const RELATIONS_QUERY = `
+query ($id: Int) {
+  Media(id: $id) {
+    id type format episodes status title { native romaji }
+    relations { edges { relationType node { id type format status episodes title { native romaji } } } }
+  }
+}`;
+export async function fetchSeriesInfo(
+  startId: number
+): Promise<{ chain: SeriesEntry[]; related: RelatedWork[]; complete: boolean }> {
+  const visited = new Set<number>();
+  const chain = new Map<number, SeriesEntry>();
+  const related = new Map<number, RelatedWork>();
+  const queue: number[] = [startId];
+  const TV = new Set(["TV", "TV_SHORT", "ONA"]);
+  let complete = true;
+  let reqs = 0;
+  const MAX_REQ = 14;
+  while (queue.length > 0 && reqs < MAX_REQ) {
+    const id = queue.shift()!;
+    if (visited.has(id)) continue;
+    visited.add(id);
+    reqs++;
+    let data: { Media?: any } | null = null;
+    try {
+      const res = await fetch(ANILIST, {
+        method: "POST",
+        headers: { "Content-Type": "application/json", Accept: "application/json" },
+        body: JSON.stringify({ query: RELATIONS_QUERY, variables: { id } }),
+      });
+      if (!res.ok) throw new Error(String(res.status));
+      data = (await res.json())?.data ?? null;
+    } catch {
+      complete = false;
+      continue;
+    }
+    const m = data?.Media;
+    if (!m) continue;
+    if (m.type === "ANIME" && TV.has(m.format)) {
+      chain.set(m.id, {
+        id: m.id,
+        title: String(m.title?.native ?? m.title?.romaji ?? ""),
+        format: String(m.format ?? ""),
+        episodes: typeof m.episodes === "number" ? m.episodes : null,
+        isCurrent: m.id === startId,
+      });
+    }
+    for (const e of m.relations?.edges ?? []) {
+      const rel = String(e.relationType ?? "");
+      const node = e.node;
+      if (!node?.id) continue;
+      const isChainEdge =
+        (rel === "SEQUEL" || rel === "PREQUEL") && node.type === "ANIME";
+      if (isChainEdge) {
+        if (!visited.has(node.id)) queue.push(node.id);
+      } else if (node.id !== startId) {
+        const t = String(node.title?.native ?? node.title?.romaji ?? "");
+        if (t && !related.has(node.id)) {
+          related.set(node.id, {
+            id: node.id,
+            title: t,
+            relation: relationJa(rel),
+            format: String(node.format ?? ""),
+            mediaType: String(node.type ?? ""),
+          });
+        }
+      }
+    }
+  }
+  if (queue.length > 0) complete = false;
+  return {
+    chain: [...chain.values()].sort((a, b) => a.id - b.id),
+    related: [...related.values()],
+    complete,
+  };
+}
+
+// AniListのジャンル英名 → 日本語表示（タグ検索用。フィルタは英名で行う）
+export const GENRE_JA: Record<string, string> = {
+  Action: "アクション",
+  Adventure: "冒険",
+  Comedy: "コメディ",
+  Drama: "ドラマ",
+  Ecchi: "エッチ",
+  Fantasy: "ファンタジー",
+  Horror: "ホラー",
+  "Mahou Shoujo": "魔法少女",
+  Mecha: "メカ",
+  Music: "音楽",
+  Mystery: "ミステリー",
+  Psychological: "サイコロジカル",
+  Romance: "恋愛",
+  "Sci-Fi": "SF",
+  "Slice of Life": "日常",
+  Sports: "スポーツ",
+  Supernatural: "超常",
+  Thriller: "スリラー",
+};
+export const genreJa = (g: string) => GENRE_JA[g] ?? g;
 /* eslint-enable @typescript-eslint/no-explicit-any */

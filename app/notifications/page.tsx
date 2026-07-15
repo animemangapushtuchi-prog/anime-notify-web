@@ -1,7 +1,7 @@
 "use client";
 
 // 通知センター。users/{uid}/notifs をリアルタイム購読し、今日/昨日/それ以前に分けて表示。
-// タップで既読＋作品詳細へ。✓✓で全既読。（作成はサーバーのみ・更新はreadのみ許可＝ルール準拠）
+// フィルタチップ（新話/配信入り/発表）・タップで既読＋詳細・✓✓で全既読。
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -26,6 +26,18 @@ type Notif = {
   workId: number | null;
   read: boolean;
 };
+
+const KIND_FILTERS = [
+  { key: "all", label: "すべて" },
+  { key: "ep", label: "新話" },
+  { key: "stream", label: "配信入り" },
+  { key: "adapt", label: "発表" },
+];
+function matchesFilter(kind: string, filter: string): boolean {
+  if (filter === "all") return true;
+  if (filter === "ep") return kind === "ep" || kind === "start" || kind === "finish";
+  return kind === filter;
+}
 
 function kindInfo(kind: string): { label: string; cls: string } {
   switch (kind) {
@@ -58,6 +70,7 @@ export default function NotificationsPage() {
   const { user, loading } = useAuth();
   const router = useRouter();
   const [notifs, setNotifs] = useState<Notif[] | null>(null);
+  const [filter, setFilter] = useState("all");
 
   useEffect(() => {
     if (!user) {
@@ -127,15 +140,16 @@ export default function NotificationsPage() {
     );
   };
 
+  const shown = (notifs ?? []).filter((n) => matchesFilter(n.kind, filter));
   const groups = ["今日", "昨日", "それ以前"]
     .map((label) => ({
       label,
-      items: (notifs ?? []).filter((n) => n.at && bucketOf(n.at.toDate()) === label),
+      items: shown.filter((n) => n.at && bucketOf(n.at.toDate()) === label),
     }))
     .filter((g) => g.items.length > 0);
 
   return (
-    <main className="mx-auto max-w-2xl px-4 py-8">
+    <main className="mx-auto max-w-2xl px-4 py-6">
       <div className="flex items-center justify-between">
         <h1 className="text-2xl font-extrabold text-[#1C1C2E]">通知</h1>
         <button
@@ -147,11 +161,28 @@ export default function NotificationsPage() {
         </button>
       </div>
 
+      <div className="mt-3 flex flex-wrap gap-2">
+        {KIND_FILTERS.map((t) => (
+          <button
+            key={t.key}
+            type="button"
+            onClick={() => setFilter(t.key)}
+            className={`rounded-full px-3 py-1 text-xs font-bold transition ${
+              filter === t.key ? "bg-[#5B4FCF] text-white" : "bg-[#ECEAFD] text-[#5B4FCF]"
+            }`}
+          >
+            {t.label}
+          </button>
+        ))}
+      </div>
+
       {notifs === null ? (
         <p className="mt-6 text-sm text-black/50">読み込み中…</p>
-      ) : notifs.length === 0 ? (
-        <div className="mt-6 rounded-2xl border border-black/10 bg-white p-6 text-sm text-black/50">
-          まだ通知はありません。作品を登録すると、新話や配信入りが届きます。
+      ) : shown.length === 0 ? (
+        <div className="mt-6 rounded-2xl border border-[#ECECF2] bg-white p-6 text-sm text-black/50">
+          {notifs.length === 0
+            ? "まだ通知はありません。作品を登録すると、新話や配信入りが届きます。"
+            : "この種別の通知はありません。"}
         </div>
       ) : (
         <div className="mt-5 space-y-6">
@@ -167,7 +198,7 @@ export default function NotificationsPage() {
                         type="button"
                         onClick={() => open(n)}
                         className={`flex w-full items-start gap-3 rounded-2xl border p-3 text-left ${
-                          n.read ? "border-black/10 bg-white" : "border-[#5B4FCF]/30 bg-[#F6F5FF]"
+                          n.read ? "border-[#ECECF2] bg-white" : "border-[#5B4FCF]/30 bg-[#F6F5FF]"
                         }`}
                       >
                         <span className={`mt-0.5 flex-none rounded-full px-2 py-0.5 text-[10px] font-bold ${k.cls}`}>

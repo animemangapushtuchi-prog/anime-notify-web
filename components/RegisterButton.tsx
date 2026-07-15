@@ -36,7 +36,7 @@ export default function RegisterButton({ work }: { work: Work }) {
 
   if (works === null) {
     return (
-      <div className="w-full rounded-xl border border-black/10 py-3 text-center text-sm text-black/40">
+      <div className="w-full rounded-xl border border-[#ECECF2] py-3 text-center text-sm text-black/40">
         …
       </div>
     );
