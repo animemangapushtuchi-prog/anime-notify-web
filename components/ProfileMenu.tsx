@@ -61,10 +61,20 @@ export default function ProfileMenu() {
               アンケートに答える
             </Link>
             {soon("アプリ版への案内")}
-            {soon("お問い合わせ")}
+            <a
+              href="mailto:animemangapushtuchi@gmail.com"
+              onClick={close}
+              className="block px-4 py-2 text-sm text-[#1C1C2E]"
+            >
+              お問い合わせ
+            </a>
             <div className="my-1 border-t border-[#ECECF2]" />
-            {soon("利用規約")}
-            {soon("プライバシーポリシー")}
+            <Link href="/terms" onClick={close} className="block px-4 py-2 text-sm text-[#1C1C2E]">
+              利用規約
+            </Link>
+            <Link href="/privacy" onClick={close} className="block px-4 py-2 text-sm text-[#1C1C2E]">
+              プライバシーポリシー
+            </Link>
             {user && (
               <>
                 <div className="my-1 border-t border-[#ECECF2]" />
