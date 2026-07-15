@@ -1,12 +1,20 @@
 "use client";
 
-// 検索ページ。フリーワード＋種別/状態チップ＋#ジャンルタグ＋ソート。18禁除外。
-// 何も入力していない＆「アニメ」選択時は、今期のアニメ一覧を表示（ソートで並び替え可）。
-// 詳細のジャンルタップから /search?genre=◯◯ で来ると、そのジャンルが初期タグに入る。
+// 検索ページ。作品/スタジオ/人物（声優・スタッフ）を横断。
+// ・入力中サジェスト（ドロップダウン）：作品→詳細へ、スタジオ/人物→その作品一覧へ
 // ・ページ式（前へ/次へ＋ページ番号）
-// ・モジュールキャッシュで、ホーム/詳細へ遷移して戻っても再取得しない＋各ページとスクロール位置を保持
+// ・セッション内キャッシュ：遷移して戻っても再取得せず、開いていたページ/スクロール位置を復元
 import { useEffect, useRef, useState } from "react";
-import { searchMediaPage, genreJa, type SeasonAnime } from "@/lib/anilist";
+import { useRouter } from "next/navigation";
+import {
+  searchMediaPage,
+  studioWorksPage,
+  personWorksPage,
+  suggestSearch,
+  genreJa,
+  type SeasonAnime,
+  type Suggestion,
+} from "@/lib/anilist";
 import WorkRow from "@/components/WorkRow";
 
 const FILTERS = [
@@ -25,13 +33,14 @@ const SORTS = [
   { key: "new", label: "新しい順" },
 ] as const;
 
-// ---- セッション内キャッシュ（ページ遷移で消えない。フルリロードでのみクリア） ----
+type Target = { kind: "studio" | "person"; id: number; name: string } | null;
 type PageData = { items: SeasonAnime[]; hasNext: boolean };
 type CacheEntry = { pages: Record<number, PageData>; page: number; lastPage: number; scrollY: number };
+
 const searchCache = new Map<string, CacheEntry>();
-let lastParams: { q: string; filterKey: string; sortKey: string; tags: string[] } | null = null;
-const makeKey = (q: string, fk: string, sk: string, tags: string[]) =>
-  JSON.stringify({ q: q.trim(), fk, sk, tags: [...tags].sort() });
+let lastState: { q: string; filterKey: string; sortKey: string; tags: string[]; target: Target } | null = null;
+const makeKey = (t: Target, q: string, fk: string, sk: string, tags: string[]) =>
+  JSON.stringify({ t: t ? `${t.kind}:${t.id}` : 0, q: q.trim(), fk, sk, tags: [...tags].sort() });
 
 function buildOpts(q: string, filterKey: string, sortKey: string, tags: string[]) {
   const f = FILTERS.find((x) => x.key === filterKey)!;
@@ -41,16 +50,22 @@ function buildOpts(q: string, filterKey: string, sortKey: string, tags: string[]
 }
 
 export default function SearchPage() {
-  const [q, setQ] = useState(() => lastParams?.q ?? "");
-  const [filterKey, setFilterKey] = useState<string>(() => lastParams?.filterKey ?? "anime");
-  const [sortKey, setSortKey] = useState<string>(() => lastParams?.sortKey ?? "match");
-  const [tags, setTags] = useState<string[]>(() => lastParams?.tags ?? []);
+  const router = useRouter();
+  const [q, setQ] = useState(() => lastState?.q ?? "");
+  const [filterKey, setFilterKey] = useState<string>(() => lastState?.filterKey ?? "anime");
+  const [sortKey, setSortKey] = useState<string>(() => lastState?.sortKey ?? "match");
+  const [tags, setTags] = useState<string[]>(() => lastState?.tags ?? []);
+  const [target, setTarget] = useState<Target>(() => lastState?.target ?? null);
+
   const [items, setItems] = useState<SeasonAnime[]>([]);
   const [page, setPage] = useState(1);
   const [lastPage, setLastPage] = useState(1);
-  const [loading, setLoading] = useState(true); // 初回/条件変更の読み込み
-  const [paging, setPaging] = useState(false); // ページ移動の読み込み
+  const [loading, setLoading] = useState(true);
+  const [paging, setPaging] = useState(false);
   const [searched, setSearched] = useState(false);
+
+  const [sug, setSug] = useState<Suggestion[]>([]);
+  const [sugOpen, setSugOpen] = useState(false);
 
   const keyRef = useRef<string>("");
   const listTopRef = useRef<HTMLDivElement | null>(null);
@@ -58,19 +73,27 @@ export default function SearchPage() {
   // URLの ?genre= を初期タグに（詳細のジャンルタップ導線）
   useEffect(() => {
     const g = new URLSearchParams(window.location.search).get("genre");
-    if (g) setTags([g]);
+    if (g) {
+      setTarget(null);
+      setTags([g]);
+    }
   }, []);
 
-  // 条件変更でページ1を取得（キャッシュがあれば復元して再取得しない）
+  const fetchPage = (pg: number, signal?: AbortSignal) => {
+    if (target?.kind === "studio") return studioWorksPage(target.id, pg, signal);
+    if (target?.kind === "person") return personWorksPage(target.id, pg, signal);
+    return searchMediaPage(buildOpts(q, filterKey, sortKey, tags), pg, signal);
+  };
+
+  // 条件/対象の変更でページ1を取得（キャッシュがあれば復元して再取得しない）
   useEffect(() => {
-    lastParams = { q, filterKey, sortKey, tags };
-    const key = makeKey(q, filterKey, sortKey, tags);
+    lastState = { q, filterKey, sortKey, tags, target };
+    const key = makeKey(target, q, filterKey, sortKey, tags);
     keyRef.current = key;
 
     const cached = searchCache.get(key);
     if (cached && cached.pages[cached.page]) {
-      const pd = cached.pages[cached.page];
-      setItems(pd.items);
+      setItems(cached.pages[cached.page].items);
       setPage(cached.page);
       setLastPage(cached.lastPage);
       setLoading(false);
@@ -84,7 +107,7 @@ export default function SearchPage() {
     const ctrl = new AbortController();
     const timer = setTimeout(async () => {
       try {
-        const r = await searchMediaPage(buildOpts(q, filterKey, sortKey, tags), 1, ctrl.signal);
+        const r = await fetchPage(1, ctrl.signal);
         setItems(r.items);
         setPage(1);
         setLastPage(r.lastPage);
@@ -108,9 +131,30 @@ export default function SearchPage() {
       clearTimeout(timer);
       ctrl.abort();
     };
-  }, [q, filterKey, sortKey, tags]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [q, filterKey, sortKey, tags, target]);
 
-  // スクロール位置をキャッシュに保存（遷移して戻ったとき復元するため）
+  // 入力補完（サジェスト）
+  useEffect(() => {
+    if (!q.trim()) {
+      setSug([]);
+      return;
+    }
+    const ctrl = new AbortController();
+    const t = setTimeout(async () => {
+      try {
+        setSug(await suggestSearch(q, ctrl.signal));
+      } catch {
+        /* noop */
+      }
+    }, 250);
+    return () => {
+      clearTimeout(t);
+      ctrl.abort();
+    };
+  }, [q]);
+
+  // スクロール位置をキャッシュに保存
   useEffect(() => {
     let raf = 0;
     const onScroll = () => {
@@ -125,8 +169,7 @@ export default function SearchPage() {
     return () => window.removeEventListener("scroll", onScroll);
   }, []);
 
-  const scrollToTop = () =>
-    listTopRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+  const scrollToTop = () => listTopRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
 
   async function goToPage(n: number) {
     if (n < 1 || n > lastPage || n === page || loading || paging) return;
@@ -141,7 +184,7 @@ export default function SearchPage() {
     }
     setPaging(true);
     try {
-      const r = await searchMediaPage(buildOpts(q, filterKey, sortKey, tags), n);
+      const r = await fetchPage(n);
       setItems(r.items);
       setPage(n);
       setLastPage(r.lastPage);
@@ -158,42 +201,111 @@ export default function SearchPage() {
     }
   }
 
+  function pickSuggestion(s: Suggestion) {
+    setSugOpen(false);
+    if (s.kind === "work") {
+      router.push(`/work/${s.id}`);
+      return;
+    }
+    setTarget({ kind: s.kind, id: s.id, name: s.label });
+    setQ("");
+    setTags([]);
+    setSug([]);
+  }
+
   const removeTag = (t: string) => setTags((prev) => prev.filter((x) => x !== t));
   const noInput = q.trim().length === 0 && tags.length === 0;
-  const isBrowse = noInput && filterKey === "anime";
+  const isBrowse = !target && noInput && filterKey === "anime";
 
-  // 表示するページ番号（現在の前後2つ＋先頭/末尾）
   const windowNums: number[] = [];
   for (let i = Math.max(1, page - 2); i <= Math.min(lastPage, page + 2); i++) windowNums.push(i);
+
+  const kindMark = (k: Suggestion["kind"]) => (k === "studio" ? "🎬" : k === "person" ? "🎤" : "");
 
   return (
     <main className="mx-auto max-w-2xl px-4 py-5">
       <h1 className="text-xl font-extrabold text-[#1C1C2E]">検索</h1>
 
-      <input
-        type="text"
-        value={q}
-        onChange={(e) => setQ(e.target.value)}
-        placeholder="作品名を入力"
-        className="mt-3 w-full rounded-xl border border-[#ECECF2] bg-white px-4 py-3 text-sm outline-none focus:border-[#5B4FCF]"
-      />
-
-      <div className="mt-3 flex flex-wrap gap-2">
-        {FILTERS.map((t) => (
-          <button
-            key={t.key}
-            type="button"
-            onClick={() => setFilterKey(t.key)}
-            className={`rounded-full px-3 py-1 text-xs font-bold transition ${
-              filterKey === t.key ? "bg-[#5B4FCF] text-white" : "bg-[#ECEAFD] text-[#5B4FCF]"
-            }`}
-          >
-            {t.label}
-          </button>
-        ))}
+      {/* 入力＋サジェスト */}
+      <div className="relative mt-3">
+        <input
+          type="text"
+          value={q}
+          onChange={(e) => {
+            setQ(e.target.value);
+            if (target) setTarget(null);
+            setSugOpen(true);
+          }}
+          onFocus={() => setSugOpen(true)}
+          onBlur={() => setTimeout(() => setSugOpen(false), 150)}
+          placeholder="作品名・スタジオ・声優/スタッフ名で検索"
+          className="w-full rounded-xl border border-[#ECECF2] bg-white px-4 py-3 text-sm outline-none focus:border-[#5B4FCF]"
+        />
+        {sugOpen && sug.length > 0 && (
+          <div className="absolute z-30 mt-1 w-full overflow-hidden rounded-xl border border-[#ECECF2] bg-white shadow-xl">
+            {sug.map((s) => (
+              <button
+                key={`${s.kind}-${s.id}`}
+                type="button"
+                onMouseDown={(e) => {
+                  e.preventDefault();
+                  pickSuggestion(s);
+                }}
+                className="flex w-full items-center gap-3 px-3 py-2 text-left hover:bg-[#F6F5FF]"
+              >
+                {s.kind === "work" && s.cover ? (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img src={s.cover} alt="" className="h-10 w-7 flex-none rounded object-cover" />
+                ) : (
+                  <span className="flex h-10 w-7 flex-none items-center justify-center rounded bg-[#ECEAFD] text-sm">
+                    {kindMark(s.kind)}
+                  </span>
+                )}
+                <span className="min-w-0 flex-1">
+                  <span className="block truncate text-[13px] font-bold text-[#1C1C2E]">{s.label}</span>
+                  <span className="block text-[10px] text-[#6B7280]">
+                    {s.kind === "studio" ? "スタジオ" : s.kind === "person" ? `${s.sub}` : s.sub}
+                  </span>
+                </span>
+                <span className="flex-none text-black/25">›</span>
+              </button>
+            ))}
+          </div>
+        )}
       </div>
 
-      {tags.length > 0 && (
+      {/* 対象（スタジオ/人物）バナー or 種別チップ */}
+      {target ? (
+        <div className="mt-3 flex items-center gap-2">
+          <span className="rounded-full bg-[#F1E9FE] px-3 py-1 text-xs font-bold text-[#7C3AED]">
+            {target.kind === "studio" ? "🎬" : "🎤"} {target.name} の作品
+          </span>
+          <button
+            type="button"
+            onClick={() => setTarget(null)}
+            className="rounded-full border border-[#ECECF2] bg-white px-2 py-1 text-[11px] font-bold text-[#6B7280]"
+          >
+            解除 ×
+          </button>
+        </div>
+      ) : (
+        <div className="mt-3 flex flex-wrap gap-2">
+          {FILTERS.map((t) => (
+            <button
+              key={t.key}
+              type="button"
+              onClick={() => setFilterKey(t.key)}
+              className={`rounded-full px-3 py-1 text-xs font-bold transition ${
+                filterKey === t.key ? "bg-[#5B4FCF] text-white" : "bg-[#ECEAFD] text-[#5B4FCF]"
+              }`}
+            >
+              {t.label}
+            </button>
+          ))}
+        </div>
+      )}
+
+      {!target && tags.length > 0 && (
         <div className="mt-2 flex flex-wrap gap-2">
           {tags.map((t) => (
             <button
@@ -209,26 +321,28 @@ export default function SearchPage() {
       )}
 
       <div ref={listTopRef} className="mt-3 flex items-center justify-between scroll-mt-4">
-        <h2 className="text-xs font-bold text-[#5B4FCF]">{isBrowse ? "🌐 今期のアニメ" : "検索結果"}</h2>
-        <select
-          value={sortKey}
-          onChange={(e) => setSortKey(e.target.value)}
-          className="rounded-full border border-[#ECECF2] bg-white px-2 py-1 text-xs font-bold text-[#1C1C2E]"
-        >
-          {SORTS.map((s) => (
-            <option key={s.key} value={s.key}>
-              {s.label}
-            </option>
-          ))}
-        </select>
+        <h2 className="text-xs font-bold text-[#5B4FCF]">
+          {target ? `${target.name} の作品` : isBrowse ? "🌐 今期のアニメ" : "検索結果"}
+        </h2>
+        {!target && (
+          <select
+            value={sortKey}
+            onChange={(e) => setSortKey(e.target.value)}
+            className="rounded-full border border-[#ECECF2] bg-white px-2 py-1 text-xs font-bold text-[#1C1C2E]"
+          >
+            {SORTS.map((s) => (
+              <option key={s.key} value={s.key}>
+                {s.label}
+              </option>
+            ))}
+          </select>
+        )}
       </div>
 
       {loading ? (
         <p className="mt-4 text-sm text-black/50">読み込み中…</p>
       ) : items.length === 0 && searched ? (
-        <p className="mt-4 text-sm text-black/50">
-          見つかりませんでした。条件を変えてみてください（表記ゆれ・タグ・チップ）。
-        </p>
+        <p className="mt-4 text-sm text-black/50">見つかりませんでした。条件を変えてみてください。</p>
       ) : (
         <>
           <ul

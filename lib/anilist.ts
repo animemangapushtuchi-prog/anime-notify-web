@@ -482,6 +482,153 @@ export async function searchMedia(
   return (await searchMediaPage(opts, 1, signal)).items;
 }
 
+// ---- スタジオ / 人物（声優・スタッフ）検索＋入力補完 ----
+type MediaNode = {
+  id: number;
+  title?: { native?: string; romaji?: string };
+  coverImage?: { large?: string };
+  format?: string;
+  status?: string;
+  isAdult?: boolean;
+};
+function mapMediaNode(m: MediaNode): SeasonAnime {
+  return {
+    id: m.id,
+    title: String(m.title?.native ?? m.title?.romaji ?? ""),
+    coverUrl: String(m.coverImage?.large ?? ""),
+    format: formatJa(String(m.format ?? "")),
+    status: statusJa(String(m.status ?? "")),
+  };
+}
+
+export type Suggestion = {
+  kind: "work" | "studio" | "person";
+  id: number;
+  label: string;
+  sub: string;
+  cover: string;
+};
+
+// 入力補完：作品・スタジオ・人物を少数ずつ（1リクエストでまとめて取得）
+export async function suggestSearch(q: string, signal?: AbortSignal): Promise<Suggestion[]> {
+  const s = q.trim();
+  if (!s) return [];
+  const query = `query ($q: String) {
+  Page(perPage: 6) {
+    media(search: $q, isAdult: false, sort: SEARCH_MATCH, type_in: [ANIME, MANGA]) {
+      id title { native romaji } coverImage { medium } format
+    }
+    studios(search: $q) { id name }
+    staff(search: $q) { id name { native full } primaryOccupations }
+  }
+}`;
+  const res = await fetch(ANILIST, {
+    method: "POST",
+    headers: { "Content-Type": "application/json", Accept: "application/json" },
+    body: JSON.stringify({ query, variables: { q: s } }),
+    signal,
+  });
+  if (!res.ok) throw new Error(`AniList ${res.status}`);
+  const d = (await res.json())?.data?.Page ?? {};
+  const out: Suggestion[] = [];
+  for (const m of d.media ?? [])
+    out.push({
+      kind: "work",
+      id: m.id,
+      label: String(m.title?.native ?? m.title?.romaji ?? ""),
+      sub: formatJa(String(m.format ?? "")),
+      cover: String(m.coverImage?.medium ?? ""),
+    });
+  for (const st of d.studios ?? [])
+    out.push({ kind: "studio", id: st.id, label: String(st.name ?? ""), sub: "スタジオ", cover: "" });
+  for (const p of d.staff ?? [])
+    out.push({
+      kind: "person",
+      id: p.id,
+      label: String(p.name?.native ?? p.name?.full ?? ""),
+      sub: String(p.primaryOccupations?.[0] ?? "人物"),
+      cover: "",
+    });
+  return out;
+}
+
+// スタジオ（制作会社）の作品をページングで
+export async function studioWorksPage(
+  id: number,
+  page: number,
+  signal?: AbortSignal
+): Promise<{ items: SeasonAnime[]; hasNextPage: boolean; lastPage: number; name: string }> {
+  const query = `query ($id: Int, $page: Int) {
+  Studio(id: $id) {
+    name
+    media(sort: POPULARITY_DESC, page: $page, perPage: ${SEARCH_PER_PAGE}) {
+      pageInfo { hasNextPage lastPage }
+      nodes { id title { native romaji } format status coverImage { large } isAdult }
+    }
+  }
+}`;
+  const res = await fetch(ANILIST, {
+    method: "POST",
+    headers: { "Content-Type": "application/json", Accept: "application/json" },
+    body: JSON.stringify({ query, variables: { id, page } }),
+    signal,
+  });
+  if (!res.ok) throw new Error(`AniList ${res.status}`);
+  const st = (await res.json())?.data?.Studio ?? {};
+  const conn = st.media ?? {};
+  const items = ((conn.nodes ?? []) as MediaNode[]).filter((m) => !m.isAdult).map(mapMediaNode);
+  return {
+    items,
+    hasNextPage: !!conn.pageInfo?.hasNextPage,
+    lastPage: Number(conn.pageInfo?.lastPage ?? 1) || 1,
+    name: String(st.name ?? ""),
+  };
+}
+
+// 人物（声優・スタッフ）の関連作品をページングで（声優=characterMedia＋スタッフ=staffMediaを統合）
+export async function personWorksPage(
+  id: number,
+  page: number,
+  signal?: AbortSignal
+): Promise<{ items: SeasonAnime[]; hasNextPage: boolean; lastPage: number; name: string }> {
+  const query = `query ($id: Int, $page: Int) {
+  Staff(id: $id) {
+    name { native full }
+    characterMedia(sort: POPULARITY_DESC, page: $page, perPage: ${SEARCH_PER_PAGE}) {
+      pageInfo { hasNextPage lastPage }
+      nodes { id title { native romaji } format status coverImage { large } isAdult }
+    }
+    staffMedia(sort: POPULARITY_DESC, page: $page, perPage: ${SEARCH_PER_PAGE}) {
+      pageInfo { hasNextPage lastPage }
+      nodes { id title { native romaji } format status coverImage { large } isAdult }
+    }
+  }
+}`;
+  const res = await fetch(ANILIST, {
+    method: "POST",
+    headers: { "Content-Type": "application/json", Accept: "application/json" },
+    body: JSON.stringify({ query, variables: { id, page } }),
+    signal,
+  });
+  if (!res.ok) throw new Error(`AniList ${res.status}`);
+  const s = (await res.json())?.data?.Staff ?? {};
+  const cm = s.characterMedia ?? {};
+  const sm = s.staffMedia ?? {};
+  const seen = new Set<number>();
+  const items: SeasonAnime[] = [];
+  for (const m of [...(cm.nodes ?? []), ...(sm.nodes ?? [])] as MediaNode[]) {
+    if (m.isAdult || seen.has(m.id)) continue;
+    seen.add(m.id);
+    items.push(mapMediaNode(m));
+  }
+  const hasNextPage = !!(cm.pageInfo?.hasNextPage || sm.pageInfo?.hasNextPage);
+  const lastPage = Math.max(
+    Number(cm.pageInfo?.lastPage ?? 1) || 1,
+    Number(sm.pageInfo?.lastPage ?? 1) || 1
+  );
+  return { items, hasNextPage, lastPage, name: String(s.name?.native ?? s.name?.full ?? "") };
+}
+
 // ---- シリーズ関連作品（前作・続編チェーンをたどって全期・全クールを復元） ----
 export type SeriesEntry = {
   id: number;
