@@ -23,6 +23,7 @@ import {
 import ServiceIcon from "@/components/ServiceIcon";
 import SurveyCard from "@/components/SurveyCard";
 import ScheduleCalendar, { type AiringEntry } from "@/components/ScheduleCalendar";
+import StatusPicker from "@/components/StatusPicker";
 
 const WD = ["日", "月", "火", "水", "木", "金", "土"];
 function fmtNext(nextEp: number | null, nextAt: number | null, station: string): string | null {
@@ -33,8 +34,6 @@ function fmtNext(nextEp: number | null, nextAt: number | null, station: string):
   const st = station ? `（${station}）` : "";
   return `次の予定：${ep}${d.getUTCMonth() + 1}/${d.getUTCDate()}（${WD[d.getUTCDay()]}）${two(d.getUTCHours())}:${two(d.getUTCMinutes())}${st}`;
 }
-
-const stMeta = (s?: WatchStatus) => WATCH_STATUSES.find((x) => x.key === s);
 
 type Sort = "air" | "added";
 type View = "calendar" | "list";
@@ -86,7 +85,6 @@ export default function Home() {
     return c;
   }, [works]);
 
-  // カレンダー用：次回放送のある登録作品を投影
   const entries = useMemo<AiringEntry[]>(() => {
     const out: AiringEntry[] = [];
     for (const w of works ?? []) {
@@ -158,7 +156,6 @@ export default function Home() {
     <main className="mx-auto max-w-2xl px-4 py-5">
       <SurveyCard />
 
-      {/* 表示切り替え：放送カレンダー / 登録作品 */}
       <div className="flex items-center justify-between">
         <div className="flex rounded-full bg-[#ECEAFD] p-1">
           {([
@@ -194,7 +191,6 @@ export default function Home() {
         </div>
       ) : (
         <div className="mt-4">
-          {/* 状態フィルタ */}
           <div className="-mx-4 flex gap-2 overflow-x-auto px-4 pb-1">
             <button
               type="button"
@@ -251,7 +247,6 @@ export default function Home() {
                 const next = fmtNext(info?.nextEp ?? null, info?.nextAt ?? null, station);
                 const cover = w.cover || info?.cover || "";
                 const airing = w.status === "RELEASING";
-                const sm = stMeta(w.watchStatus);
                 return (
                   <li key={w.id} className="flex items-center gap-3 px-3 py-3">
                     <Link href={`/work/${w.id}`} className="flex min-w-0 flex-1 items-center gap-3">
@@ -262,14 +257,6 @@ export default function Home() {
                       <div className="min-w-0">
                         <div className="flex items-center gap-2">
                           <span className="truncate text-sm font-bold text-[#1C1C2E]">{w.title}</span>
-                          {sm && (
-                            <span
-                              className="flex-none rounded-full px-2 py-0.5 text-[10px] font-bold"
-                              style={{ color: sm.color, background: sm.bg }}
-                            >
-                              {sm.label}
-                            </span>
-                          )}
                           <span
                             className={`flex-none rounded-full px-2 py-0.5 text-[10px] font-bold ${
                               airing ? "bg-[#FDEAEA] text-[#DC2626]" : "bg-black/5 text-black/50"
@@ -298,21 +285,11 @@ export default function Home() {
                         {busyId === w.id ? "…" : "解除"}
                       </button>
                     ) : (
-                      <select
-                        aria-label="視聴ステータス"
-                        value={w.watchStatus ?? ""}
-                        onChange={(e) =>
-                          changeStatus(w.id, (e.target.value || null) as WatchStatus | null)
-                        }
-                        className="flex-none rounded-full border border-[#ECECF2] bg-white px-2 py-1 text-[11px] font-bold text-[#1C1C2E]"
-                      >
-                        <option value="">未選択</option>
-                        {WATCH_STATUSES.map((s) => (
-                          <option key={s.key} value={s.key}>
-                            {s.label}
-                          </option>
-                        ))}
-                      </select>
+                      <StatusPicker
+                        current={w.watchStatus}
+                        onChange={(s) => changeStatus(w.id, s)}
+                        size="sm"
+                      />
                     )}
                   </li>
                 );

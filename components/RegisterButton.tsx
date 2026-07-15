@@ -1,6 +1,6 @@
 "use client";
 
-// 作品詳細ページの登録/解除ボタン＋視聴ステータス選択。未ログインならログイン誘導。枠は10件まで。
+// 作品詳細ページの登録/解除ボタン＋視聴ステータス選択（StatusPicker共用）。
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useAuth } from "@/lib/auth";
@@ -10,10 +10,10 @@ import {
   removeWork,
   setWatchStatus,
   MAX_SLOTS,
-  WATCH_STATUSES,
   type Work,
   type WatchStatus,
 } from "@/lib/works";
+import StatusPicker from "@/components/StatusPicker";
 
 export default function RegisterButton({ work }: { work: Work }) {
   const { user, loading } = useAuth();
@@ -100,39 +100,9 @@ export default function RegisterButton({ work }: { work: Work }) {
       </button>
 
       {registered && (
-        <div className="mt-2">
-          <p className="text-[11px] font-bold text-[#6B7280]">視聴ステータス</p>
-          <div className="mt-1 flex flex-wrap gap-1.5">
-            <button
-              type="button"
-              onClick={() => changeStatus(null)}
-              className={`rounded-full px-3 py-1 text-xs font-bold transition ${
-                !me?.watchStatus
-                  ? "bg-[#1C1C2E] text-white"
-                  : "border border-[#ECECF2] bg-white text-[#6B7280]"
-              }`}
-            >
-              未選択
-            </button>
-            {WATCH_STATUSES.map((s) => {
-              const on = me?.watchStatus === s.key;
-              return (
-                <button
-                  key={s.key}
-                  type="button"
-                  onClick={() => changeStatus(s.key)}
-                  className="rounded-full px-3 py-1 text-xs font-bold transition"
-                  style={
-                    on
-                      ? { color: "#fff", background: s.color }
-                      : { color: s.color, background: s.bg }
-                  }
-                >
-                  {s.label}
-                </button>
-              );
-            })}
-          </div>
+        <div className="mt-3 flex items-center justify-between rounded-xl border border-[#ECECF2] bg-white px-3 py-2.5">
+          <span className="text-[13px] font-bold text-[#1C1C2E]">視聴ステータス</span>
+          <StatusPicker current={me?.watchStatus} onChange={changeStatus} size="md" />
         </div>
       )}
     </div>
