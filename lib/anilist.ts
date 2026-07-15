@@ -408,7 +408,7 @@ export async function searchMediaPage(
   opts: SearchOpts,
   page: number,
   signal?: AbortSignal
-): Promise<{ items: SeasonAnime[]; hasNextPage: boolean }> {
+): Promise<{ items: SeasonAnime[]; hasNextPage: boolean; lastPage: number }> {
   const { search, type, status, genres, sort } = opts;
   const sortVal =
     sort === "match" && !search ? "POPULARITY_DESC" : SORT_MAP[sort] ?? "SEARCH_MATCH";
@@ -444,7 +444,7 @@ export async function searchMediaPage(
   }
   const q = `query (${defs.join(", ")}) {
   Page(page: $page, perPage: ${SEARCH_PER_PAGE}) {
-    pageInfo { hasNextPage }
+    pageInfo { hasNextPage lastPage }
     media(${args.join(", ")}) {
       id title { native romaji } format status coverImage { large }
     }
@@ -460,6 +460,7 @@ export async function searchMediaPage(
   const json = await res.json();
   const media = json?.data?.Page?.media ?? [];
   const hasNextPage = !!json?.data?.Page?.pageInfo?.hasNextPage;
+  const lastPage = Number(json?.data?.Page?.pageInfo?.lastPage ?? 1) || 1;
   return {
     items: media.map((m: any) => ({
       id: m.id,
@@ -469,6 +470,7 @@ export async function searchMediaPage(
       status: statusJa(String(m.status ?? "")),
     })),
     hasNextPage,
+    lastPage,
   };
 }
 

@@ -3,8 +3,8 @@
 // 検索ページ。フリーワード＋種別/状態チップ＋#ジャンルタグ＋ソート。18禁除外。
 // 何も入力していない＆「アニメ」選択時は、今期のアニメ一覧を表示（ソートで並び替え可）。
 // 詳細のジャンルタップから /search?genre=◯◯ で来ると、そのジャンルが初期タグに入る。
-// ・無限スクロール（下端で次ページを追記）
-// ・モジュールキャッシュで、ホーム/詳細へ遷移して戻っても再取得しない＋スクロール位置も復元
+// ・ページ式（前へ/次へ＋ページ番号）
+// ・モジュールキャッシュで、ホーム/詳細へ遷移して戻っても再取得しない＋各ページとスクロール位置を保持
 import { useEffect, useRef, useState } from "react";
 import { searchMediaPage, genreJa, type SeasonAnime } from "@/lib/anilist";
 import WorkRow from "@/components/WorkRow";
@@ -26,7 +26,8 @@ const SORTS = [
 ] as const;
 
 // ---- セッション内キャッシュ（ページ遷移で消えない。フルリロードでのみクリア） ----
-type CacheEntry = { items: SeasonAnime[]; page: number; hasNext: boolean; scrollY: number };
+type PageData = { items: SeasonAnime[]; hasNext: boolean };
+type CacheEntry = { pages: Record<number, PageData>; page: number; lastPage: number; scrollY: number };
 const searchCache = new Map<string, CacheEntry>();
 let lastParams: { q: string; filterKey: string; sortKey: string; tags: string[] } | null = null;
 const makeKey = (q: string, fk: string, sk: string, tags: string[]) =>
@@ -46,15 +47,13 @@ export default function SearchPage() {
   const [tags, setTags] = useState<string[]>(() => lastParams?.tags ?? []);
   const [items, setItems] = useState<SeasonAnime[]>([]);
   const [page, setPage] = useState(1);
-  const [hasNext, setHasNext] = useState(false);
-  const [loading, setLoading] = useState(true);
-  const [loadingMore, setLoadingMore] = useState(false);
+  const [lastPage, setLastPage] = useState(1);
+  const [loading, setLoading] = useState(true); // 初回/条件変更の読み込み
+  const [paging, setPaging] = useState(false); // ページ移動の読み込み
   const [searched, setSearched] = useState(false);
 
   const keyRef = useRef<string>("");
-  const loadingMoreRef = useRef(false);
-  const loadMoreRef = useRef<() => void>(() => {});
-  const sentinelRef = useRef<HTMLDivElement | null>(null);
+  const listTopRef = useRef<HTMLDivElement | null>(null);
 
   // URLの ?genre= を初期タグに（詳細のジャンルタップ導線）
   useEffect(() => {
@@ -62,17 +61,18 @@ export default function SearchPage() {
     if (g) setTags([g]);
   }, []);
 
-  // メイン検索（パラメータ変化で1ページ目を取得。ただしキャッシュがあれば復元して再取得しない）
+  // 条件変更でページ1を取得（キャッシュがあれば復元して再取得しない）
   useEffect(() => {
     lastParams = { q, filterKey, sortKey, tags };
     const key = makeKey(q, filterKey, sortKey, tags);
     keyRef.current = key;
 
     const cached = searchCache.get(key);
-    if (cached) {
-      setItems(cached.items);
+    if (cached && cached.pages[cached.page]) {
+      const pd = cached.pages[cached.page];
+      setItems(pd.items);
       setPage(cached.page);
-      setHasNext(cached.hasNext);
+      setLastPage(cached.lastPage);
       setLoading(false);
       setSearched(true);
       const y = cached.scrollY;
@@ -87,14 +87,19 @@ export default function SearchPage() {
         const r = await searchMediaPage(buildOpts(q, filterKey, sortKey, tags), 1, ctrl.signal);
         setItems(r.items);
         setPage(1);
-        setHasNext(r.hasNextPage);
-        searchCache.set(key, { items: r.items, page: 1, hasNext: r.hasNextPage, scrollY: 0 });
+        setLastPage(r.lastPage);
+        searchCache.set(key, {
+          pages: { 1: { items: r.items, hasNext: r.hasNextPage } },
+          page: 1,
+          lastPage: r.lastPage,
+          scrollY: 0,
+        });
         setLoading(false);
         setSearched(true);
       } catch {
         if (ctrl.signal.aborted) return;
         setItems([]);
-        setHasNext(false);
+        setLastPage(1);
         setLoading(false);
         setSearched(true);
       }
@@ -104,49 +109,6 @@ export default function SearchPage() {
       ctrl.abort();
     };
   }, [q, filterKey, sortKey, tags]);
-
-  // 次ページ追記（無限スクロール）。毎レンダーで最新stateを閉じ込めた関数をrefに載せる。
-  loadMoreRef.current = async () => {
-    if (loadingMoreRef.current || loading || !hasNext) return;
-    loadingMoreRef.current = true;
-    setLoadingMore(true);
-    const next = page + 1;
-    try {
-      const r = await searchMediaPage(buildOpts(q, filterKey, sortKey, tags), next);
-      setItems((prev) => {
-        const seen = new Set(prev.map((x) => x.id));
-        const merged = [...prev, ...r.items.filter((x) => !seen.has(x.id))];
-        const ent = searchCache.get(keyRef.current);
-        if (ent) {
-          ent.items = merged;
-          ent.page = next;
-          ent.hasNext = r.hasNextPage;
-        }
-        return merged;
-      });
-      setPage(next);
-      setHasNext(r.hasNextPage);
-    } catch {
-      /* 失敗時は次回スクロールで再試行 */
-    } finally {
-      loadingMoreRef.current = false;
-      setLoadingMore(false);
-    }
-  };
-
-  // 下端センチネルを監視して追記
-  useEffect(() => {
-    const el = sentinelRef.current;
-    if (!el) return;
-    const io = new IntersectionObserver(
-      (entries) => {
-        if (entries[0]?.isIntersecting) loadMoreRef.current();
-      },
-      { rootMargin: "600px" }
-    );
-    io.observe(el);
-    return () => io.disconnect();
-  }, []);
 
   // スクロール位置をキャッシュに保存（遷移して戻ったとき復元するため）
   useEffect(() => {
@@ -163,9 +125,46 @@ export default function SearchPage() {
     return () => window.removeEventListener("scroll", onScroll);
   }, []);
 
+  const scrollToTop = () =>
+    listTopRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+
+  async function goToPage(n: number) {
+    if (n < 1 || n > lastPage || n === page || loading || paging) return;
+    const key = keyRef.current;
+    const ent = searchCache.get(key);
+    if (ent?.pages[n]) {
+      setItems(ent.pages[n].items);
+      setPage(n);
+      ent.page = n;
+      scrollToTop();
+      return;
+    }
+    setPaging(true);
+    try {
+      const r = await searchMediaPage(buildOpts(q, filterKey, sortKey, tags), n);
+      setItems(r.items);
+      setPage(n);
+      setLastPage(r.lastPage);
+      if (ent) {
+        ent.pages[n] = { items: r.items, hasNext: r.hasNextPage };
+        ent.page = n;
+        ent.lastPage = r.lastPage;
+      }
+      scrollToTop();
+    } catch {
+      /* noop */
+    } finally {
+      setPaging(false);
+    }
+  }
+
   const removeTag = (t: string) => setTags((prev) => prev.filter((x) => x !== t));
   const noInput = q.trim().length === 0 && tags.length === 0;
   const isBrowse = noInput && filterKey === "anime";
+
+  // 表示するページ番号（現在の前後2つ＋先頭/末尾）
+  const windowNums: number[] = [];
+  for (let i = Math.max(1, page - 2); i <= Math.min(lastPage, page + 2); i++) windowNums.push(i);
 
   return (
     <main className="mx-auto max-w-2xl px-4 py-5">
@@ -209,7 +208,7 @@ export default function SearchPage() {
         </div>
       )}
 
-      <div className="mt-3 flex items-center justify-between">
+      <div ref={listTopRef} className="mt-3 flex items-center justify-between scroll-mt-4">
         <h2 className="text-xs font-bold text-[#5B4FCF]">{isBrowse ? "🌐 今期のアニメ" : "検索結果"}</h2>
         <select
           value={sortKey}
@@ -232,7 +231,11 @@ export default function SearchPage() {
         </p>
       ) : (
         <>
-          <ul className="mt-3 divide-y divide-[#ECECF2] overflow-hidden rounded-2xl border border-[#ECECF2] bg-white">
+          <ul
+            className={`mt-3 divide-y divide-[#ECECF2] overflow-hidden rounded-2xl border border-[#ECECF2] bg-white transition-opacity ${
+              paging ? "opacity-50" : ""
+            }`}
+          >
             {items.map((a) => (
               <li key={a.id}>
                 <WorkRow {...a} />
@@ -240,12 +243,62 @@ export default function SearchPage() {
             ))}
           </ul>
 
-          {/* 無限スクロール用センチネル＋状態表示 */}
-          <div ref={sentinelRef} className="h-8" />
-          {loadingMore && <p className="mt-2 text-center text-xs text-black/40">読み込み中…</p>}
-          {!hasNext && items.length > 0 && (
-            <p className="mt-2 text-center text-[11px] text-black/30">これ以上はありません</p>
+          {lastPage > 1 && (
+            <div className="mt-4 flex flex-wrap items-center justify-center gap-1.5">
+              <button
+                type="button"
+                onClick={() => goToPage(page - 1)}
+                disabled={page <= 1 || paging}
+                className="rounded-lg border border-[#ECECF2] bg-white px-3 py-1.5 text-xs font-bold text-[#5B4FCF] disabled:opacity-40"
+              >
+                ← 前へ
+              </button>
+
+              {windowNums[0] > 1 && (
+                <>
+                  <button type="button" onClick={() => goToPage(1)} className="rounded-lg px-2.5 py-1.5 text-xs font-bold text-[#6B7280]">1</button>
+                  {windowNums[0] > 2 && <span className="px-1 text-xs text-black/30">…</span>}
+                </>
+              )}
+
+              {windowNums.map((n) => (
+                <button
+                  key={n}
+                  type="button"
+                  onClick={() => goToPage(n)}
+                  disabled={paging}
+                  className={`rounded-lg px-2.5 py-1.5 text-xs font-bold ${
+                    n === page ? "bg-[#5B4FCF] text-white" : "text-[#6B7280]"
+                  }`}
+                >
+                  {n}
+                </button>
+              ))}
+
+              {windowNums[windowNums.length - 1] < lastPage && (
+                <>
+                  {windowNums[windowNums.length - 1] < lastPage - 1 && (
+                    <span className="px-1 text-xs text-black/30">…</span>
+                  )}
+                  <button type="button" onClick={() => goToPage(lastPage)} className="rounded-lg px-2.5 py-1.5 text-xs font-bold text-[#6B7280]">{lastPage}</button>
+                </>
+              )}
+
+              <button
+                type="button"
+                onClick={() => goToPage(page + 1)}
+                disabled={page >= lastPage || paging}
+                className="rounded-lg border border-[#ECECF2] bg-white px-3 py-1.5 text-xs font-bold text-[#5B4FCF] disabled:opacity-40"
+              >
+                次へ →
+              </button>
+            </div>
           )}
+
+          <p className="mt-2 text-center text-[11px] text-black/40">
+            ページ {page} / {lastPage}
+            {paging ? "　読み込み中…" : ""}
+          </p>
         </>
       )}
 
