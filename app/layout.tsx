@@ -6,6 +6,7 @@ import SiteHeader from "@/components/SiteHeader";
 import BottomTabs from "@/components/BottomTabs";
 import PushManager from "@/components/PushManager";
 import IosBanner from "@/components/IosBanner";
+import Script from "next/script";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -29,6 +30,10 @@ export const viewport: Viewport = {
   themeColor: "#5B4FCF",
 };
 
+// AdSense審査コード：環境変数 NEXT_PUBLIC_ADSENSE_CLIENT（例: ca-pub-XXXXXXXXXXXXXXXX）が
+// 設定されているときだけ読み込む。未設定なら何も出力しない（＝現状は無効・安全）。
+const ADSENSE_CLIENT = process.env.NEXT_PUBLIC_ADSENSE_CLIENT ?? "ca-pub-6458901222804186";
+
 export default function RootLayout({
   children,
 }: Readonly<{
@@ -47,6 +52,15 @@ export default function RootLayout({
           <BottomTabs />
           <PushManager />
         </AuthProvider>
+        {ADSENSE_CLIENT ? (
+          <Script
+            id="adsbygoogle-init"
+            strategy="afterInteractive"
+            async
+            src={`https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=${ADSENSE_CLIENT}`}
+            crossOrigin="anonymous"
+          />
+        ) : null}
       </body>
     </html>
   );
