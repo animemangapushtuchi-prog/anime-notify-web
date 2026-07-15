@@ -24,6 +24,7 @@ export const metadata: Metadata = {
   manifest: "/manifest.webmanifest",
   appleWebApp: { capable: true, title: "アニメ通知", statusBarStyle: "default" },
   icons: { icon: "/icon-192.png", apple: "/apple-icon.png" },
+  other: { "google-adsense-account": "ca-pub-6458901222804186" },
 };
 
 export const viewport: Viewport = {
