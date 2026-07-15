@@ -5,6 +5,25 @@ import { db } from "@/lib/firebase";
 
 export const MAX_SLOTS = 10;
 
+// 視聴ステータス（Annict風の多段管理）。放送状態(status)とは別軸。
+export type WatchStatus = "want" | "watching" | "watched" | "paused" | "dropped";
+
+export const WATCH_STATUSES: {
+  key: WatchStatus;
+  label: string;
+  color: string;
+  bg: string;
+}[] = [
+  { key: "want", label: "見たい", color: "#2563EB", bg: "#E8F0FE" },
+  { key: "watching", label: "見てる", color: "#059669", bg: "#E6F7F1" },
+  { key: "watched", label: "見た", color: "#7C3AED", bg: "#F1E9FE" },
+  { key: "paused", label: "中断", color: "#B45309", bg: "#FEF3C7" },
+  { key: "dropped", label: "中止", color: "#6B7280", bg: "#F1F1F5" },
+];
+
+export const watchLabel = (s?: WatchStatus): string =>
+  WATCH_STATUSES.find((x) => x.key === s)?.label ?? "未選択";
+
 export type Work = {
   id: number; // AniList作品ID
   title: string;
@@ -12,6 +31,7 @@ export type Work = {
   status: string; // "RELEASING" | "FINISHED"
   cover?: string;
   added?: number;
+  watchStatus?: WatchStatus; // 見たい/見てる/見た/中断/中止（未設定=未選択）
 };
 
 export async function getWorks(uid: string): Promise<Work[]> {
@@ -44,4 +64,21 @@ export async function removeWork(uid: string, id: number): Promise<Work[]> {
     uid,
     cur.filter((x) => x.id !== id)
   );
+}
+
+// 視聴ステータスを設定（null=未選択に戻す）。Firestoreはundefined不可なのでキーごと削除。
+export async function setWatchStatus(
+  uid: string,
+  id: number,
+  status: WatchStatus | null
+): Promise<Work[]> {
+  const cur = await getWorks(uid);
+  const next = cur.map((w) => {
+    if (w.id !== id) return w;
+    const c: Work = { ...w };
+    if (status) c.watchStatus = status;
+    else delete c.watchStatus;
+    return c;
+  });
+  return saveWorks(uid, next);
 }

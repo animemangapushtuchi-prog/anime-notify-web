@@ -4,7 +4,15 @@
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { useAuth } from "@/lib/auth";
-import { getWorks, removeWork, MAX_SLOTS, type Work } from "@/lib/works";
+import {
+  getWorks,
+  removeWork,
+  setWatchStatus,
+  MAX_SLOTS,
+  WATCH_STATUSES,
+  type Work,
+  type WatchStatus,
+} from "@/lib/works";
 import {
   getWatchedMap,
   getTvPrograms,
@@ -26,8 +34,11 @@ function fmtNext(nextEp: number | null, nextAt: number | null, station: string):
   return `次の予定：${ep}${d.getUTCMonth() + 1}/${d.getUTCDate()}（${WD[d.getUTCDay()]}）${two(d.getUTCHours())}:${two(d.getUTCMinutes())}${st}`;
 }
 
+const stMeta = (s?: WatchStatus) => WATCH_STATUSES.find((x) => x.key === s);
+
 type Sort = "air" | "added";
 type View = "calendar" | "list";
+type Filter = WatchStatus | "all";
 
 export default function Home() {
   const { user, loading } = useAuth();
@@ -36,6 +47,7 @@ export default function Home() {
   const [progs, setProgs] = useState<TvProgram[]>([]);
   const [view, setView] = useState<View>("calendar");
   const [sort, setSort] = useState<Sort>("air");
+  const [filter, setFilter] = useState<Filter>("all");
   const [edit, setEdit] = useState(false);
   const [busyId, setBusyId] = useState<number | null>(null);
 
@@ -62,6 +74,17 @@ export default function Home() {
     }
     return list;
   }, [works, watched, sort]);
+
+  const shown = useMemo(
+    () => (filter === "all" ? sorted : sorted.filter((w) => w.watchStatus === filter)),
+    [sorted, filter]
+  );
+
+  const counts = useMemo(() => {
+    const c: Record<string, number> = {};
+    for (const w of works ?? []) if (w.watchStatus) c[w.watchStatus] = (c[w.watchStatus] ?? 0) + 1;
+    return c;
+  }, [works]);
 
   // カレンダー用：次回放送のある登録作品を投影
   const entries = useMemo<AiringEntry[]>(() => {
@@ -121,6 +144,16 @@ export default function Home() {
     }
   };
 
+  const changeStatus = async (id: number, s: WatchStatus | null) => {
+    if (!user) return;
+    setWorks((prev) =>
+      prev ? prev.map((w) => (w.id === id ? { ...w, watchStatus: s ?? undefined } : w)) : prev
+    );
+    try {
+      await setWatchStatus(user.uid, id, s);
+    } catch {}
+  };
+
   return (
     <main className="mx-auto max-w-2xl px-4 py-5">
       <SurveyCard />
@@ -161,7 +194,32 @@ export default function Home() {
         </div>
       ) : (
         <div className="mt-4">
-          <div className="flex items-center justify-end gap-3 text-xs font-bold">
+          {/* 状態フィルタ */}
+          <div className="-mx-4 flex gap-2 overflow-x-auto px-4 pb-1">
+            <button
+              type="button"
+              onClick={() => setFilter("all")}
+              className={`flex-none rounded-full px-3 py-1 text-xs font-bold transition ${
+                filter === "all" ? "bg-[#5B4FCF] text-white" : "bg-white text-[#6B7280] border border-[#ECECF2]"
+              }`}
+            >
+              すべて {works?.length ?? 0}
+            </button>
+            {WATCH_STATUSES.map((s) => (
+              <button
+                key={s.key}
+                type="button"
+                onClick={() => setFilter(s.key)}
+                className={`flex-none rounded-full px-3 py-1 text-xs font-bold transition ${
+                  filter === s.key ? "bg-[#5B4FCF] text-white" : "bg-white text-[#6B7280] border border-[#ECECF2]"
+                }`}
+              >
+                {s.label} {counts[s.key] ?? 0}
+              </button>
+            ))}
+          </div>
+
+          <div className="mt-2 flex items-center justify-end gap-3 text-xs font-bold">
             <select
               value={sort}
               onChange={(e) => setSort(e.target.value as Sort)}
@@ -181,14 +239,19 @@ export default function Home() {
             <div className="mt-4 rounded-2xl border border-[#ECECF2] bg-white p-6 text-sm text-black/50">
               まだ登録がありません。下の「検索」タブから作品を登録すると、新話・配信入りが通知されます。
             </div>
+          ) : shown.length === 0 ? (
+            <div className="mt-4 rounded-2xl border border-[#ECECF2] bg-white p-6 text-sm text-black/50">
+              この状態の作品はありません。
+            </div>
           ) : (
             <ul className="mt-4 divide-y divide-[#ECECF2] overflow-hidden rounded-2xl border border-[#ECECF2] bg-white">
-              {sorted.map((w) => {
+              {shown.map((w) => {
                 const info = watched.get(w.id);
                 const station = matchStation(w.title, progs)?.ch ?? "";
                 const next = fmtNext(info?.nextEp ?? null, info?.nextAt ?? null, station);
                 const cover = w.cover || info?.cover || "";
                 const airing = w.status === "RELEASING";
+                const sm = stMeta(w.watchStatus);
                 return (
                   <li key={w.id} className="flex items-center gap-3 px-3 py-3">
                     <Link href={`/work/${w.id}`} className="flex min-w-0 flex-1 items-center gap-3">
@@ -199,6 +262,14 @@ export default function Home() {
                       <div className="min-w-0">
                         <div className="flex items-center gap-2">
                           <span className="truncate text-sm font-bold text-[#1C1C2E]">{w.title}</span>
+                          {sm && (
+                            <span
+                              className="flex-none rounded-full px-2 py-0.5 text-[10px] font-bold"
+                              style={{ color: sm.color, background: sm.bg }}
+                            >
+                              {sm.label}
+                            </span>
+                          )}
                           <span
                             className={`flex-none rounded-full px-2 py-0.5 text-[10px] font-bold ${
                               airing ? "bg-[#FDEAEA] text-[#DC2626]" : "bg-black/5 text-black/50"
@@ -227,7 +298,21 @@ export default function Home() {
                         {busyId === w.id ? "…" : "解除"}
                       </button>
                     ) : (
-                      <span className="flex-none text-black/30">›</span>
+                      <select
+                        aria-label="視聴ステータス"
+                        value={w.watchStatus ?? ""}
+                        onChange={(e) =>
+                          changeStatus(w.id, (e.target.value || null) as WatchStatus | null)
+                        }
+                        className="flex-none rounded-full border border-[#ECECF2] bg-white px-2 py-1 text-[11px] font-bold text-[#1C1C2E]"
+                      >
+                        <option value="">未選択</option>
+                        {WATCH_STATUSES.map((s) => (
+                          <option key={s.key} value={s.key}>
+                            {s.label}
+                          </option>
+                        ))}
+                      </select>
                     )}
                   </li>
                 );
