@@ -401,16 +401,20 @@ const SORT_MAP: Record<string, string> = {
   score: "SCORE_DESC",
   new: "START_DATE_DESC",
 };
-export async function searchMedia(
+export const SEARCH_PER_PAGE = 30;
+
+// ページ指定つき検索。hasNextPageも返すので無限スクロールに使える。
+export async function searchMediaPage(
   opts: SearchOpts,
+  page: number,
   signal?: AbortSignal
-): Promise<SeasonAnime[]> {
+): Promise<{ items: SeasonAnime[]; hasNextPage: boolean }> {
   const { search, type, status, genres, sort } = opts;
   const sortVal =
     sort === "match" && !search ? "POPULARITY_DESC" : SORT_MAP[sort] ?? "SEARCH_MATCH";
-  const vars: Record<string, unknown> = { sort: [sortVal], isAdult: false };
+  const vars: Record<string, unknown> = { sort: [sortVal], isAdult: false, page };
   const args = ["sort: $sort", "isAdult: $isAdult"];
-  const defs = ["$sort: [MediaSort]", "$isAdult: Boolean"];
+  const defs = ["$sort: [MediaSort]", "$isAdult: Boolean", "$page: Int"];
   if (search) {
     vars.search = search;
     args.push("search: $search");
@@ -439,7 +443,8 @@ export async function searchMedia(
     defs.push("$season: MediaSeason", "$seasonYear: Int");
   }
   const q = `query (${defs.join(", ")}) {
-  Page(page: 1, perPage: 30) {
+  Page(page: $page, perPage: ${SEARCH_PER_PAGE}) {
+    pageInfo { hasNextPage }
     media(${args.join(", ")}) {
       id title { native romaji } format status coverImage { large }
     }
@@ -454,13 +459,25 @@ export async function searchMedia(
   if (!res.ok) throw new Error(`AniList ${res.status}`);
   const json = await res.json();
   const media = json?.data?.Page?.media ?? [];
-  return media.map((m: any) => ({
-    id: m.id,
-    title: String(m.title?.native ?? m.title?.romaji ?? ""),
-    coverUrl: String(m.coverImage?.large ?? ""),
-    format: formatJa(String(m.format ?? "")),
-    status: statusJa(String(m.status ?? "")),
-  }));
+  const hasNextPage = !!json?.data?.Page?.pageInfo?.hasNextPage;
+  return {
+    items: media.map((m: any) => ({
+      id: m.id,
+      title: String(m.title?.native ?? m.title?.romaji ?? ""),
+      coverUrl: String(m.coverImage?.large ?? ""),
+      format: formatJa(String(m.format ?? "")),
+      status: statusJa(String(m.status ?? "")),
+    })),
+    hasNextPage,
+  };
+}
+
+// 後方互換：1ページ目のみ返す薄いラッパー。
+export async function searchMedia(
+  opts: SearchOpts,
+  signal?: AbortSignal
+): Promise<SeasonAnime[]> {
+  return (await searchMediaPage(opts, 1, signal)).items;
 }
 
 // ---- シリーズ関連作品（前作・続編チェーンをたどって全期・全クールを復元） ----
