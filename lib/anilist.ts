@@ -329,6 +329,14 @@ function currentSeason(): { season: string; seasonYear: number } {
   if (m <= 9) return { season: "SUMMER", seasonYear: y };
   return { season: "FALL", seasonYear: y };
 }
+function nextSeason(): { season: string; seasonYear: number } {
+  const c = currentSeason();
+  const order = ["WINTER", "SPRING", "SUMMER", "FALL"];
+  const i = order.indexOf(c.season);
+  return i === 3
+    ? { season: "WINTER", seasonYear: c.seasonYear + 1 }
+    : { season: order[i + 1], seasonYear: c.seasonYear };
+}
 const SEASON_QUERY = `
 query ($season: MediaSeason, $seasonYear: Int) {
   Page(page: 1, perPage: 40) {
@@ -392,7 +400,8 @@ export type SearchOpts = {
   status: string | null; // RELEASING / FINISHED / NOT_YET_RELEASED
   genres: string[];
   sort: string; // match / trending / popular / score / new
-  season?: boolean; // trueで今期に限定
+  season?: "current" | "next" | boolean; // current/true=今期, next=来期
+  format?: string | null; // MOVIE など
 };
 const SORT_MAP: Record<string, string> = {
   match: "SEARCH_MATCH",
@@ -436,11 +445,16 @@ export async function searchMediaPage(
     defs.push("$genres: [String]");
   }
   if (opts.season) {
-    const cs = currentSeason();
+    const cs = opts.season === "next" ? nextSeason() : currentSeason();
     vars.season = cs.season;
     vars.seasonYear = cs.seasonYear;
     args.push("season: $season", "seasonYear: $seasonYear");
     defs.push("$season: MediaSeason", "$seasonYear: Int");
+  }
+  if (opts.format) {
+    vars.format = opts.format;
+    args.push("format: $format");
+    defs.push("$format: MediaFormat");
   }
   const q = `query (${defs.join(", ")}) {
   Page(page: $page, perPage: ${SEARCH_PER_PAGE}) {
@@ -509,47 +523,104 @@ export type Suggestion = {
   cover: string;
 };
 
-// 入力補完：作品・スタジオ・人物を少数ずつ（1リクエストでまとめて取得）
-export async function suggestSearch(q: string, signal?: AbortSignal): Promise<Suggestion[]> {
-  const s = q.trim();
-  if (!s) return [];
-  const query = `query ($q: String) {
-  Page(perPage: 6) {
-    media(search: $q, isAdult: false, sort: SEARCH_MATCH, type_in: [ANIME, MANGA]) {
-      id title { native romaji } coverImage { medium } format
-    }
-    studios(search: $q) { id name }
-    staff(search: $q) { id name { native full } primaryOccupations }
-  }
-}`;
+// 日本語の通称 → AniList のスタジオ名（英語）別名辞書
+const STUDIO_ALIASES: Record<string, string> = {
+  "京アニ": "Kyoto Animation", "京都アニメーション": "Kyoto Animation",
+  "ジブリ": "Studio Ghibli", "スタジオジブリ": "Studio Ghibli",
+  "まっぱ": "MAPPA", "マッパ": "MAPPA",
+  "ぼんず": "Bones", "ボンズ": "Bones",
+  "シャフト": "Shaft",
+  "サンライズ": "Sunrise",
+  "ぴえろ": "Pierrot", "ピエロ": "Pierrot",
+  "アイジー": "Production I.G", "プロダクションアイジー": "Production I.G",
+  "トリガー": "Trigger",
+  "ウィット": "Wit Studio", "ウィットスタジオ": "Wit Studio",
+  "動画工房": "Doga Kobo",
+  "クローバーワークス": "CloverWorks",
+  "デイヴィッドプロダクション": "David Production",
+  "サイエンスサル": "Science SARU",
+  "ポリゴンピクチュアズ": "Polygon Pictures",
+  "ユーフォーテーブル": "ufotable", "ゆーふぉーてーぶる": "ufotable",
+  "エイトビット": "8bit",
+  "オレンジ": "Orange",
+  "ピーエーワークス": "P.A. Works", "ぴーえーワークス": "P.A. Works",
+  "ジェーシースタッフ": "J.C.Staff",
+  "マッドハウス": "Madhouse",
+};
+function studioTerm(q: string): string {
+  const t = q.trim();
+  if (STUDIO_ALIASES[t]) return STUDIO_ALIASES[t];
+  for (const k of Object.keys(STUDIO_ALIASES)) if (k.startsWith(t)) return STUDIO_ALIASES[k];
+  return t;
+}
+
+async function anilistData(
+  query: string,
+  variables: Record<string, unknown>,
+  signal?: AbortSignal
+): Promise<any> {
   const res = await fetch(ANILIST, {
     method: "POST",
     headers: { "Content-Type": "application/json", Accept: "application/json" },
-    body: JSON.stringify({ query, variables: { q: s } }),
+    body: JSON.stringify({ query, variables }),
     signal,
   });
   if (!res.ok) throw new Error(`AniList ${res.status}`);
-  const d = (await res.json())?.data?.Page ?? {};
-  const out: Suggestion[] = [];
-  for (const m of d.media ?? [])
-    out.push({
-      kind: "work",
-      id: m.id,
-      label: String(m.title?.native ?? m.title?.romaji ?? ""),
-      sub: formatJa(String(m.format ?? "")),
-      cover: String(m.coverImage?.medium ?? ""),
-    });
-  for (const st of d.studios ?? [])
-    out.push({ kind: "studio", id: st.id, label: String(st.name ?? ""), sub: "スタジオ", cover: "" });
-  for (const p of d.staff ?? [])
-    out.push({
-      kind: "person",
-      id: p.id,
-      label: String(p.name?.native ?? p.name?.full ?? ""),
-      sub: String(p.primaryOccupations?.[0] ?? "人物"),
-      cover: "",
-    });
-  return out;
+  return (await res.json())?.data ?? {};
+}
+
+// 作品サジェスト（タイトル）
+export async function suggestWorks(q: string, signal?: AbortSignal): Promise<Suggestion[]> {
+  const s = q.trim();
+  if (!s) return [];
+  const d = await anilistData(
+    `query ($q: String) { Page(perPage: 8) { media(search: $q, isAdult: false, sort: SEARCH_MATCH, type_in: [ANIME, MANGA]) { id title { native romaji } coverImage { medium } format } } }`,
+    { q: s },
+    signal
+  );
+  return (d?.Page?.media ?? []).map((m: any) => ({
+    kind: "work" as const,
+    id: m.id,
+    label: String(m.title?.native ?? m.title?.romaji ?? ""),
+    sub: formatJa(String(m.format ?? "")),
+    cover: String(m.coverImage?.medium ?? ""),
+  }));
+}
+
+// スタジオ（制作会社）サジェスト。日本語通称は別名辞書で英語名に変換して照会。
+export async function suggestStudios(q: string, signal?: AbortSignal): Promise<Suggestion[]> {
+  const s = q.trim();
+  if (!s) return [];
+  const d = await anilistData(
+    `query ($q: String) { Page(perPage: 8) { studios(search: $q) { id name isAnimationStudio } } }`,
+    { q: studioTerm(s) },
+    signal
+  );
+  return (d?.Page?.studios ?? []).map((st: any) => ({
+    kind: "studio" as const,
+    id: st.id,
+    label: String(st.name ?? ""),
+    sub: st.isAnimationStudio ? "アニメ制作" : "制作会社",
+    cover: "",
+  }));
+}
+
+// 声優・スタッフサジェスト（日本語名でも当たる）
+export async function suggestStaff(q: string, signal?: AbortSignal): Promise<Suggestion[]> {
+  const s = q.trim();
+  if (!s) return [];
+  const d = await anilistData(
+    `query ($q: String) { Page(perPage: 8) { staff(search: $q) { id name { native full } primaryOccupations } } }`,
+    { q: s },
+    signal
+  );
+  return (d?.Page?.staff ?? []).map((p: any) => ({
+    kind: "person" as const,
+    id: p.id,
+    label: String(p.name?.native ?? p.name?.full ?? ""),
+    sub: String(p.primaryOccupations?.[0] ?? "人物"),
+    cover: "",
+  }));
 }
 
 // スタジオ（制作会社）の作品をページングで
