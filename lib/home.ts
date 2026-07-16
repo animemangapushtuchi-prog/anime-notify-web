@@ -45,7 +45,7 @@ export async function getWatchedMap(): Promise<Map<number, WatchedInfo>> {
   return map;
 }
 
-export type TvProgram = { title: string; st: number; ch: string };
+export type TvProgram = { title: string; st: number; ch: string; count: number | null };
 
 function normTitle(s: string): string {
   return (s || "")
@@ -64,6 +64,7 @@ export async function getTvPrograms(): Promise<TvProgram[]> {
         title: String(p.title ?? ""),
         st: p.stTime as number,
         ch: String(p.chName ?? ""),
+        count: typeof p.count === "number" ? p.count : null,
       }));
   } catch {
     return [];
@@ -126,4 +127,52 @@ export function broadcastSlots(workTitle: string, progs: TvProgram[]): Broadcast
   return [...map.values()].sort(
     (a, b) => a.ch.localeCompare(b.ch) || a.weekday - b.weekday || a.hhmm.localeCompare(b.hhmm)
   );
+}
+
+// 直近の放送1件（局指定があればその局に限定）。次回の放送表示用。
+export function nextBroadcast(
+  workTitle: string,
+  progs: TvProgram[],
+  channels?: string[]
+): TvProgram | null {
+  const w = normTitle(workTitle);
+  if (!w) return null;
+  const now = Date.now() / 1000;
+  const chSet = channels && channels.length ? new Set(channels) : null;
+  let best: TvProgram | null = null;
+  for (const p of progs) {
+    if (p.st < now) continue;
+    if (chSet && !chSet.has(p.ch)) continue;
+    const t = normTitle(p.title);
+    if (!t) continue;
+    if (!(t.includes(w) || w.includes(t))) continue;
+    if (!best || p.st < best.st) best = p;
+  }
+  return best;
+}
+
+// 番組表に出てくる放送局の一覧（設定の選択肢用）
+export function distinctChannels(progs: TvProgram[]): string[] {
+  const set = new Set<string>();
+  for (const p of progs) if (p.ch) set.add(p.ch);
+  return [...set].sort((a, b) => a.localeCompare(b, "ja"));
+}
+
+// 放送局のざっくり分類（地上波/BS/CS）
+const CS_CHANNELS = ["AT-X", "アニマックス", "キッズステーション", "日テレプラス", "ANIMAX"];
+export function channelGroup(ch: string): "地上波" | "BS" | "CS" {
+  if (/^(BS|ＢＳ)/.test(ch)) return "BS";
+  if (CS_CHANNELS.some((c) => ch.includes(c))) return "CS";
+  return "地上波";
+}
+
+// ユーザーが設定した「視聴できる放送局」
+export async function getUserChannels(uid: string): Promise<string[]> {
+  try {
+    const snap = await getDoc(doc(db, "users", uid));
+    const ch = (snap.data()?.settings as { channels?: unknown } | undefined)?.channels;
+    return Array.isArray(ch) ? (ch as string[]) : [];
+  } catch {
+    return [];
+  }
 }

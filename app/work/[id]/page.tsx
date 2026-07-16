@@ -11,19 +11,13 @@ import NewsTimeline from "@/components/NewsTimeline";
 import RelatedWorks from "@/components/RelatedWorks";
 import BroadcastInfo from "@/components/BroadcastInfo";
 import ServiceIcon from "@/components/ServiceIcon";
+import NextBroadcast from "@/components/NextBroadcast";
 
 // ISR：1時間ごとに再生成
 export const revalidate = 3600;
 
 const CARD = "rounded-2xl border border-[#ECECF2] bg-white p-4";
 const CARD_TITLE = "text-[13px] font-bold text-[#6B7280]";
-
-const WD = ["月", "火", "水", "木", "金", "土", "日"];
-function fmtAiring(unixSec: number): string {
-  const d = new Date((unixSec + 9 * 3600) * 1000); // JST
-  const two = (n: number) => String(n).padStart(2, "0");
-  return `${d.getUTCMonth() + 1}/${d.getUTCDate()}（${WD[(d.getUTCDay() + 6) % 7]}）${two(d.getUTCHours())}:${two(d.getUTCMinutes())}`;
-}
 
 const load = cache(
   async (
@@ -167,16 +161,12 @@ export default async function WorkPage({
         />
       </div>
 
-      {/* 次回の放送（全幅） */}
-      {d.nextAiringAt && (
-        <section className="mt-4 rounded-2xl border border-[#F3D9A9] bg-[#E8F0FE] p-4">
-          <h2 className={CARD_TITLE}>📅 次回の放送・配信</h2>
-          <p className="mt-1 text-base font-extrabold text-[#1C1C2E]">
-            第{d.nextEpisode}話　{fmtAiring(d.nextAiringAt)}
-          </p>
-          <p className="mt-1 text-[10px] text-[#6B7280]">出典：AniList（日本時間）</p>
-        </section>
-      )}
+      {/* 次回の放送（しょぼいカレンダー由来／無ければAniList） */}
+      <NextBroadcast
+        title={d.title}
+        fallbackAt={d.nextAiringAt ?? null}
+        fallbackEp={d.nextEpisode ?? null}
+      />
 
       {/* 2カラム（ワイド）／縦積み（狭幅） */}
       <div className="mt-4 md:grid md:grid-cols-2 md:items-start md:gap-4">
