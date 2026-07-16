@@ -2,10 +2,10 @@
 
 // 検索ページ。モード式：今期放送中(既定)/アニメ(全期間)/漫画/映画/来期放送/スタジオ/声優。
 // ・入力中サジェストは選択中モードのカテゴリだけに限定（作品 or スタジオ or 声優・スタッフ）。
-//   スタジオは日本語通称(京アニ/ジブリ/まっぱ…)も別名辞書で英語名に変換して照会。
-// ・作品検索＝正確なページ番号。スタジオ/声優＝ネスト接続で総数が不正確なため hasNext ベースの前へ/次へ。
-// ・ページ式＋セッション内キャッシュ（遷移復帰でも再取得せず位置復元）。
-// ・詳細ページの声優クリック → /search?person=名前 で自動的にその人の作品を表示。
+// ・ページ送りは hasNext ベース（AniListの総ページ数は成人向け除外等で過大に出るため信用しない）。
+//   万一空ページに当たっても直前の有効ページへ戻る（操作不能を防止）。
+// ・セッション内キャッシュ：遷移復帰でも再取得せず位置復元。
+// ・詳細ページの声優クリック → /search?person=名前 で自動表示。
 import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import {
@@ -51,7 +51,7 @@ const SORTS = [
 
 type Target = { kind: "studio" | "person"; id: number; name: string } | null;
 type PageData = { items: SeasonAnime[]; hasNext: boolean };
-type CacheEntry = { pages: Record<number, PageData>; page: number; lastPage: number; scrollY: number };
+type CacheEntry = { pages: Record<number, PageData>; page: number; scrollY: number };
 
 const searchCache = new Map<string, CacheEntry>();
 let lastState: { q: string; mode: string; sortKey: string; tags: string[]; target: Target } | null = null;
@@ -71,7 +71,6 @@ export default function SearchPage() {
 
   const [items, setItems] = useState<SeasonAnime[]>([]);
   const [page, setPage] = useState(1);
-  const [lastPage, setLastPage] = useState(1);
   const [hasNext, setHasNext] = useState(false);
   const [loading, setLoading] = useState(true);
   const [paging, setPaging] = useState(false);
@@ -86,7 +85,6 @@ export default function SearchPage() {
   const cur = MODES.find((x) => x.key === mode)!;
   const entity = cur.kind !== "media";
 
-  // URL初期化：?genre=（アニメ全期間でそのジャンル）／?person= or ?voice=（声優の作品を自動表示）
   useEffect(() => {
     const sp = new URLSearchParams(window.location.search);
     const g = sp.get("genre");
@@ -128,7 +126,6 @@ export default function SearchPage() {
       setLoading(false);
       setSearched(false);
       setPage(1);
-      setLastPage(1);
       setHasNext(false);
       keyRef.current = "";
       return;
@@ -140,7 +137,6 @@ export default function SearchPage() {
     if (cached && cached.pages[cached.page]) {
       setItems(cached.pages[cached.page].items);
       setPage(cached.page);
-      setLastPage(cached.lastPage);
       setHasNext(cached.pages[cached.page].hasNext);
       setLoading(false);
       setSearched(true);
@@ -156,15 +152,13 @@ export default function SearchPage() {
         const r = await fetchPage(1, ctrl.signal);
         setItems(r.items);
         setPage(1);
-        setLastPage(r.lastPage);
         setHasNext(r.hasNextPage);
-        searchCache.set(key, { pages: { 1: { items: r.items, hasNext: r.hasNextPage } }, page: 1, lastPage: r.lastPage, scrollY: 0 });
+        searchCache.set(key, { pages: { 1: { items: r.items, hasNext: r.hasNextPage } }, page: 1, scrollY: 0 });
         setLoading(false);
         setSearched(true);
       } catch {
         if (ctrl.signal.aborted) return;
         setItems([]);
-        setLastPage(1);
         setHasNext(false);
         setLoading(false);
         setSearched(true);
@@ -177,7 +171,6 @@ export default function SearchPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [q, mode, sortKey, tags, target]);
 
-  // サジェスト（モードのカテゴリに限定）
   useEffect(() => {
     if (!q.trim()) {
       setSug([]);
@@ -217,27 +210,30 @@ export default function SearchPage() {
 
   async function goToPage(n: number) {
     if (n < 1 || n === page || loading || paging) return;
-    if (!target && n > lastPage) return; // 作品検索は正確なlastPageで制限
     const ent = searchCache.get(keyRef.current);
     if (ent?.pages[n]) {
       setItems(ent.pages[n].items);
       setPage(n);
       setHasNext(ent.pages[n].hasNext);
-      ent.page = n;
+      if (ent) ent.page = n;
       scrollToTop();
       return;
     }
     setPaging(true);
     try {
       const r = await fetchPage(n);
+      if (r.items.length === 0 && n > 1) {
+        // 実データの終端（AniListのhasNext誤り／成人向け除外で空）。今のページに留まり次を無効化。
+        setHasNext(false);
+        if (ent && ent.pages[page]) ent.pages[page].hasNext = false;
+        return;
+      }
       setItems(r.items);
       setPage(n);
-      setLastPage(r.lastPage);
       setHasNext(r.hasNextPage);
       if (ent) {
         ent.pages[n] = { items: r.items, hasNext: r.hasNextPage };
         ent.page = n;
-        ent.lastPage = r.lastPage;
       }
       scrollToTop();
     } catch {
@@ -259,8 +255,11 @@ export default function SearchPage() {
 
   const removeTag = (t: string) => setTags((prev) => prev.filter((x) => x !== t));
 
+  // ページ番号（hasNextベース。lastPageは信用しない）
+  const lo = Math.max(1, page - 2);
+  const hi = hasNext ? page + 1 : page;
   const windowNums: number[] = [];
-  for (let i = Math.max(1, page - 2); i <= Math.min(lastPage, page + 2); i++) windowNums.push(i);
+  for (let i = lo; i <= hi; i++) windowNums.push(i);
 
   const header = target
     ? `${target.name} の作品`
@@ -332,9 +331,7 @@ export default function SearchPage() {
               setMode(m.key);
               setTarget(null);
             }}
-            className={`rounded-full px-3 py-1 text-xs font-bold transition ${
-              mode === m.key ? "bg-[#5B4FCF] text-white" : "bg-[#ECEAFD] text-[#5B4FCF]"
-            }`}
+            className={`rounded-full px-3 py-1 text-xs font-bold transition ${mode === m.key ? "bg-[#5B4FCF] text-white" : "bg-[#ECEAFD] text-[#5B4FCF]"}`}
           >
             {m.label}
           </button>
@@ -346,11 +343,7 @@ export default function SearchPage() {
           <span className="rounded-full bg-[#F1E9FE] px-3 py-1 text-xs font-bold text-[#7C3AED]">
             {target.kind === "studio" ? "🎬" : "🎤"} {target.name}
           </span>
-          <button
-            type="button"
-            onClick={() => setTarget(null)}
-            className="rounded-full border border-[#ECECF2] bg-white px-2 py-1 text-[11px] font-bold text-[#6B7280]"
-          >
+          <button type="button" onClick={() => setTarget(null)} className="rounded-full border border-[#ECECF2] bg-white px-2 py-1 text-[11px] font-bold text-[#6B7280]">
             解除 ×
           </button>
         </div>
@@ -359,12 +352,7 @@ export default function SearchPage() {
       {!entity && tags.length > 0 && (
         <div className="mt-2 flex flex-wrap gap-2">
           {tags.map((t) => (
-            <button
-              key={t}
-              type="button"
-              onClick={() => removeTag(t)}
-              className="flex items-center gap-1 rounded-full bg-[#F1E9FE] px-3 py-1 text-xs font-bold text-[#7C3AED]"
-            >
+            <button key={t} type="button" onClick={() => removeTag(t)} className="flex items-center gap-1 rounded-full bg-[#F1E9FE] px-3 py-1 text-xs font-bold text-[#7C3AED]">
               #{genreJa(t)} <span className="text-[10px]">×</span>
             </button>
           ))}
@@ -374,15 +362,9 @@ export default function SearchPage() {
       <div ref={listTopRef} className="mt-3 flex items-center justify-between scroll-mt-4">
         <h2 className="text-xs font-bold text-[#5B4FCF]">{header}</h2>
         {!entity && (
-          <select
-            value={sortKey}
-            onChange={(e) => setSortKey(e.target.value)}
-            className="rounded-full border border-[#ECECF2] bg-white px-2 py-1 text-xs font-bold text-[#1C1C2E]"
-          >
+          <select value={sortKey} onChange={(e) => setSortKey(e.target.value)} className="rounded-full border border-[#ECECF2] bg-white px-2 py-1 text-xs font-bold text-[#1C1C2E]">
             {SORTS.map((s) => (
-              <option key={s.key} value={s.key}>
-                {s.label}
-              </option>
+              <option key={s.key} value={s.key}>{s.label}</option>
             ))}
           </select>
         )}
@@ -397,14 +379,17 @@ export default function SearchPage() {
       ) : loading ? (
         <p className="mt-4 text-sm text-black/50">読み込み中…</p>
       ) : items.length === 0 && searched ? (
-        <p className="mt-4 text-sm text-black/50">見つかりませんでした。条件を変えてみてください。</p>
+        <div className="mt-4 rounded-2xl border border-[#ECECF2] bg-white p-6 text-sm text-black/50">
+          <p>見つかりませんでした。条件を変えてみてください。</p>
+          {page > 1 && (
+            <button type="button" onClick={() => goToPage(1)} className="mt-3 rounded-lg border border-[#ECECF2] bg-white px-3 py-1.5 text-xs font-bold text-[#5B4FCF]">
+              ← 最初のページに戻る
+            </button>
+          )}
+        </div>
       ) : (
         <>
-          <ul
-            className={`mt-3 divide-y divide-[#ECECF2] overflow-hidden rounded-2xl border border-[#ECECF2] bg-white transition-opacity ${
-              paging ? "opacity-50" : ""
-            }`}
-          >
+          <ul className={`mt-3 divide-y divide-[#ECECF2] overflow-hidden rounded-2xl border border-[#ECECF2] bg-white transition-opacity ${paging ? "opacity-50" : ""}`}>
             {items.map((a) => (
               <li key={a.id}>
                 <WorkRow {...a} />
@@ -412,46 +397,26 @@ export default function SearchPage() {
             ))}
           </ul>
 
-          {target ? (
-            // スタジオ/声優：総数が不正確なため hasNext ベースの前へ/次へ
-            (page > 1 || hasNext) && (
-              <>
-                <div className="mt-4 flex items-center justify-center gap-4">
-                  <button type="button" onClick={() => goToPage(page - 1)} disabled={page <= 1 || paging} className="rounded-lg border border-[#ECECF2] bg-white px-4 py-1.5 text-xs font-bold text-[#5B4FCF] disabled:opacity-40">← 前へ</button>
-                  <span className="text-xs font-bold text-[#1C1C2E]">ページ {page}</span>
-                  <button type="button" onClick={() => goToPage(page + 1)} disabled={!hasNext || paging} className="rounded-lg border border-[#ECECF2] bg-white px-4 py-1.5 text-xs font-bold text-[#5B4FCF] disabled:opacity-40">次へ →</button>
-                </div>
-                <p className="mt-2 text-center text-[11px] text-black/40">{paging ? "読み込み中…" : !hasNext ? "最後のページです" : ""}</p>
-              </>
-            )
-          ) : (
-            lastPage > 1 && (
-              <>
-                <div className="mt-4 flex flex-wrap items-center justify-center gap-1.5">
-                  <button type="button" onClick={() => goToPage(page - 1)} disabled={page <= 1 || paging} className="rounded-lg border border-[#ECECF2] bg-white px-3 py-1.5 text-xs font-bold text-[#5B4FCF] disabled:opacity-40">← 前へ</button>
-                  {windowNums[0] > 1 && (
-                    <>
-                      <button type="button" onClick={() => goToPage(1)} className="rounded-lg px-2.5 py-1.5 text-xs font-bold text-[#6B7280]">1</button>
-                      {windowNums[0] > 2 && <span className="px-1 text-xs text-black/30">…</span>}
-                    </>
-                  )}
-                  {windowNums.map((n) => (
-                    <button key={n} type="button" onClick={() => goToPage(n)} disabled={paging} className={`rounded-lg px-2.5 py-1.5 text-xs font-bold ${n === page ? "bg-[#5B4FCF] text-white" : "text-[#6B7280]"}`}>{n}</button>
-                  ))}
-                  {windowNums[windowNums.length - 1] < lastPage && (
-                    <>
-                      {windowNums[windowNums.length - 1] < lastPage - 1 && <span className="px-1 text-xs text-black/30">…</span>}
-                      <button type="button" onClick={() => goToPage(lastPage)} className="rounded-lg px-2.5 py-1.5 text-xs font-bold text-[#6B7280]">{lastPage}</button>
-                    </>
-                  )}
-                  <button type="button" onClick={() => goToPage(page + 1)} disabled={page >= lastPage || paging} className="rounded-lg border border-[#ECECF2] bg-white px-3 py-1.5 text-xs font-bold text-[#5B4FCF] disabled:opacity-40">次へ →</button>
-                </div>
-                <p className="mt-2 text-center text-[11px] text-black/40">
-                  ページ {page} / {lastPage}
-                  {paging ? "　読み込み中…" : ""}
-                </p>
-              </>
-            )
+          {(page > 1 || hasNext) && (
+            <>
+              <div className="mt-4 flex flex-wrap items-center justify-center gap-1.5">
+                <button type="button" onClick={() => goToPage(page - 1)} disabled={page <= 1 || paging} className="rounded-lg border border-[#ECECF2] bg-white px-3 py-1.5 text-xs font-bold text-[#5B4FCF] disabled:opacity-40">← 前へ</button>
+                {lo > 1 && (
+                  <>
+                    <button type="button" onClick={() => goToPage(1)} className="rounded-lg px-2.5 py-1.5 text-xs font-bold text-[#6B7280]">1</button>
+                    {lo > 2 && <span className="px-1 text-xs text-black/30">…</span>}
+                  </>
+                )}
+                {windowNums.map((n) => (
+                  <button key={n} type="button" onClick={() => goToPage(n)} disabled={paging} className={`rounded-lg px-2.5 py-1.5 text-xs font-bold ${n === page ? "bg-[#5B4FCF] text-white" : "text-[#6B7280]"}`}>{n}</button>
+                ))}
+                <button type="button" onClick={() => goToPage(page + 1)} disabled={!hasNext || paging} className="rounded-lg border border-[#ECECF2] bg-white px-3 py-1.5 text-xs font-bold text-[#5B4FCF] disabled:opacity-40">次へ →</button>
+              </div>
+              <p className="mt-2 text-center text-[11px] text-black/40">
+                ページ {page}
+                {paging ? "　読み込み中…" : !hasNext ? "（最後）" : ""}
+              </p>
+            </>
           )}
         </>
       )}
