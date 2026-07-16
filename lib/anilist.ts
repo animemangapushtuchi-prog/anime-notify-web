@@ -496,6 +496,27 @@ export async function searchMedia(
   return (await searchMediaPage(opts, 1, signal)).items;
 }
 
+// 複数作品の表紙画像を一括取得（特集ページの画像自動補完用）。id → coverURL
+export async function fetchCovers(ids: number[]): Promise<Record<number, string>> {
+  const uniq = [...new Set(ids)].filter((n) => Number.isFinite(n));
+  if (uniq.length === 0) return {};
+  const query = `query ($ids: [Int]) { Page(perPage: 50) { media(id_in: $ids) { id coverImage { large } } } }`;
+  try {
+    const res = await fetch(ANILIST, {
+      method: "POST",
+      headers: { "Content-Type": "application/json", Accept: "application/json" },
+      body: JSON.stringify({ query, variables: { ids: uniq } }),
+    });
+    if (!res.ok) return {};
+    const media = (await res.json())?.data?.Page?.media ?? [];
+    const map: Record<number, string> = {};
+    for (const m of media) map[m.id] = String(m.coverImage?.large ?? "");
+    return map;
+  } catch {
+    return {};
+  }
+}
+
 // ---- スタジオ / 人物（声優・スタッフ）検索＋入力補完 ----
 type MediaNode = {
   id: number;

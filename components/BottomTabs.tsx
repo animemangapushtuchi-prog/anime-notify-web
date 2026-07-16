@@ -21,6 +21,12 @@ function Icon({ name, active }: { name: string; active: boolean }) {
         <path d="m21 21-4.3-4.3" />
       </svg>
     );
+  if (name === "star")
+    return (
+      <svg {...common}>
+        <path d="M12 3.5l2.6 5.3 5.9.9-4.3 4.1 1 5.8L12 17.9 6.8 20.6l1-5.8-4.3-4.1 5.9-.9L12 3.5z" />
+      </svg>
+    );
   return (
     <svg {...common}>
       <path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9" />
@@ -32,6 +38,7 @@ function Icon({ name, active }: { name: string; active: boolean }) {
 const TABS = [
   { href: "/", label: "ホーム", icon: "home" },
   { href: "/search", label: "検索", icon: "search" },
+  { href: "/osusume", label: "おすすめ", icon: "star" },
   { href: "/notifications", label: "通知", icon: "bell" },
 ];
 
