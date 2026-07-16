@@ -3,8 +3,9 @@
 // 検索ページ。モード式：今期放送中(既定)/アニメ(全期間)/漫画/映画/来期放送/スタジオ/声優。
 // ・入力中サジェストは選択中モードのカテゴリだけに限定（作品 or スタジオ or 声優・スタッフ）。
 //   スタジオは日本語通称(京アニ/ジブリ/まっぱ…)も別名辞書で英語名に変換して照会。
-// ・スタジオ/声優は「その会社の制作作品」「その人の出演/参加作」をページ式表示。
+// ・作品検索＝正確なページ番号。スタジオ/声優＝ネスト接続で総数が不正確なため hasNext ベースの前へ/次へ。
 // ・ページ式＋セッション内キャッシュ（遷移復帰でも再取得せず位置復元）。
+// ・詳細ページの声優クリック → /search?person=名前 で自動的にその人の作品を表示。
 import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import {
@@ -71,6 +72,7 @@ export default function SearchPage() {
   const [items, setItems] = useState<SeasonAnime[]>([]);
   const [page, setPage] = useState(1);
   const [lastPage, setLastPage] = useState(1);
+  const [hasNext, setHasNext] = useState(false);
   const [loading, setLoading] = useState(true);
   const [paging, setPaging] = useState(false);
   const [searched, setSearched] = useState(false);
@@ -84,13 +86,28 @@ export default function SearchPage() {
   const cur = MODES.find((x) => x.key === mode)!;
   const entity = cur.kind !== "media";
 
-  // URLの ?genre= → アニメ(全期間)モードでそのジャンル
+  // URL初期化：?genre=（アニメ全期間でそのジャンル）／?person= or ?voice=（声優の作品を自動表示）
   useEffect(() => {
-    const g = new URLSearchParams(window.location.search).get("genre");
+    const sp = new URLSearchParams(window.location.search);
+    const g = sp.get("genre");
+    const person = sp.get("person") || sp.get("voice");
     if (g) {
       setTarget(null);
       setMode("anime");
       setTags([g]);
+      return;
+    }
+    if (person) {
+      setMode("voice");
+      setQ(person);
+      (async () => {
+        try {
+          const r = await suggestStaff(person);
+          if (r[0]) setTarget({ kind: "person", id: r[0].id, name: r[0].label });
+        } catch {
+          /* noop */
+        }
+      })();
     }
   }, []);
 
@@ -104,7 +121,6 @@ export default function SearchPage() {
     );
   };
 
-  // 結果取得（メディアモード=作品検索、エンティティモード=対象の作品。未選択なら促し表示）
   useEffect(() => {
     lastState = { q, mode, sortKey, tags, target };
     if (entity && !target) {
@@ -113,6 +129,7 @@ export default function SearchPage() {
       setSearched(false);
       setPage(1);
       setLastPage(1);
+      setHasNext(false);
       keyRef.current = "";
       return;
     }
@@ -124,6 +141,7 @@ export default function SearchPage() {
       setItems(cached.pages[cached.page].items);
       setPage(cached.page);
       setLastPage(cached.lastPage);
+      setHasNext(cached.pages[cached.page].hasNext);
       setLoading(false);
       setSearched(true);
       const y = cached.scrollY;
@@ -139,6 +157,7 @@ export default function SearchPage() {
         setItems(r.items);
         setPage(1);
         setLastPage(r.lastPage);
+        setHasNext(r.hasNextPage);
         searchCache.set(key, { pages: { 1: { items: r.items, hasNext: r.hasNextPage } }, page: 1, lastPage: r.lastPage, scrollY: 0 });
         setLoading(false);
         setSearched(true);
@@ -146,6 +165,7 @@ export default function SearchPage() {
         if (ctrl.signal.aborted) return;
         setItems([]);
         setLastPage(1);
+        setHasNext(false);
         setLoading(false);
         setSearched(true);
       }
@@ -179,7 +199,6 @@ export default function SearchPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [q, mode]);
 
-  // スクロール位置保存
   useEffect(() => {
     let raf = 0;
     const onScroll = () => {
@@ -197,11 +216,13 @@ export default function SearchPage() {
   const scrollToTop = () => listTopRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
 
   async function goToPage(n: number) {
-    if (n < 1 || n > lastPage || n === page || loading || paging) return;
+    if (n < 1 || n === page || loading || paging) return;
+    if (!target && n > lastPage) return; // 作品検索は正確なlastPageで制限
     const ent = searchCache.get(keyRef.current);
     if (ent?.pages[n]) {
       setItems(ent.pages[n].items);
       setPage(n);
+      setHasNext(ent.pages[n].hasNext);
       ent.page = n;
       scrollToTop();
       return;
@@ -212,6 +233,7 @@ export default function SearchPage() {
       setItems(r.items);
       setPage(n);
       setLastPage(r.lastPage);
+      setHasNext(r.hasNextPage);
       if (ent) {
         ent.pages[n] = { items: r.items, hasNext: r.hasNextPage };
         ent.page = n;
@@ -250,7 +272,6 @@ export default function SearchPage() {
     <main className="mx-auto max-w-2xl px-4 py-5">
       <h1 className="text-xl font-extrabold text-[#1C1C2E]">検索</h1>
 
-      {/* 入力＋サジェスト */}
       <div className="relative mt-3">
         <input
           type="text"
@@ -302,7 +323,6 @@ export default function SearchPage() {
         )}
       </div>
 
-      {/* モードチップ */}
       <div className="mt-3 flex flex-wrap gap-2">
         {MODES.map((m) => (
           <button
@@ -321,7 +341,6 @@ export default function SearchPage() {
         ))}
       </div>
 
-      {/* 対象バナー（スタジオ/声優を選択中） */}
       {target && (
         <div className="mt-2 flex items-center gap-2">
           <span className="rounded-full bg-[#F1E9FE] px-3 py-1 text-xs font-bold text-[#7C3AED]">
@@ -337,7 +356,6 @@ export default function SearchPage() {
         </div>
       )}
 
-      {/* ジャンルタグ（メディアモードのみ） */}
       {!entity && tags.length > 0 && (
         <div className="mt-2 flex flex-wrap gap-2">
           {tags.map((t) => (
@@ -394,32 +412,47 @@ export default function SearchPage() {
             ))}
           </ul>
 
-          {lastPage > 1 && (
-            <div className="mt-4 flex flex-wrap items-center justify-center gap-1.5">
-              <button type="button" onClick={() => goToPage(page - 1)} disabled={page <= 1 || paging} className="rounded-lg border border-[#ECECF2] bg-white px-3 py-1.5 text-xs font-bold text-[#5B4FCF] disabled:opacity-40">← 前へ</button>
-              {windowNums[0] > 1 && (
-                <>
-                  <button type="button" onClick={() => goToPage(1)} className="rounded-lg px-2.5 py-1.5 text-xs font-bold text-[#6B7280]">1</button>
-                  {windowNums[0] > 2 && <span className="px-1 text-xs text-black/30">…</span>}
-                </>
-              )}
-              {windowNums.map((n) => (
-                <button key={n} type="button" onClick={() => goToPage(n)} disabled={paging} className={`rounded-lg px-2.5 py-1.5 text-xs font-bold ${n === page ? "bg-[#5B4FCF] text-white" : "text-[#6B7280]"}`}>{n}</button>
-              ))}
-              {windowNums[windowNums.length - 1] < lastPage && (
-                <>
-                  {windowNums[windowNums.length - 1] < lastPage - 1 && <span className="px-1 text-xs text-black/30">…</span>}
-                  <button type="button" onClick={() => goToPage(lastPage)} className="rounded-lg px-2.5 py-1.5 text-xs font-bold text-[#6B7280]">{lastPage}</button>
-                </>
-              )}
-              <button type="button" onClick={() => goToPage(page + 1)} disabled={page >= lastPage || paging} className="rounded-lg border border-[#ECECF2] bg-white px-3 py-1.5 text-xs font-bold text-[#5B4FCF] disabled:opacity-40">次へ →</button>
-            </div>
+          {target ? (
+            // スタジオ/声優：総数が不正確なため hasNext ベースの前へ/次へ
+            (page > 1 || hasNext) && (
+              <>
+                <div className="mt-4 flex items-center justify-center gap-4">
+                  <button type="button" onClick={() => goToPage(page - 1)} disabled={page <= 1 || paging} className="rounded-lg border border-[#ECECF2] bg-white px-4 py-1.5 text-xs font-bold text-[#5B4FCF] disabled:opacity-40">← 前へ</button>
+                  <span className="text-xs font-bold text-[#1C1C2E]">ページ {page}</span>
+                  <button type="button" onClick={() => goToPage(page + 1)} disabled={!hasNext || paging} className="rounded-lg border border-[#ECECF2] bg-white px-4 py-1.5 text-xs font-bold text-[#5B4FCF] disabled:opacity-40">次へ →</button>
+                </div>
+                <p className="mt-2 text-center text-[11px] text-black/40">{paging ? "読み込み中…" : !hasNext ? "最後のページです" : ""}</p>
+              </>
+            )
+          ) : (
+            lastPage > 1 && (
+              <>
+                <div className="mt-4 flex flex-wrap items-center justify-center gap-1.5">
+                  <button type="button" onClick={() => goToPage(page - 1)} disabled={page <= 1 || paging} className="rounded-lg border border-[#ECECF2] bg-white px-3 py-1.5 text-xs font-bold text-[#5B4FCF] disabled:opacity-40">← 前へ</button>
+                  {windowNums[0] > 1 && (
+                    <>
+                      <button type="button" onClick={() => goToPage(1)} className="rounded-lg px-2.5 py-1.5 text-xs font-bold text-[#6B7280]">1</button>
+                      {windowNums[0] > 2 && <span className="px-1 text-xs text-black/30">…</span>}
+                    </>
+                  )}
+                  {windowNums.map((n) => (
+                    <button key={n} type="button" onClick={() => goToPage(n)} disabled={paging} className={`rounded-lg px-2.5 py-1.5 text-xs font-bold ${n === page ? "bg-[#5B4FCF] text-white" : "text-[#6B7280]"}`}>{n}</button>
+                  ))}
+                  {windowNums[windowNums.length - 1] < lastPage && (
+                    <>
+                      {windowNums[windowNums.length - 1] < lastPage - 1 && <span className="px-1 text-xs text-black/30">…</span>}
+                      <button type="button" onClick={() => goToPage(lastPage)} className="rounded-lg px-2.5 py-1.5 text-xs font-bold text-[#6B7280]">{lastPage}</button>
+                    </>
+                  )}
+                  <button type="button" onClick={() => goToPage(page + 1)} disabled={page >= lastPage || paging} className="rounded-lg border border-[#ECECF2] bg-white px-3 py-1.5 text-xs font-bold text-[#5B4FCF] disabled:opacity-40">次へ →</button>
+                </div>
+                <p className="mt-2 text-center text-[11px] text-black/40">
+                  ページ {page} / {lastPage}
+                  {paging ? "　読み込み中…" : ""}
+                </p>
+              </>
+            )
           )}
-
-          <p className="mt-2 text-center text-[11px] text-black/40">
-            ページ {page} / {lastPage}
-            {paging ? "　読み込み中…" : ""}
-          </p>
         </>
       )}
 

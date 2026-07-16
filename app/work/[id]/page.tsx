@@ -250,7 +250,12 @@ export default async function WorkPage({
                 {d.cast.map((c, i) => (
                   <li key={i} className="flex gap-3 text-sm">
                     <span className="w-40 flex-none text-xs text-[#6B7280]">{c.character}</span>
-                    <span className="font-semibold text-[#1C1C2E]">{c.actor}</span>
+                    <Link
+                      href={`/search?person=${encodeURIComponent(c.actor)}`}
+                      className="font-semibold text-[#5B4FCF] underline-offset-2 hover:underline"
+                    >
+                      {c.actor}
+                    </Link>
                   </li>
                 ))}
               </ul>
