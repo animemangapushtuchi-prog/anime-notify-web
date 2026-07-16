@@ -87,3 +87,43 @@ export function matchStation(workTitle: string, progs: TvProgram[]): TvProgram |
   }
   return best;
 }
+
+// 局ごとの週次放送スロット（深夜アニメは 24〜28時表記に補正）。
+export type BroadcastSlot = {
+  ch: string;
+  weekday: number; // 0=日..6=土（深夜は前日側に寄せる）
+  hhmm: string; // "23:30" / "25:00" など
+  nextAt: number | null; // 次の放送のUNIX秒（未来がなければnull）
+};
+
+export function broadcastSlots(workTitle: string, progs: TvProgram[]): BroadcastSlot[] {
+  const w = normTitle(workTitle);
+  if (!w) return [];
+  const now = Date.now() / 1000;
+  const map = new Map<string, BroadcastSlot>();
+  for (const p of progs) {
+    const t = normTitle(p.title);
+    if (!t) continue;
+    if (!(t.includes(w) || w.includes(t))) continue;
+    const d = new Date((p.st + 9 * 3600) * 1000); // JST
+    let hh = d.getUTCHours();
+    let wd = d.getUTCDay();
+    if (hh < 5) {
+      // 深夜(0〜4時)は前日の 24〜28時扱い（例：木1:00 → 水25:00）
+      hh += 24;
+      wd = (wd + 6) % 7;
+    }
+    const hhmm = `${hh}:${String(d.getUTCMinutes()).padStart(2, "0")}`;
+    const key = `${p.ch}|${wd}|${hhmm}`;
+    const ex = map.get(key);
+    const future = p.st >= now ? p.st : null;
+    if (!ex) {
+      map.set(key, { ch: p.ch, weekday: wd, hhmm, nextAt: future });
+    } else if (future != null && (ex.nextAt == null || future < ex.nextAt)) {
+      ex.nextAt = future;
+    }
+  }
+  return [...map.values()].sort(
+    (a, b) => a.ch.localeCompare(b.ch) || a.weekday - b.weekday || a.hhmm.localeCompare(b.hhmm)
+  );
+}

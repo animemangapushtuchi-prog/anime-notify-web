@@ -9,6 +9,8 @@ import Collapsible from "@/components/Collapsible";
 import RegisterButton from "@/components/RegisterButton";
 import NewsTimeline from "@/components/NewsTimeline";
 import RelatedWorks from "@/components/RelatedWorks";
+import BroadcastInfo from "@/components/BroadcastInfo";
+import ServiceIcon from "@/components/ServiceIcon";
 
 // ISR：1時間ごとに再生成
 export const revalidate = 3600;
@@ -189,26 +191,34 @@ export default async function WorkPage({
             </p>
           </section>
 
-          {/* 配信サービス */}
+          {/* テレビ放送（地上波・BS・CS） */}
           <section className={CARD}>
-            <h2 className={CARD_TITLE}>▶ 配信中のサービス</h2>
+            <h2 className={CARD_TITLE}>📺 テレビ放送（地上波・BS・CS）</h2>
+            <BroadcastInfo title={d.title} />
+            <p className="mt-1 text-[10px] text-[#6B7280]">出典：しょぼいカレンダー</p>
+          </section>
+
+          {/* 配信（サブスク） */}
+          <section className={CARD}>
+            <h2 className={CARD_TITLE}>▶ 配信（サブスク）</h2>
             {d.streaming.length === 0 ? (
               <p className="mt-2 text-xs text-[#6B7280]">
                 日本で見られる配信情報が見つかりませんでした
               </p>
             ) : (
-              <ul className="mt-1">
+              <ul className="mt-1 divide-y divide-[#F1F1F5]">
                 {d.streaming.map((s) => (
                   <li key={s.name}>
                     <a
                       href={s.url}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="flex items-center justify-between py-2"
+                      className="flex items-center gap-3 py-2"
                     >
-                      <span className="text-sm font-bold text-[#1C1C2E]">{s.name}</span>
+                      <ServiceIcon name={s.name} size={22} />
+                      <span className="flex-1 text-sm font-bold text-[#1C1C2E]">{s.name}</span>
                       <span className="text-xs text-[#6B7280]">
-                        {svcRank(s.name, s.language) >= 40 ? "海外向け配信" : "公式配信"} ›
+                        {svcRank(s.name, s.language) >= 40 ? "海外向け" : "公式配信"} ›
                       </span>
                     </a>
                   </li>
