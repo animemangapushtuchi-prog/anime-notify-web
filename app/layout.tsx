@@ -6,6 +6,7 @@ import SiteHeader from "@/components/SiteHeader";
 import BottomTabs from "@/components/BottomTabs";
 import PushManager from "@/components/PushManager";
 import PageView from "@/components/PageView";
+import VerifyGate from "@/components/VerifyGate";
 import IosBanner from "@/components/IosBanner";
 import Script from "next/script";
 
@@ -50,7 +51,9 @@ export default function RootLayout({
         <AuthProvider>
           <SiteHeader />
           <IosBanner />
-          <div className="flex-1 pb-24">{children}</div>
+          <div className="flex-1 pb-24">
+            <VerifyGate>{children}</VerifyGate>
+          </div>
           <BottomTabs />
           <PushManager />
           <PageView />
