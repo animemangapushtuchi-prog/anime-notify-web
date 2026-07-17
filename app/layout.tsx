@@ -5,6 +5,7 @@ import { AuthProvider } from "@/lib/auth";
 import SiteHeader from "@/components/SiteHeader";
 import BottomTabs from "@/components/BottomTabs";
 import PushManager from "@/components/PushManager";
+import PageView from "@/components/PageView";
 import IosBanner from "@/components/IosBanner";
 import Script from "next/script";
 
@@ -52,6 +53,7 @@ export default function RootLayout({
           <div className="flex-1 pb-24">{children}</div>
           <BottomTabs />
           <PushManager />
+          <PageView />
         </AuthProvider>
         {ADSENSE_CLIENT ? (
           <Script
