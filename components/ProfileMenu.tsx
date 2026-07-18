@@ -4,11 +4,34 @@
 import { useState } from "react";
 import Link from "next/link";
 import { useAuth, logout } from "@/lib/auth";
+import { auth } from "@/lib/firebase";
 
 export default function ProfileMenu() {
   const { user, idLabel } = useAuth();
   const [open, setOpen] = useState(false);
+  const [deleting, setDeleting] = useState(false);
   const close = () => setOpen(false);
+
+  async function handleDelete() {
+    if (deleting) return;
+    if (!window.confirm("退会すると、登録した作品や課金状況などは二度と復元できなくなります。続けますか？")) return;
+    if (!window.confirm("本当に退会してよろしいですか？")) return;
+    setDeleting(true);
+    try {
+      const idToken = await auth.currentUser?.getIdToken();
+      if (!idToken) throw new Error("no-auth");
+      const res = await fetch(
+        "https://asia-northeast1-anime-notify-app-86ccc.cloudfunctions.net/deleteAccount",
+        { method: "POST", headers: { Authorization: `Bearer ${idToken}` } }
+      );
+      if (!res.ok) throw new Error("failed");
+      await logout().catch(() => {});
+      window.location.href = "/";
+    } catch {
+      setDeleting(false);
+      window.alert("退会に失敗しました。時間をおいて再度お試しください。");
+    }
+  }
 
   const soon = (label: string) => (
     <div className="flex items-center justify-between px-4 py-2 text-sm text-black/40">
@@ -87,6 +110,14 @@ export default function ProfileMenu() {
                   className="block w-full px-4 py-2.5 text-left text-sm font-bold text-[#DC2626]"
                 >
                   ログアウト
+                </button>
+                <button
+                  type="button"
+                  onClick={handleDelete}
+                  disabled={deleting}
+                  className="block w-full px-4 py-2.5 text-left text-xs text-black/40 disabled:opacity-50"
+                >
+                  {deleting ? "退会処理中…" : "退会する"}
                 </button>
               </>
             )}
