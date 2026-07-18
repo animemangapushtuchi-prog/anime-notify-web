@@ -21,6 +21,7 @@ import {
 } from "@/lib/anilist";
 import WorkCard from "@/components/WorkCard";
 import AdSlot from "@/components/AdSlot";
+import Mascot from "@/components/Mascot";
 
 type Season = "current" | "next" | false;
 type Mode = {
@@ -380,7 +381,8 @@ export default function SearchPage() {
       ) : loading ? (
         <p className="mt-4 text-sm text-black/50">読み込み中…</p>
       ) : items.length === 0 && searched ? (
-        <div className="mt-4 rounded-2xl border border-[#ECECF2] bg-white p-6 text-sm text-black/50">
+        <div className="mt-4 flex flex-col items-center gap-3 rounded-2xl border border-[#ECECF2] bg-white p-6 text-center text-sm text-black/50">
+          <Mascot pose="worried" h={110} />
           <p>見つかりませんでした。条件を変えてみてください。</p>
           {page > 1 && (
             <button type="button" onClick={() => goToPage(1)} className="mt-3 rounded-lg border border-[#ECECF2] bg-white px-3 py-1.5 text-xs font-bold text-[#5B4FCF]">

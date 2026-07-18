@@ -25,6 +25,7 @@ import SurveyCard from "@/components/SurveyCard";
 import ScheduleCalendar, { type AiringEntry } from "@/components/ScheduleCalendar";
 import StatusPicker from "@/components/StatusPicker";
 import AdSlot from "@/components/AdSlot";
+import Mascot from "@/components/Mascot";
 
 const WD = ["日", "月", "火", "水", "木", "金", "土"];
 function fmtNext(nextEp: number | null, nextAt: number | null, station: string): string | null {
@@ -125,8 +126,11 @@ export default function Home() {
     return (
       <main className="mx-auto max-w-md px-4 py-10">
         <div className="rounded-2xl border border-[#ECECF2] bg-white p-6">
+          <div className="mb-3 flex justify-center">
+            <Mascot pose="wave" h={140} />
+          </div>
           <p className="text-lg font-extrabold text-[#1C1C2E]">
-            👋 ようこそ！3ステップで始まります
+            ようこそ！3ステップで始まります
           </p>
           <ol className="mt-3 space-y-2 text-sm text-black/70">
             <li>① メールアドレスで無料登録</li>
@@ -170,8 +174,9 @@ export default function Home() {
   return (
     <main className="mx-auto max-w-2xl px-4 py-5 lg:max-w-6xl lg:px-8">
       {loginBonusToday && (
-        <div className="mb-3 rounded-2xl bg-[#ECEAFD] px-4 py-2.5 text-xs font-bold text-[#5B4FCF]">
-          🎁 ログインボーナス！ 登録枠が {slotCap} 枠になりました
+        <div className="mb-3 flex items-center gap-2 rounded-2xl bg-[#ECEAFD] px-4 py-2 text-xs font-bold text-[#5B4FCF]">
+          <Mascot pose="cheer" h={40} />
+          ログインボーナス！ 登録枠が {slotCap} 枠になりました
         </div>
       )}
       <SurveyCard />
@@ -266,8 +271,9 @@ export default function Home() {
           {works === null ? (
             <p className="mt-6 text-sm text-black/50">読み込み中…</p>
           ) : works.length === 0 ? (
-            <div className="mt-4 rounded-2xl border border-[#ECECF2] bg-white p-6 text-sm text-black/50">
-              まだ登録がありません。下の「検索」タブから作品を登録すると、新話・配信入りが通知されます。
+            <div className="mt-4 flex flex-col items-center gap-3 rounded-2xl border border-[#ECECF2] bg-white p-6 text-center text-sm text-black/50">
+              <Mascot pose="point" h={120} />
+              <p>まだ登録がありません。「検索」タブから作品を登録すると、新話・配信入りが通知されます。</p>
             </div>
           ) : shown.length === 0 ? (
             <div className="mt-4 rounded-2xl border border-[#ECECF2] bg-white p-6 text-sm text-black/50">

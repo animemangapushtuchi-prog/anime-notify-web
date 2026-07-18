@@ -5,6 +5,7 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import Mascot from "@/components/Mascot";
 import {
   collection,
   query,
@@ -179,10 +180,15 @@ export default function NotificationsPage() {
       {notifs === null ? (
         <p className="mt-6 text-sm text-black/50">読み込み中…</p>
       ) : shown.length === 0 ? (
-        <div className="mt-6 rounded-2xl border border-[#ECECF2] bg-white p-6 text-sm text-black/50">
-          {notifs.length === 0
-            ? "まだ通知はありません。作品を登録すると、新話や配信入りが届きます。"
-            : "この種別の通知はありません。"}
+        <div className="mt-6 flex flex-col items-center gap-3 rounded-2xl border border-[#ECECF2] bg-white p-6 text-center text-sm text-black/50">
+          {notifs.length === 0 ? (
+            <>
+              <Mascot pose="sit" h={120} />
+              <p>まだ通知はありません。作品を登録すると、新話や配信入りが届きます。</p>
+            </>
+          ) : (
+            <p>この種別の通知はありません。</p>
+          )}
         </div>
       ) : (
         <div className="mt-5 space-y-6">
