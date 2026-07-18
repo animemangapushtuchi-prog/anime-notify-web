@@ -151,7 +151,7 @@ export default function SettingsPage() {
   for (const ch of allChannels) grouped[channelGroup(ch)].push(ch);
 
   return (
-    <main className="mx-auto max-w-md px-4 py-6">
+    <main className="mx-auto max-w-md px-4 py-6 lg:max-w-xl lg:px-8">
       <h1 className="text-2xl font-extrabold text-[#1C1C2E]">設定</h1>
 
       {/* プロフィールカード */}

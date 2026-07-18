@@ -89,17 +89,10 @@ export default function SearchPage() {
     const sp = new URLSearchParams(window.location.search);
     const g = sp.get("genre");
     const person = sp.get("person") || sp.get("voice");
-    const qParam = sp.get("q");
     if (g) {
       setTarget(null);
       setMode("anime");
       setTags([g]);
-      return;
-    }
-    if (qParam && !person) {
-      setTarget(null);
-      setMode("anime");
-      setQ(qParam);
       return;
     }
     if (person) {

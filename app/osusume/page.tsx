@@ -12,14 +12,14 @@ export const metadata: Metadata = {
 export default function OsusumeListPage() {
   const list = listOsusume();
   return (
-    <main className="mx-auto max-w-2xl px-4 py-5">
+    <main className="mx-auto max-w-2xl px-4 py-5 lg:max-w-5xl lg:px-8">
       <h1 className="text-xl font-extrabold text-[#1C1C2E]">おすすめ・特集</h1>
       <p className="mt-1 text-xs text-[#6B7280]">テーマ別のおすすめアニメをランキングで紹介します。</p>
 
       {list.length === 0 ? (
         <p className="mt-6 text-sm text-black/50">特集は準備中です。</p>
       ) : (
-        <ul className="mt-4 space-y-3">
+        <ul className="mt-4 space-y-3 lg:grid lg:grid-cols-2 lg:gap-4 lg:space-y-0">
           {list.map((o) => (
             <li key={o.slug}>
               <Link
