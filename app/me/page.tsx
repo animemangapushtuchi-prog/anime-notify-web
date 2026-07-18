@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useAuth } from "@/lib/auth";
 import { getWorks, removeWork, type Work } from "@/lib/works";
+import Mascot from "@/components/Mascot";
 
 export default function MePage() {
   const { user, loading, idLabel, slotCap } = useAuth();
@@ -57,7 +58,10 @@ export default function MePage() {
   return (
     <main className="mx-auto max-w-3xl px-4 py-8">
       <div className="flex items-baseline justify-between">
-        <h1 className="text-2xl font-extrabold text-[#1C1C2E]">マイリスト</h1>
+        <div className="flex items-center gap-2">
+          <Mascot pose="stand" h={44} />
+          <h1 className="text-2xl font-extrabold text-[#1C1C2E]">マイリスト</h1>
+        </div>
         <span className="text-xs font-bold text-black/50">
           {works?.length ?? 0}/{slotCap}
         </span>

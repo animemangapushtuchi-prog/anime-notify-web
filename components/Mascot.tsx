@@ -8,7 +8,11 @@ export type MascotPose =
   | "sit"
   | "surprised"
   | "cheer"
-  | "worried";
+  | "worried"
+  | "thumbsup"
+  | "sleep"
+  | "face"
+  | "search";
 
 export default function Mascot({
   pose,

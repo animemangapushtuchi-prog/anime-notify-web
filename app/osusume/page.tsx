@@ -1,6 +1,7 @@
 import Link from "next/link";
 import type { Metadata } from "next";
 import { listOsusume } from "@/lib/osusume";
+import Mascot from "@/components/Mascot";
 
 export const revalidate = 3600;
 
@@ -13,7 +14,10 @@ export default function OsusumeListPage() {
   const list = listOsusume();
   return (
     <main className="mx-auto max-w-2xl px-4 py-5 lg:max-w-5xl lg:px-8">
-      <h1 className="text-xl font-extrabold text-[#1C1C2E]">おすすめ・特集</h1>
+      <div className="flex items-center gap-2">
+        <Mascot pose="thumbsup" h={44} />
+        <h1 className="text-xl font-extrabold text-[#1C1C2E]">おすすめ・特集</h1>
+      </div>
       <p className="mt-1 text-xs text-[#6B7280]">テーマ別のおすすめアニメをランキングで紹介します。</p>
 
       {list.length === 0 ? (

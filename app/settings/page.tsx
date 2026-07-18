@@ -7,6 +7,7 @@ import { doc, getDoc, setDoc, serverTimestamp } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import { useAuth } from "@/lib/auth";
 import { getWorks } from "@/lib/works";
+import Mascot from "@/components/Mascot";
 import { getTvPrograms, distinctChannels, channelGroup } from "@/lib/home";
 import EnablePush from "@/components/EnablePush";
 
@@ -152,7 +153,10 @@ export default function SettingsPage() {
 
   return (
     <main className="mx-auto max-w-md px-4 py-6 lg:max-w-xl lg:px-8">
-      <h1 className="text-2xl font-extrabold text-[#1C1C2E]">設定</h1>
+      <div className="flex items-center gap-2">
+        <Mascot pose="stand" h={44} />
+        <h1 className="text-2xl font-extrabold text-[#1C1C2E]">設定</h1>
+      </div>
 
       {/* プロフィールカード */}
       <div className="mt-5 flex items-center gap-3 rounded-2xl border border-[#ECECF2] bg-white p-4">

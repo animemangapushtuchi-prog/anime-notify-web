@@ -271,7 +271,10 @@ export default function SearchPage() {
 
   return (
     <main className="mx-auto max-w-2xl px-4 py-5 lg:max-w-6xl lg:px-8">
-      <h1 className="text-xl font-extrabold text-[#1C1C2E]">検索</h1>
+      <div className="flex items-center gap-2">
+        <Mascot pose="search" h={44} />
+        <h1 className="text-xl font-extrabold text-[#1C1C2E]">検索</h1>
+      </div>
 
       <div className="relative mt-3">
         <input

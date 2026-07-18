@@ -3,6 +3,7 @@
 import { useState, type FormEvent } from "react";
 import { useRouter } from "next/navigation";
 import { signIn, signUp, resetPassword, authErrorJa } from "@/lib/auth";
+import Mascot from "@/components/Mascot";
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 type Mode = "login" | "signup" | "reset";
@@ -91,6 +92,9 @@ export default function LoginPage() {
 
   return (
     <main className="mx-auto max-w-md px-4 py-10">
+      <div className="mb-4 flex justify-center">
+        <Mascot pose="wave" h={110} />
+      </div>
       <h1 className="text-2xl font-extrabold text-[#1C1C2E]">{title}</h1>
 
       <form onSubmit={submit} className="mt-6 rounded-2xl border border-[#ECECF2] bg-white p-5">

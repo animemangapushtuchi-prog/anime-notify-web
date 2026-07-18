@@ -152,7 +152,10 @@ export default function NotificationsPage() {
   return (
     <main className="mx-auto max-w-2xl px-4 py-6 lg:max-w-3xl lg:px-8">
       <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-extrabold text-[#1C1C2E]">通知</h1>
+        <div className="flex items-center gap-2">
+          <Mascot pose="device" h={44} />
+          <h1 className="text-2xl font-extrabold text-[#1C1C2E]">通知</h1>
+        </div>
         <button
           type="button"
           onClick={markAllRead}

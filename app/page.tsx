@@ -182,7 +182,9 @@ export default function Home() {
       <SurveyCard />
 
       <div className="flex items-center justify-between">
-        <div className="flex rounded-full bg-[#ECEAFD] p-1">
+        <div className="flex items-center gap-2">
+          <Mascot pose="stand" h={40} />
+          <div className="flex rounded-full bg-[#ECEAFD] p-1">
           {([
             ["calendar", "放送カレンダー"],
             ["list", "登録作品"],
@@ -198,6 +200,7 @@ export default function Home() {
               {label}
             </button>
           ))}
+        </div>
         </div>
         <span
           className={`rounded-full px-2 py-0.5 text-[11px] font-bold ${
