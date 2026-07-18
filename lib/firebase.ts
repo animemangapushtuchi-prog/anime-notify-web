@@ -19,4 +19,5 @@ export const VAPID_KEY =
 
 export const app = getApps().length ? getApp() : initializeApp(firebaseConfig);
 export const auth = getAuth(app);
+auth.languageCode = "ja"; // 認証メール・確認ページを日本語で送る
 export const db = getFirestore(app);
