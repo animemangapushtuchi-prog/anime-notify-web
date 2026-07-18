@@ -20,6 +20,7 @@ import {
   type WatchedInfo,
   type TvProgram,
 } from "@/lib/home";
+import { svcRank } from "@/lib/anilist";
 import ServiceIcon from "@/components/ServiceIcon";
 import SurveyCard from "@/components/SurveyCard";
 import ScheduleCalendar, { type AiringEntry } from "@/components/ScheduleCalendar";
@@ -48,6 +49,7 @@ export default function Home() {
   const [view, setView] = useState<View>("calendar");
   const [sort, setSort] = useState<Sort>("air");
   const [filter, setFilter] = useState<Filter>("all");
+  const [svc, setSvc] = useState<string>("all");
   const [edit, setEdit] = useState(false);
   const [busyId, setBusyId] = useState<number | null>(null);
 
@@ -76,8 +78,13 @@ export default function Home() {
   }, [works, watched, sort]);
 
   const shown = useMemo(
-    () => (filter === "all" ? sorted : sorted.filter((w) => w.watchStatus === filter)),
-    [sorted, filter]
+    () =>
+      sorted.filter(
+        (w) =>
+          (filter === "all" || w.watchStatus === filter) &&
+          (svc === "all" || (watched.get(w.id)?.services ?? []).includes(svc))
+      ),
+    [sorted, filter, svc, watched]
   );
 
   const counts = useMemo(() => {
@@ -85,6 +92,14 @@ export default function Home() {
     for (const w of works ?? []) if (w.watchStatus) c[w.watchStatus] = (c[w.watchStatus] ?? 0) + 1;
     return c;
   }, [works]);
+
+  // 登録作品が実際に持つ配信サービスだけを動的に列挙（主要サービス順）
+  const svcList = useMemo(() => {
+    const set = new Set<string>();
+    for (const w of works ?? [])
+      for (const s of watched.get(w.id)?.services ?? []) set.add(s);
+    return [...set].sort((a, b) => svcRank(a, "") - svcRank(b, ""));
+  }, [works, watched]);
 
   const entries = useMemo<AiringEntry[]>(() => {
     const out: AiringEntry[] = [];
@@ -217,6 +232,20 @@ export default function Home() {
           </div>
 
           <div className="mt-2 flex items-center justify-end gap-3 text-xs font-bold">
+            {svcList.length > 0 && (
+              <select
+                value={svc}
+                onChange={(e) => setSvc(e.target.value)}
+                className="rounded-full border border-[#ECECF2] bg-white px-2 py-1 text-[#1C1C2E]"
+              >
+                <option value="all">全サービス</option>
+                {svcList.map((s) => (
+                  <option key={s} value={s}>
+                    {s}
+                  </option>
+                ))}
+              </select>
+            )}
             <select
               value={sort}
               onChange={(e) => setSort(e.target.value as Sort)}
@@ -238,7 +267,7 @@ export default function Home() {
             </div>
           ) : shown.length === 0 ? (
             <div className="mt-4 rounded-2xl border border-[#ECECF2] bg-white p-6 text-sm text-black/50">
-              この状態の作品はありません。
+              該当する作品はありません。
             </div>
           ) : (
             <ul className="mt-4 grid grid-cols-1 gap-3 lg:grid-cols-2 2xl:grid-cols-3">
