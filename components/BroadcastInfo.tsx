@@ -1,6 +1,7 @@
 "use client";
 
-// テレビ放送（地上波・BS・CS）を局ごとにまとめて表示。しょぼいカレンダー由来。
+// テレビ放送（地上波・BS・CS）だけを局ごとにまとめて表示。しょぼいカレンダー由来。
+// ネット同時配信のチャンネルは lib/home.ts の共通分類で除外される。
 import { useEffect, useState } from "react";
 import { getTvPrograms, broadcastSlots, type BroadcastSlot } from "@/lib/home";
 

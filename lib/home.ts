@@ -54,6 +54,36 @@ function normTitle(s: string): string {
     .toLowerCase();
 }
 
+// しょぼいカレンダーにはテレビ局だけでなくネット同時配信のチャンネルも含まれる。
+// 「テレビ放送」として扱う場所では、ネット配信サービスを必ず除外する。
+const INTERNET_CHANNEL_PATTERNS = [
+  /abema/i,
+  /ニコニコ/,
+  /youtube/i,
+  /amazon\s*prime/i,
+  /prime\s*video/i,
+  /netflix/i,
+  /dアニメ/i,
+  /unext/i,
+  /u-next/i,
+  /hulu/i,
+  /disney\+?/i,
+  /fod/i,
+  /lemino/i,
+  /tver/i,
+  /telasa/i,
+  /dmm\s*tv/i,
+  /bandai\s*channel/i,
+  /バンダイチャンネル/,
+  /ネット配信/,
+  /web配信/i,
+];
+
+export function isTvBroadcastChannel(ch: string): boolean {
+  const name = ch.trim();
+  return !!name && !INTERNET_CHANNEL_PATTERNS.some((pattern) => pattern.test(name));
+}
+
 export async function getTvPrograms(): Promise<TvProgram[]> {
   try {
     const snap = await getDoc(doc(db, "cache", "tvSchedule"));
@@ -79,6 +109,7 @@ export function matchStation(workTitle: string, progs: TvProgram[]): TvProgram |
   const now = Date.now() / 1000;
   let best: TvProgram | null = null;
   for (const p of progs) {
+    if (!isTvBroadcastChannel(p.ch)) continue;
     const t = normTitle(p.title);
     if (!t) continue;
     if (t.includes(w) || w.includes(t)) {
@@ -103,6 +134,7 @@ export function broadcastSlots(workTitle: string, progs: TvProgram[]): Broadcast
   const now = Date.now() / 1000;
   const map = new Map<string, BroadcastSlot>();
   for (const p of progs) {
+    if (!isTvBroadcastChannel(p.ch)) continue;
     const t = normTitle(p.title);
     if (!t) continue;
     if (!(t.includes(w) || w.includes(t))) continue;
@@ -142,6 +174,7 @@ export function nextBroadcast(
   let best: TvProgram | null = null;
   for (const p of progs) {
     if (p.st < now) continue;
+    if (!isTvBroadcastChannel(p.ch)) continue;
     if (chSet && !chSet.has(p.ch)) continue;
     const t = normTitle(p.title);
     if (!t) continue;
@@ -154,7 +187,7 @@ export function nextBroadcast(
 // 番組表に出てくる放送局の一覧（設定の選択肢用）
 export function distinctChannels(progs: TvProgram[]): string[] {
   const set = new Set<string>();
-  for (const p of progs) if (p.ch) set.add(p.ch);
+  for (const p of progs) if (isTvBroadcastChannel(p.ch)) set.add(p.ch);
   return [...set].sort((a, b) => a.localeCompare(b, "ja"));
 }
 

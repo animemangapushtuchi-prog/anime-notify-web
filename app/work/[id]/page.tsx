@@ -2,12 +2,11 @@ import { cache } from "react";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import type { Metadata } from "next";
-import { fetchAnimeDetail, svcRank, genreJa, type AnimeDetail } from "@/lib/anilist";
+import { fetchAnimeDetail, genreJa, type AnimeDetail } from "@/lib/anilist";
 import { fetchWikipediaJa } from "@/lib/wikipedia";
 import Trailer from "@/components/Trailer";
 import Collapsible from "@/components/Collapsible";
 import RegisterButton from "@/components/RegisterButton";
-import NewsTimeline from "@/components/NewsTimeline";
 import RelatedWorks from "@/components/RelatedWorks";
 import BroadcastInfo from "@/components/BroadcastInfo";
 import ServiceIcon from "@/components/ServiceIcon";
@@ -162,61 +161,59 @@ export default async function WorkPage({
         />
       </div>
 
-      {/* 次回の放送（しょぼいカレンダー由来／無ければAniList） */}
+      {/* 次回のテレビ放送（ネット配信チャンネルは除外） */}
       <NextBroadcast
         title={d.title}
         fallbackAt={d.nextAiringAt ?? null}
         fallbackEp={d.nextEpisode ?? null}
       />
 
+      {/* ネット配信はテレビ放送と混ぜず、日時を推測せずに配信先として表示 */}
+      <section className={`${CARD} mt-4 border-[#F3D9A9] bg-[#FBF3E6]`}>
+        <h2 className={CARD_TITLE}>▶ ネット配信</h2>
+        {d.streaming.length === 0 ? (
+          <p className="mt-2 text-xs text-[#6B7280]">
+            日本で見られる配信情報は現在確認中です
+          </p>
+        ) : (
+          <>
+            <p className="mt-1 text-xs text-[#6B7280]">
+              配信開始日時は各サービスの公式ページでご確認ください
+            </p>
+            <ul className="mt-2 grid gap-1 sm:grid-cols-2">
+              {d.streaming.map((s) => (
+                <li key={s.name}>
+                  <a
+                    href={s.url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex items-center gap-3 rounded-xl bg-white px-3 py-2"
+                  >
+                    <ServiceIcon name={s.name} size={22} />
+                    <span className="min-w-0 flex-1 truncate text-sm font-bold text-[#1C1C2E]">
+                      {s.name}
+                    </span>
+                    <span className="text-xs font-bold text-[#C2772A]">開く ›</span>
+                  </a>
+                </li>
+              ))}
+            </ul>
+          </>
+        )}
+        <p className="mt-2 text-[10px] text-[#6B7280]">
+          出典：AniList／配信日時はサービス側の情報を優先してください
+        </p>
+      </section>
+
       {/* 2カラム（ワイド）／縦積み（狭幅） */}
       <div className="mt-4 md:grid md:grid-cols-2 md:items-start md:gap-4">
         {/* 左列 */}
         <div className="space-y-4">
-          {/* 公式情報の履歴 */}
-          <section className={CARD}>
-            <h2 className={`${CARD_TITLE} mb-3`}>📣 公式情報の履歴</h2>
-            <NewsTimeline />
-            <p className="mt-2 text-[10px] text-[#6B7280]">
-              ※ 現在はサンプル表示。今後は公式の動きを自動で記録します
-            </p>
-          </section>
-
           {/* テレビ放送（地上波・BS・CS） */}
           <section className={CARD}>
             <h2 className={CARD_TITLE}>📺 テレビ放送（地上波・BS・CS）</h2>
             <BroadcastInfo title={d.title} />
             <p className="mt-1 text-[10px] text-[#6B7280]">出典：しょぼいカレンダー</p>
-          </section>
-
-          {/* 配信（サブスク） */}
-          <section className={CARD}>
-            <h2 className={CARD_TITLE}>▶ 配信（サブスク）</h2>
-            {d.streaming.length === 0 ? (
-              <p className="mt-2 text-xs text-[#6B7280]">
-                日本で見られる配信情報が見つかりませんでした
-              </p>
-            ) : (
-              <ul className="mt-1 divide-y divide-[#F1F1F5]">
-                {d.streaming.map((s) => (
-                  <li key={s.name}>
-                    <a
-                      href={s.url}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="flex items-center gap-3 py-2"
-                    >
-                      <ServiceIcon name={s.name} size={22} />
-                      <span className="flex-1 text-sm font-bold text-[#1C1C2E]">{s.name}</span>
-                      <span className="text-xs text-[#6B7280]">
-                        {svcRank(s.name, s.language) >= 40 ? "海外向け" : "公式配信"} ›
-                      </span>
-                    </a>
-                  </li>
-                ))}
-              </ul>
-            )}
-            <p className="mt-1 text-[10px] text-[#6B7280]">出典：AniList</p>
           </section>
         </div>
 

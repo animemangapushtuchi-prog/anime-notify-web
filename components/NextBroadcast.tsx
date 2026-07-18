@@ -1,8 +1,9 @@
 "use client";
 
-// 詳細ページの「次回の放送」。しょぼいカレンダー由来（局ごとに時刻が違うため）。
+// 詳細ページの「次回のテレビ放送」。しょぼいカレンダー由来（局ごとに時刻が違うため）。
 // ログイン中で視聴局を設定していれば、その局のうち最も早い放送を優先。無ければ全局から。
-// しょぼいに一致が無ければ AniList の次回放送にフォールバック。
+// ネット同時配信のチャンネルは lib/home.ts で除外する。
+// しょぼいに一致が無ければ AniList の予定を「放送局確認中」として表示する。
 import { useEffect, useState } from "react";
 import { useAuth } from "@/lib/auth";
 import { getTvPrograms, getUserChannels, nextBroadcast, type TvProgram } from "@/lib/home";
@@ -65,16 +66,18 @@ export default function NextBroadcast({
 
   return (
     <section className="mt-4 rounded-2xl border border-[#F3D9A9] bg-[#E8F0FE] p-4">
-      <h2 className={CARD_TITLE}>📅 次回の放送</h2>
+      <h2 className={CARD_TITLE}>📺 次回のテレビ放送</h2>
       <p className="mt-1 text-base font-extrabold text-[#1C1C2E]">
         {ep != null ? `第${ep}話　` : ""}
         {fmt(at)}
-        {useSyoboi && <span className="ml-2 text-sm font-bold text-[#C2772A]">{prog!.ch}</span>}
+        <span className="ml-2 text-sm font-bold text-[#C2772A]">
+          {useSyoboi ? prog!.ch : "放送局は確認中"}
+        </span>
       </p>
       <p className="mt-1 text-[10px] text-[#6B7280]">
         {useSyoboi
           ? `出典：しょぼいカレンダー（${scoped ? "視聴局を反映" : "全局から最速"}）`
-          : "出典：AniList（日本時間）"}
+          : "出典：AniList（日本時間）／テレビ局は未確認"}
       </p>
     </section>
   );
