@@ -8,9 +8,10 @@ export default function SiteHeader() {
   return (
     <header className="sticky top-0 z-20 border-b border-[#ECECF2] bg-[#F6F6FA]/90 backdrop-blur">
       <div className="mx-auto flex max-w-2xl items-center justify-between px-4 py-2">
-        <Link href="/" className="text-lg font-extrabold text-[#5B4FCF]">
-          アニミル
+        <Link href="/" className="text-lg font-extrabold text-[#5B4FCF] lg:hidden">
+          アニミル！
         </Link>
+        <span className="hidden lg:block" aria-hidden="true" />
         <ProfileMenu />
       </div>
     </header>

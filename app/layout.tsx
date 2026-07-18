@@ -3,6 +3,7 @@ import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { AuthProvider } from "@/lib/auth";
 import SiteHeader from "@/components/SiteHeader";
+import Sidebar from "@/components/Sidebar";
 import BottomTabs from "@/components/BottomTabs";
 import PushManager from "@/components/PushManager";
 import PageView from "@/components/PageView";
@@ -21,11 +22,11 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "アニミル（Animiru）｜アニメの放送・配信を自動で新着通知",
+  title: "アニミル！（Animiru）｜アニメの放送・配信を自動で新着通知",
   description:
-    "登録した作品の新話放送・配信入りを自動でお知らせ。放送カレンダー・今期アニメ・おすすめ特集も。アニメ好きのための新着通知サービス「アニミル」。",
+    "登録した作品の新話放送・配信入りを自動でお知らせ。放送カレンダー・今期アニメ・おすすめ特集も。アニメ好きのための新着通知サービス「アニミル！」。",
   manifest: "/manifest.webmanifest",
-  appleWebApp: { capable: true, title: "アニミル", statusBarStyle: "default" },
+  appleWebApp: { capable: true, title: "アニミル！", statusBarStyle: "default" },
   icons: { icon: "/icon-192.png", apple: "/apple-icon.png" },
   other: { "google-adsense-account": "ca-pub-6458901222804186" },
 };
@@ -48,14 +49,21 @@ export default function RootLayout({
       lang="ja"
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
     >
-      <body className="min-h-full flex flex-col">
+      <body className="min-h-full">
         <AuthProvider>
-          <SiteHeader />
-          <IosBanner />
-          <div className="flex-1 pb-24">
-            <VerifyGate>{children}</VerifyGate>
+          <div className="lg:flex">
+            <Sidebar />
+            <div className="flex min-h-screen min-w-0 flex-1 flex-col">
+              <SiteHeader />
+              <IosBanner />
+              <div className="flex-1 pb-24 lg:pb-10">
+                <VerifyGate>{children}</VerifyGate>
+              </div>
+            </div>
           </div>
-          <BottomTabs />
+          <div className="lg:hidden">
+            <BottomTabs />
+          </div>
           <PushManager />
           <PageView />
         </AuthProvider>

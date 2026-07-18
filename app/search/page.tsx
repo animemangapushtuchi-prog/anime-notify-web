@@ -19,7 +19,7 @@ import {
   type SeasonAnime,
   type Suggestion,
 } from "@/lib/anilist";
-import WorkRow from "@/components/WorkRow";
+import WorkCard from "@/components/WorkCard";
 
 type Season = "current" | "next" | false;
 type Mode = {
@@ -268,7 +268,7 @@ export default function SearchPage() {
       : cur.label;
 
   return (
-    <main className="mx-auto max-w-2xl px-4 py-5">
+    <main className="mx-auto max-w-2xl px-4 py-5 lg:max-w-6xl lg:px-8">
       <h1 className="text-xl font-extrabold text-[#1C1C2E]">検索</h1>
 
       <div className="relative mt-3">
@@ -389,10 +389,10 @@ export default function SearchPage() {
         </div>
       ) : (
         <>
-          <ul className={`mt-3 divide-y divide-[#ECECF2] overflow-hidden rounded-2xl border border-[#ECECF2] bg-white transition-opacity ${paging ? "opacity-50" : ""}`}>
+          <ul className={`mt-4 grid grid-cols-2 gap-x-3 gap-y-5 transition-opacity sm:grid-cols-3 lg:grid-cols-5 ${paging ? "opacity-50" : ""}`}>
             {items.map((a) => (
               <li key={a.id}>
-                <WorkRow {...a} />
+                <WorkCard {...a} />
               </li>
             ))}
           </ul>

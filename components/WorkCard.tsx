@@ -6,6 +6,7 @@ export default function WorkCard({
   title,
   coverUrl,
   format,
+  status,
 }: {
   id: number;
   title: string;
@@ -15,7 +16,7 @@ export default function WorkCard({
 }) {
   return (
     <Link href={`/work/${id}`} className="group block">
-      <div className="aspect-[2/3] w-full overflow-hidden rounded-xl bg-black/5">
+      <div className="relative aspect-[2/3] w-full overflow-hidden rounded-xl bg-black/5">
         {coverUrl && (
           // eslint-disable-next-line @next/next/no-img-element
           <img
@@ -23,6 +24,15 @@ export default function WorkCard({
             alt={title}
             className="h-full w-full object-cover transition duration-200 group-hover:scale-105"
           />
+        )}
+        {status && (
+          <span
+            className={`absolute left-1.5 top-1.5 rounded-full px-2 py-0.5 text-[10px] font-bold ${
+              status === "放送中" ? "bg-[#DC2626] text-white" : "bg-black/60 text-white"
+            }`}
+          >
+            {status}
+          </span>
         )}
       </div>
       <div className="mt-1.5">
