@@ -20,6 +20,7 @@ import {
   type Suggestion,
 } from "@/lib/anilist";
 import WorkCard from "@/components/WorkCard";
+import AdSlot from "@/components/AdSlot";
 
 type Season = "current" | "next" | false;
 type Mode = {
@@ -420,6 +421,8 @@ export default function SearchPage() {
           )}
         </>
       )}
+
+      {items.length > 0 && <AdSlot className="mt-8" />}
 
       <p className="mt-6 text-[10px] text-black/40">出典：AniList</p>
     </main>

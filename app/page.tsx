@@ -24,6 +24,7 @@ import ServiceIcon from "@/components/ServiceIcon";
 import SurveyCard from "@/components/SurveyCard";
 import ScheduleCalendar, { type AiringEntry } from "@/components/ScheduleCalendar";
 import StatusPicker from "@/components/StatusPicker";
+import AdSlot from "@/components/AdSlot";
 
 const WD = ["日", "月", "火", "水", "木", "金", "土"];
 function fmtNext(nextEp: number | null, nextAt: number | null, station: string): string | null {
@@ -298,6 +299,8 @@ export default function Home() {
           )}
         </div>
       )}
+
+      <AdSlot className="mt-8" />
     </main>
   );
 }

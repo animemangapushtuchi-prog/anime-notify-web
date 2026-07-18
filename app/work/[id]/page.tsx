@@ -12,6 +12,7 @@ import RelatedWorks from "@/components/RelatedWorks";
 import BroadcastInfo from "@/components/BroadcastInfo";
 import ServiceIcon from "@/components/ServiceIcon";
 import NextBroadcast from "@/components/NextBroadcast";
+import AdSlot from "@/components/AdSlot";
 
 // ISR：1時間ごとに再生成
 export const revalidate = 3600;
@@ -284,6 +285,8 @@ export default async function WorkPage({
           )}
         </div>
       </div>
+
+      <AdSlot className="mt-6" />
     </main>
   );
 }
