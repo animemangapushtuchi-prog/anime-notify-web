@@ -63,7 +63,7 @@ export default async function OsusumeDetail({
       </nav>
 
       {/* ヒーロー */}
-      <section className="mt-2 overflow-hidden rounded-2xl text-white" style={{ background: "linear-gradient(to bottom right, #3B3670, #5B4FCF)" }}>
+      <section className="mt-2 overflow-hidden rounded-2xl text-white" style={{ background: "linear-gradient(to bottom right, #3B3670, #C2772A)" }}>
         {o.heroImage && (
           // eslint-disable-next-line @next/next/no-img-element
           <img src={o.heroImage} alt={o.title} className="h-40 w-full object-cover" />
@@ -79,7 +79,7 @@ export default async function OsusumeDetail({
       <ol className="mt-4 space-y-4">
         {o.entries.map((e) => {
           const img = e.image || (e.workId ? covers[e.workId] : "") || "";
-          const rankColor = RANK_BG[e.rank - 1] ?? "#5B4FCF";
+          const rankColor = RANK_BG[e.rank - 1] ?? "#C2772A";
           return (
             <li key={`${e.rank}-${e.title}`} className="overflow-hidden rounded-2xl border border-[#ECECF2] bg-white">
               <div className="flex gap-3 p-3">
@@ -95,13 +95,13 @@ export default async function OsusumeDetail({
                 )}
                 <div className="min-w-0 flex-1">
                   {e.workId ? (
-                    <Link href={`/work/${e.workId}`} className="text-[15px] font-extrabold text-[#1C1C2E] hover:text-[#5B4FCF]">
+                    <Link href={`/work/${e.workId}`} className="text-[15px] font-extrabold text-[#1C1C2E] hover:text-[#C2772A]">
                       {e.title}
                     </Link>
                   ) : (
                     <p className="text-[15px] font-extrabold text-[#1C1C2E]">{e.title}</p>
                   )}
-                  {e.reviewTitle && <p className="mt-1 text-[13px] font-bold text-[#5B4FCF]">{e.reviewTitle}</p>}
+                  {e.reviewTitle && <p className="mt-1 text-[13px] font-bold text-[#C2772A]">{e.reviewTitle}</p>}
                   {e.reviewBody && (
                     <p className="mt-1 whitespace-pre-line text-[13px] leading-relaxed text-[#374151]">{e.reviewBody}</p>
                   )}
@@ -111,12 +111,12 @@ export default async function OsusumeDetail({
               {((e.streaming && e.streaming.length > 0) || e.workId) && (
                 <div className="flex flex-wrap items-center gap-2 border-t border-[#F1F1F5] px-3 py-2">
                   {e.streaming?.map((s) => (
-                    <a key={s.name} href={s.url} target="_blank" rel="noopener noreferrer" className="rounded-full bg-[#ECEAFD] px-3 py-1 text-[11px] font-bold text-[#5B4FCF]">
+                    <a key={s.name} href={s.url} target="_blank" rel="noopener noreferrer" className="rounded-full bg-[#F6E9D5] px-3 py-1 text-[11px] font-bold text-[#C2772A]">
                       {s.name}で見る ↗
                     </a>
                   ))}
                   {e.workId && (
-                    <Link href={`/work/${e.workId}`} className="ml-auto rounded-full bg-[#5B4FCF] px-3 py-1 text-[11px] font-bold text-white">
+                    <Link href={`/work/${e.workId}`} className="ml-auto rounded-full bg-[#C2772A] px-3 py-1 text-[11px] font-bold text-white">
                       詳細・＋通知登録 ›
                     </Link>
                   )}
@@ -128,10 +128,10 @@ export default async function OsusumeDetail({
       </ol>
 
       {/* CTA */}
-      <section className="mt-6 rounded-2xl border border-[#ECEAFD] bg-[#F6F5FF] p-4 text-center">
+      <section className="mt-6 rounded-2xl border border-[#F6E9D5] bg-[#FBF3E6] p-4 text-center">
         <p className="text-sm font-bold text-[#1C1C2E]">気になった作品は「＋登録」で新着通知！</p>
         <p className="mt-1 text-xs text-[#6B7280]">新話の放送・配信入りを自動でお知らせします。</p>
-        <Link href="/" className="mt-3 inline-block rounded-full bg-[#5B4FCF] px-5 py-2 text-sm font-bold text-white">
+        <Link href="/" className="mt-3 inline-block rounded-full bg-[#C2772A] px-5 py-2 text-sm font-bold text-white">
           アプリを使ってみる
         </Link>
       </section>
@@ -143,7 +143,7 @@ export default async function OsusumeDetail({
           <ul className="mt-2 space-y-2">
             {others.map((x) => (
               <li key={x.slug}>
-                <Link href={`/osusume/${x.slug}`} className="block rounded-xl border border-[#ECECF2] bg-white px-3 py-2 text-sm font-bold text-[#1C1C2E] hover:text-[#5B4FCF]">
+                <Link href={`/osusume/${x.slug}`} className="block rounded-xl border border-[#ECECF2] bg-white px-3 py-2 text-sm font-bold text-[#1C1C2E] hover:text-[#C2772A]">
                   {x.title} ›
                 </Link>
               </li>

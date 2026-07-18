@@ -82,7 +82,7 @@ export default function GuidePage() {
         </Section>
       </div>
 
-      <Link href="/" className="mt-5 inline-block text-sm font-bold text-[#5B4FCF]">
+      <Link href="/" className="mt-5 inline-block text-sm font-bold text-[#C2772A]">
         ← ホームへ
       </Link>
     </main>

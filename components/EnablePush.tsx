@@ -48,7 +48,7 @@ export default function EnablePush() {
       type="button"
       onClick={enable}
       disabled={busy}
-      className="rounded-xl bg-[#5B4FCF] px-4 py-2.5 text-sm font-bold text-white disabled:opacity-60"
+      className="rounded-xl bg-[#C2772A] px-4 py-2.5 text-sm font-bold text-white disabled:opacity-60"
     >
       {busy ? "設定中…" : "🔔 ブラウザ通知を有効にする"}
     </button>

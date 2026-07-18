@@ -5,7 +5,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 
 function NavIcon({ name, active }: { name: string; active: boolean }) {
-  const c = active ? "#5B4FCF" : "#6B7280";
+  const c = active ? "#C2772A" : "#6B7280";
   const common = {
     width: 20,
     height: 20,
@@ -67,7 +67,7 @@ export default function Sidebar() {
     <aside className="sticky top-0 hidden h-screen w-56 shrink-0 flex-col border-r border-[#ECECF2] bg-[#F6F6FA] px-3 py-4 lg:flex">
       <Link
         href="/"
-        className="px-3 pb-5 text-xl font-extrabold text-[#5B4FCF]"
+        className="px-3 pb-5 text-xl font-extrabold text-[#C2772A]"
       >
         アニミル！
       </Link>
@@ -80,7 +80,7 @@ export default function Sidebar() {
               href={t.href}
               className={`flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-bold ${
                 on
-                  ? "bg-[#ECEAFD] text-[#5B4FCF]"
+                  ? "bg-[#F6E9D5] text-[#C2772A]"
                   : "text-[#4B5563] hover:bg-black/5"
               }`}
             >

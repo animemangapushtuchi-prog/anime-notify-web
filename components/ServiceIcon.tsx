@@ -1,7 +1,7 @@
 // 配信サービスの色アイコン（ブランド色＋頭文字を自前描画）。Flutter版のserviceIcon相当。
 export default function ServiceIcon({ name, size = 20 }: { name: string; size?: number }) {
   const s = name.toLowerCase();
-  let color = "#5B4FCF";
+  let color = "#C2772A";
   let label = name ? name[0].toUpperCase() : "?";
   if (s.includes("netflix")) {
     color = "#E50914";

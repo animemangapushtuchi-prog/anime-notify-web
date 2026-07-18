@@ -39,7 +39,7 @@ function Toggle({
         type="button"
         aria-pressed={value}
         onClick={() => onChange(!value)}
-        className={`relative h-6 w-11 flex-none rounded-full transition ${value ? "bg-[#5B4FCF]" : "bg-black/20"}`}
+        className={`relative h-6 w-11 flex-none rounded-full transition ${value ? "bg-[#C2772A]" : "bg-black/20"}`}
       >
         <span className={`absolute top-0.5 h-5 w-5 rounded-full bg-white transition-all ${value ? "left-[22px]" : "left-0.5"}`} />
       </button>
@@ -98,7 +98,7 @@ export default function SettingsPage() {
     return (
       <main className="mx-auto max-w-md px-4 py-10">
         <p className="text-sm text-black/60">ログインすると設定を保存できます。</p>
-        <Link href="/login" className="mt-3 inline-block rounded-full bg-[#5B4FCF] px-4 py-2 text-sm font-bold text-white">
+        <Link href="/login" className="mt-3 inline-block rounded-full bg-[#C2772A] px-4 py-2 text-sm font-bold text-white">
           ログイン
         </Link>
       </main>
@@ -160,8 +160,8 @@ export default function SettingsPage() {
 
       {/* プロフィールカード */}
       <div className="mt-5 flex items-center gap-3 rounded-2xl border border-[#ECECF2] bg-white p-4">
-        <div className="flex h-11 w-11 flex-none items-center justify-center rounded-full bg-[#ECEAFD]">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#5B4FCF" strokeWidth="2">
+        <div className="flex h-11 w-11 flex-none items-center justify-center rounded-full bg-[#F6E9D5]">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#C2772A" strokeWidth="2">
             <circle cx="12" cy="8" r="4" />
             <path d="M4 21c0-4 4-6 8-6s8 2 8 6" />
           </svg>
@@ -170,7 +170,7 @@ export default function SettingsPage() {
           <p className="truncate text-sm font-extrabold text-[#1C1C2E]">{idLabel}</p>
           <p className="text-[11px] text-[#6B7280]">無料プラン・登録 {count}/{slotCap}</p>
         </div>
-        <button type="button" title="準備中" className="flex-none rounded-xl border border-[#5B4FCF] px-3 py-1.5 text-xs font-bold text-[#5B4FCF]">
+        <button type="button" title="準備中" className="flex-none rounded-xl border border-[#C2772A] px-3 py-1.5 text-xs font-bold text-[#C2772A]">
           プラン変更
         </button>
       </div>
@@ -221,7 +221,7 @@ export default function SettingsPage() {
                           key={ch}
                           type="button"
                           onClick={() => toggleChannel(ch)}
-                          className={`rounded-full px-3 py-1 text-xs font-bold transition ${on ? "bg-[#5B4FCF] text-white" : "bg-[#ECEAFD] text-[#5B4FCF]"}`}
+                          className={`rounded-full px-3 py-1 text-xs font-bold transition ${on ? "bg-[#C2772A] text-white" : "bg-[#F6E9D5] text-[#C2772A]"}`}
                         >
                           {ch}
                         </button>

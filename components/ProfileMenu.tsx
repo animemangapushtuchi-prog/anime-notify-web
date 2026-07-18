@@ -61,7 +61,7 @@ export default function ProfileMenu() {
             {user ? (
               <p className="px-4 py-2.5 text-sm font-bold text-[#1C1C2E]">ID: {idLabel}</p>
             ) : (
-              <Link href="/login" onClick={close} className="block px-4 py-2.5 text-sm font-bold text-[#5B4FCF]">
+              <Link href="/login" onClick={close} className="block px-4 py-2.5 text-sm font-bold text-[#C2772A]">
                 ログイン
               </Link>
             )}

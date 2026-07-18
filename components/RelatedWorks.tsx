@@ -16,7 +16,7 @@ function Section({ title, children }: { title: string; children: React.ReactNode
 function AnimeRow({ id, label }: { id: number; label: string }) {
   return (
     <a href={`/work/${id}`} className="flex items-center justify-between py-1 text-sm">
-      <span className="font-semibold text-[#5B4FCF] hover:underline">{label}</span>
+      <span className="font-semibold text-[#C2772A] hover:underline">{label}</span>
       <span className="flex-none text-black/30">›</span>
     </a>
   );

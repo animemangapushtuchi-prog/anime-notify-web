@@ -69,7 +69,7 @@ export default function NextBroadcast({
       <p className="mt-1 text-base font-extrabold text-[#1C1C2E]">
         {ep != null ? `第${ep}話　` : ""}
         {fmt(at)}
-        {useSyoboi && <span className="ml-2 text-sm font-bold text-[#5B4FCF]">{prog!.ch}</span>}
+        {useSyoboi && <span className="ml-2 text-sm font-bold text-[#C2772A]">{prog!.ch}</span>}
       </p>
       <p className="mt-1 text-[10px] text-[#6B7280]">
         {useSyoboi

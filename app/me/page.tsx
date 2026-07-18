@@ -37,7 +37,7 @@ export default function MePage() {
         </p>
         <Link
           href="/login"
-          className="mt-3 inline-block rounded-full bg-[#5B4FCF] px-4 py-2 text-sm font-bold text-white"
+          className="mt-3 inline-block rounded-full bg-[#C2772A] px-4 py-2 text-sm font-bold text-white"
         >
           ログイン
         </Link>
@@ -73,7 +73,7 @@ export default function MePage() {
       ) : works.length === 0 ? (
         <div className="mt-6 rounded-2xl border border-[#ECECF2] bg-white p-6 text-sm text-black/50">
           まだ登録がありません。
-          <Link href="/" className="ml-1 font-bold text-[#5B4FCF]">
+          <Link href="/" className="ml-1 font-bold text-[#C2772A]">
             作品を探す →
           </Link>
         </div>

@@ -114,7 +114,7 @@ export default function NotificationsPage() {
         <p className="text-sm text-black/60">ログインすると通知と履歴が使えます。</p>
         <Link
           href="/login"
-          className="mt-3 inline-block rounded-full bg-[#5B4FCF] px-4 py-2 text-sm font-bold text-white"
+          className="mt-3 inline-block rounded-full bg-[#C2772A] px-4 py-2 text-sm font-bold text-white"
         >
           ログイン
         </Link>
@@ -159,7 +159,7 @@ export default function NotificationsPage() {
         <button
           type="button"
           onClick={markAllRead}
-          className="rounded-full bg-[#ECEAFD] px-3 py-1 text-xs font-bold text-[#5B4FCF]"
+          className="rounded-full bg-[#F6E9D5] px-3 py-1 text-xs font-bold text-[#C2772A]"
         >
           ✓✓ 全既読
         </button>
@@ -172,7 +172,7 @@ export default function NotificationsPage() {
             type="button"
             onClick={() => setFilter(t.key)}
             className={`rounded-full px-3 py-1 text-xs font-bold transition ${
-              filter === t.key ? "bg-[#5B4FCF] text-white" : "bg-[#ECEAFD] text-[#5B4FCF]"
+              filter === t.key ? "bg-[#C2772A] text-white" : "bg-[#F6E9D5] text-[#C2772A]"
             }`}
           >
             {t.label}
@@ -207,7 +207,7 @@ export default function NotificationsPage() {
                         type="button"
                         onClick={() => open(n)}
                         className={`flex w-full items-start gap-3 rounded-2xl border p-3 text-left ${
-                          n.read ? "border-[#ECECF2] bg-white" : "border-[#5B4FCF]/30 bg-[#F6F5FF]"
+                          n.read ? "border-[#ECECF2] bg-white" : "border-[#C2772A]/30 bg-[#FBF3E6]"
                         }`}
                       >
                         <span className={`mt-0.5 flex-none rounded-full px-2 py-0.5 text-[10px] font-bold ${k.cls}`}>
@@ -222,7 +222,7 @@ export default function NotificationsPage() {
                           </span>
                         </span>
                         {!n.read && (
-                          <span className="mt-1.5 h-2 w-2 flex-none rounded-full bg-[#5B4FCF]" />
+                          <span className="mt-1.5 h-2 w-2 flex-none rounded-full bg-[#C2772A]" />
                         )}
                       </button>
                     </li>

@@ -24,7 +24,7 @@ function chipCls(c: string): string {
     case "配信決定":
       return "bg-[#E6F7F1] text-[#059669]";
     default:
-      return "bg-[#ECEAFD] text-[#5B4FCF]";
+      return "bg-[#F6E9D5] text-[#C2772A]";
   }
 }
 function dotColor(c: string): string {
@@ -41,7 +41,7 @@ function dotColor(c: string): string {
     case "配信決定":
       return "#059669";
     default:
-      return "#5B4FCF";
+      return "#C2772A";
   }
 }
 

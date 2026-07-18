@@ -93,7 +93,7 @@ export default function ScheduleCalendar({ entries }: { entries: AiringEntry[] }
             type="button"
             onClick={() => setMode(m)}
             className={`rounded-full px-3 py-1 text-xs font-bold transition ${
-              mode === m ? "bg-[#5B4FCF] text-white" : "bg-[#ECEAFD] text-[#5B4FCF]"
+              mode === m ? "bg-[#C2772A] text-white" : "bg-[#F6E9D5] text-[#C2772A]"
             }`}
           >
             {m === "week" ? "週" : "月"}
@@ -110,11 +110,11 @@ export default function ScheduleCalendar({ entries }: { entries: AiringEntry[] }
       {mode === "week" ? (
         <div className="mt-3">
           <div className="flex items-center justify-between">
-            <button onClick={() => setWeekOffset((v) => v - 1)} className="px-3 py-1 text-sm font-bold text-[#5B4FCF]">◀</button>
+            <button onClick={() => setWeekOffset((v) => v - 1)} className="px-3 py-1 text-sm font-bold text-[#C2772A]">◀</button>
             <span className="text-sm font-bold text-[#1C1C2E]">
               {weekOffset === 0 ? "今週" : `${weekDays[0].getMonth() + 1}/${weekDays[0].getDate()} の週`}
             </span>
-            <button onClick={() => setWeekOffset((v) => v + 1)} className="px-3 py-1 text-sm font-bold text-[#5B4FCF]">▶</button>
+            <button onClick={() => setWeekOffset((v) => v + 1)} className="px-3 py-1 text-sm font-bold text-[#C2772A]">▶</button>
           </div>
           <div className="mt-2 space-y-2">
             {weekDays.map((d) => {
@@ -123,7 +123,7 @@ export default function ScheduleCalendar({ entries }: { entries: AiringEntry[] }
               return (
                 <div
                   key={d.toISOString()}
-                  className={`rounded-2xl border p-3 ${today ? "border-[#5B4FCF]/40 bg-[#F6F5FF]" : "border-[#ECECF2] bg-white"}`}
+                  className={`rounded-2xl border p-3 ${today ? "border-[#C2772A]/40 bg-[#FBF3E6]" : "border-[#ECECF2] bg-white"}`}
                 >
                   <p className="text-xs font-bold text-[#6B7280]">
                     {d.getMonth() + 1}/{d.getDate()}（{WD[d.getDay()]}）{today ? " ・今日" : ""}
@@ -145,9 +145,9 @@ export default function ScheduleCalendar({ entries }: { entries: AiringEntry[] }
       ) : (
         <div className="mt-3">
           <div className="flex items-center justify-between">
-            <button onClick={() => { setMonthOffset((v) => v - 1); setSelDay(-1); }} className="px-3 py-1 text-sm font-bold text-[#5B4FCF]">◀</button>
+            <button onClick={() => { setMonthOffset((v) => v - 1); setSelDay(-1); }} className="px-3 py-1 text-sm font-bold text-[#C2772A]">◀</button>
             <span className="text-sm font-bold text-[#1C1C2E]">{mYear}年{mMonth + 1}月</span>
-            <button onClick={() => { setMonthOffset((v) => v + 1); setSelDay(-1); }} className="px-3 py-1 text-sm font-bold text-[#5B4FCF]">▶</button>
+            <button onClick={() => { setMonthOffset((v) => v + 1); setSelDay(-1); }} className="px-3 py-1 text-sm font-bold text-[#C2772A]">▶</button>
           </div>
 
           <div className="mt-2 grid grid-cols-7 gap-1 text-center">
@@ -164,12 +164,12 @@ export default function ScheduleCalendar({ entries }: { entries: AiringEntry[] }
                   type="button"
                   onClick={() => setSelDay(d)}
                   className={`flex aspect-square flex-col items-center justify-center rounded-lg text-xs ${
-                    sel ? "bg-[#5B4FCF] text-white" : isToday(d) ? "bg-[#ECEAFD] text-[#5B4FCF]" : "text-[#1C1C2E]"
+                    sel ? "bg-[#C2772A] text-white" : isToday(d) ? "bg-[#F6E9D5] text-[#C2772A]" : "text-[#1C1C2E]"
                   }`}
                 >
                   <span className={sel ? "font-bold" : ""}>{d}</span>
                   {count > 0 && (
-                    <span className={`mt-0.5 h-1.5 w-1.5 rounded-full ${sel ? "bg-white" : "bg-[#5B4FCF]"}`} />
+                    <span className={`mt-0.5 h-1.5 w-1.5 rounded-full ${sel ? "bg-white" : "bg-[#C2772A]"}`} />
                   )}
                 </button>
               );

@@ -139,7 +139,7 @@ export default function Home() {
           </ol>
           <Link
             href="/login"
-            className="mt-4 inline-block rounded-full bg-[#5B4FCF] px-5 py-2.5 text-sm font-bold text-white"
+            className="mt-4 inline-block rounded-full bg-[#C2772A] px-5 py-2.5 text-sm font-bold text-white"
           >
             はじめる（ログイン / 新規登録）
           </Link>
@@ -174,7 +174,7 @@ export default function Home() {
   return (
     <main className="mx-auto max-w-2xl px-4 py-5 lg:max-w-6xl lg:px-8">
       {loginBonusToday && (
-        <div className="mb-3 flex items-center gap-2 rounded-2xl bg-[#ECEAFD] px-4 py-2 text-xs font-bold text-[#5B4FCF]">
+        <div className="mb-3 flex items-center gap-2 rounded-2xl bg-[#F6E9D5] px-4 py-2 text-xs font-bold text-[#C2772A]">
           <Mascot pose="cheer" h={40} />
           ログインボーナス！ 登録枠が {slotCap} 枠になりました
         </div>
@@ -184,7 +184,7 @@ export default function Home() {
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
           <Mascot pose="stand" h={40} />
-          <div className="flex rounded-full bg-[#ECEAFD] p-1">
+          <div className="flex rounded-full bg-[#F6E9D5] p-1">
           {([
             ["calendar", "放送カレンダー"],
             ["list", "登録作品"],
@@ -194,7 +194,7 @@ export default function Home() {
               type="button"
               onClick={() => setView(v)}
               className={`rounded-full px-4 py-1.5 text-xs font-bold transition ${
-                view === v ? "bg-[#5B4FCF] text-white" : "text-[#5B4FCF]"
+                view === v ? "bg-[#C2772A] text-white" : "text-[#C2772A]"
               }`}
             >
               {label}
@@ -206,7 +206,7 @@ export default function Home() {
           className={`rounded-full px-2 py-0.5 text-[11px] font-bold ${
             (works?.length ?? 0) >= slotCap
               ? "bg-[#FDEAEA] text-[#DC2626]"
-              : "bg-[#ECEAFD] text-[#5B4FCF]"
+              : "bg-[#F6E9D5] text-[#C2772A]"
           }`}
         >
           {works?.length ?? 0}/{slotCap}
@@ -224,7 +224,7 @@ export default function Home() {
               type="button"
               onClick={() => setFilter("all")}
               className={`flex-none rounded-full px-3 py-1 text-xs font-bold transition ${
-                filter === "all" ? "bg-[#5B4FCF] text-white" : "bg-white text-[#6B7280] border border-[#ECECF2]"
+                filter === "all" ? "bg-[#C2772A] text-white" : "bg-white text-[#6B7280] border border-[#ECECF2]"
               }`}
             >
               すべて {works?.length ?? 0}
@@ -235,7 +235,7 @@ export default function Home() {
                 type="button"
                 onClick={() => setFilter(s.key)}
                 className={`flex-none rounded-full px-3 py-1 text-xs font-bold transition ${
-                  filter === s.key ? "bg-[#5B4FCF] text-white" : "bg-white text-[#6B7280] border border-[#ECECF2]"
+                  filter === s.key ? "bg-[#C2772A] text-white" : "bg-white text-[#6B7280] border border-[#ECECF2]"
                 }`}
               >
                 {s.label} {counts[s.key] ?? 0}
@@ -266,7 +266,7 @@ export default function Home() {
               <option value="air">放送が近い順</option>
               <option value="added">登録が新しい順</option>
             </select>
-            <button type="button" onClick={() => setEdit((v) => !v)} className="text-[#5B4FCF]">
+            <button type="button" onClick={() => setEdit((v) => !v)} className="text-[#C2772A]">
               {edit ? "完了" : "編集"}
             </button>
           </div>

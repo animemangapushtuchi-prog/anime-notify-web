@@ -36,7 +36,7 @@ export default function WorkCard({
         )}
       </div>
       <div className="mt-1.5">
-        <span className="inline-block rounded bg-[#ECEAFD] px-1.5 py-0.5 text-[10px] font-bold text-[#5B4FCF]">
+        <span className="inline-block rounded bg-[#F6E9D5] px-1.5 py-0.5 text-[10px] font-bold text-[#C2772A]">
           {format}
         </span>
         <p className="mt-1 line-clamp-2 text-xs font-semibold leading-snug text-[#1C1C2E]">

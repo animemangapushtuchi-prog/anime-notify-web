@@ -10,7 +10,7 @@ export default function SiteHeader() {
       <div className="mx-auto flex max-w-2xl items-center justify-between px-4 py-2 lg:max-w-none lg:px-8">
         <Link
           href="/"
-          className="text-lg font-extrabold text-[#5B4FCF] lg:hidden"
+          className="text-lg font-extrabold text-[#C2772A] lg:hidden"
         >
           アニミル！
         </Link>

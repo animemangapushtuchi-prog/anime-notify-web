@@ -34,12 +34,12 @@ export default function OsusumeListPage() {
                   // eslint-disable-next-line @next/next/no-img-element
                   <img src={o.heroImage} alt={o.title} className="h-32 w-full object-cover" />
                 ) : (
-                  <div className="h-20 w-full" style={{ background: "linear-gradient(to bottom right, #3B3670, #5B4FCF)" }} />
+                  <div className="h-20 w-full" style={{ background: "linear-gradient(to bottom right, #3B3670, #C2772A)" }} />
                 )}
                 <div className="p-3">
                   <p className="text-sm font-extrabold text-[#1C1C2E]">{o.title}</p>
                   {o.description && <p className="mt-1 line-clamp-2 text-xs text-[#6B7280]">{o.description}</p>}
-                  <p className="mt-1 text-[11px] font-bold text-[#5B4FCF]">{o.entries.length}作品 ›</p>
+                  <p className="mt-1 text-[11px] font-bold text-[#C2772A]">{o.entries.length}作品 ›</p>
                 </div>
               </Link>
             </li>

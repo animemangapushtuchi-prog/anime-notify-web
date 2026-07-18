@@ -35,7 +35,7 @@ export default function RegisterButton({ work }: { work: Work }) {
     return (
       <Link
         href="/login"
-        className="block w-full rounded-xl bg-[#5B4FCF] py-3 text-center text-sm font-bold text-white"
+        className="block w-full rounded-xl bg-[#C2772A] py-3 text-center text-sm font-bold text-white"
       >
         ログインすると登録・通知が使えます
       </Link>
@@ -85,8 +85,8 @@ export default function RegisterButton({ work }: { work: Work }) {
         disabled={busy || full}
         className={`w-full rounded-xl py-3 text-sm font-bold transition disabled:opacity-60 ${
           registered
-            ? "border border-[#5B4FCF] bg-white text-[#5B4FCF]"
-            : "bg-[#5B4FCF] text-white"
+            ? "border border-[#C2772A] bg-white text-[#C2772A]"
+            : "bg-[#C2772A] text-white"
         }`}
       >
         {busy

@@ -106,14 +106,14 @@ export default function LoginPage() {
           autoCapitalize="none"
           autoCorrect="off"
           placeholder="例）you@example.com"
-          className="mt-1.5 w-full rounded-xl border border-black/15 px-3 py-2.5 text-sm outline-none focus:border-[#5B4FCF]"
+          className="mt-1.5 w-full rounded-xl border border-black/15 px-3 py-2.5 text-sm outline-none focus:border-[#C2772A]"
         />
 
         {mode !== "reset" && (
           <>
             <div className="mt-4 flex items-center justify-between">
               <label className="block text-xs font-bold text-black/50">パスワード</label>
-              <button type="button" onClick={() => setShowPw((v) => !v)} className="text-[11px] font-bold text-[#5B4FCF]">
+              <button type="button" onClick={() => setShowPw((v) => !v)} className="text-[11px] font-bold text-[#C2772A]">
                 {showPw ? "隠す" : "表示"}
               </button>
             </div>
@@ -122,7 +122,7 @@ export default function LoginPage() {
               value={pw}
               onChange={(e) => setPw(e.target.value)}
               placeholder="6文字以上（8文字以上を推奨）"
-              className="mt-1.5 w-full rounded-xl border border-black/15 px-3 py-2.5 text-sm outline-none focus:border-[#5B4FCF]"
+              className="mt-1.5 w-full rounded-xl border border-black/15 px-3 py-2.5 text-sm outline-none focus:border-[#C2772A]"
             />
 
             {mode === "signup" && (
@@ -147,7 +147,7 @@ export default function LoginPage() {
                       setPw(generatePw());
                       setShowPw(true);
                     }}
-                    className="rounded-full bg-[#ECEAFD] px-3 py-1 text-[11px] font-bold text-[#5B4FCF]"
+                    className="rounded-full bg-[#F6E9D5] px-3 py-1 text-[11px] font-bold text-[#C2772A]"
                   >
                     🔒 強いパスワードを生成
                   </button>
@@ -164,19 +164,19 @@ export default function LoginPage() {
         <button
           type="submit"
           disabled={busy}
-          className="mt-5 w-full rounded-xl bg-[#5B4FCF] py-3 text-sm font-bold text-white disabled:opacity-60"
+          className="mt-5 w-full rounded-xl bg-[#C2772A] py-3 text-sm font-bold text-white disabled:opacity-60"
         >
           {busy ? "処理中…" : mode === "signup" ? "新規登録する" : mode === "reset" ? "再設定メールを送る" : "ログインする"}
         </button>
 
         {mode === "login" && (
-          <div className="mt-3 flex items-center justify-between text-xs font-semibold text-[#5B4FCF]">
+          <div className="mt-3 flex items-center justify-between text-xs font-semibold text-[#C2772A]">
             <button type="button" onClick={() => switchMode("signup")}>新規登録はこちら</button>
             <button type="button" onClick={() => switchMode("reset")}>パスワードをお忘れですか？</button>
           </div>
         )}
         {mode !== "login" && (
-          <button type="button" onClick={() => switchMode("login")} className="mt-3 w-full text-center text-xs font-semibold text-[#5B4FCF]">
+          <button type="button" onClick={() => switchMode("login")} className="mt-3 w-full text-center text-xs font-semibold text-[#C2772A]">
             ← ログインに戻る
           </button>
         )}

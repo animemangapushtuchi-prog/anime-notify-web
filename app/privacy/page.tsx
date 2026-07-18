@@ -66,14 +66,14 @@ export default function PrivacyPage() {
           </p>
           <p>
             ユーザーは、Googleの
-            <a href="https://www.google.com/settings/ads" target="_blank" rel="noopener noreferrer" className="font-bold text-[#5B4FCF] underline">広告設定</a>
+            <a href="https://www.google.com/settings/ads" target="_blank" rel="noopener noreferrer" className="font-bold text-[#C2772A] underline">広告設定</a>
             にアクセスすることで、パーソナライズ広告（興味・関心に基づく広告）を無効にできます。また、
-            <a href="https://www.aboutads.info/choices/" target="_blank" rel="noopener noreferrer" className="font-bold text-[#5B4FCF] underline">www.aboutads.info</a>
+            <a href="https://www.aboutads.info/choices/" target="_blank" rel="noopener noreferrer" className="font-bold text-[#C2772A] underline">www.aboutads.info</a>
             にアクセスすれば、第三者配信事業者のCookieを無効にできます。
           </p>
           <p>
             Googleによる広告Cookieの利用については、
-            <a href="https://policies.google.com/technologies/ads" target="_blank" rel="noopener noreferrer" className="font-bold text-[#5B4FCF] underline">Googleの広告に関するポリシー</a>
+            <a href="https://policies.google.com/technologies/ads" target="_blank" rel="noopener noreferrer" className="font-bold text-[#C2772A] underline">Googleの広告に関するポリシー</a>
             もあわせてご確認ください。
           </p>
         </Article>
@@ -121,7 +121,7 @@ export default function PrivacyPage() {
           <p>
             本ポリシーに関するお問い合わせは、次の連絡先までお願いします。<br />
             Animiru運営
-            <a href="mailto:animemangapushtuchi@gmail.com" className="font-bold text-[#5B4FCF] underline">
+            <a href="mailto:animemangapushtuchi@gmail.com" className="font-bold text-[#C2772A] underline">
               animemangapushtuchi@gmail.com
             </a>
           </p>

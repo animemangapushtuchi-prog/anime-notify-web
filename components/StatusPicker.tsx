@@ -65,7 +65,7 @@ export default function StatusPicker({
         className={`inline-flex flex-none items-center gap-1 rounded-full font-bold transition ${triggerCls} ${
           cur
             ? ""
-            : "border border-dashed border-[#5B4FCF] bg-[#F6F5FF] text-[#5B4FCF]"
+            : "border border-dashed border-[#C2772A] bg-[#FBF3E6] text-[#C2772A]"
         }`}
         style={cur ? { color: cur.color, background: cur.bg } : undefined}
       >
@@ -93,7 +93,7 @@ export default function StatusPicker({
                       type="button"
                       onClick={() => pick(s)}
                       className={`flex w-full items-center gap-3 rounded-2xl border p-3 text-left transition ${
-                        on ? "border-[#5B4FCF] bg-[#F6F5FF]" : "border-[#ECECF2] bg-white"
+                        on ? "border-[#C2772A] bg-[#FBF3E6]" : "border-[#ECECF2] bg-white"
                       }`}
                     >
                       <span
@@ -109,7 +109,7 @@ export default function StatusPicker({
                       <span className="min-w-0 flex-1 text-[12px] leading-snug text-[#374151]">
                         {noteFor(s)}
                       </span>
-                      {on && <span className="flex-none text-sm font-bold text-[#5B4FCF]">✓</span>}
+                      {on && <span className="flex-none text-sm font-bold text-[#C2772A]">✓</span>}
                     </button>
                   );
                 })}

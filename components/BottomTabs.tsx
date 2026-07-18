@@ -5,7 +5,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 
 function Icon({ name, active }: { name: string; active: boolean }) {
-  const c = active ? "#5B4FCF" : "#6B7280";
+  const c = active ? "#C2772A" : "#6B7280";
   const common = { width: 22, height: 22, viewBox: "0 0 24 24", fill: "none", stroke: c, strokeWidth: 2, strokeLinecap: "round" as const, strokeLinejoin: "round" as const };
   if (name === "home")
     return (
@@ -59,14 +59,14 @@ export default function BottomTabs() {
             >
               <span
                 className={`flex h-8 w-14 items-center justify-center rounded-full ${
-                  on ? "bg-[#ECEAFD]" : ""
+                  on ? "bg-[#F6E9D5]" : ""
                 }`}
               >
                 <Icon name={t.icon} active={on} />
               </span>
               <span
                 className={`text-[11px] ${
-                  on ? "font-bold text-[#5B4FCF]" : "text-[#6B7280]"
+                  on ? "font-bold text-[#C2772A]" : "text-[#6B7280]"
                 }`}
               >
                 {t.label}

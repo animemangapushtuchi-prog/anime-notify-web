@@ -77,7 +77,7 @@ export default async function WorkPage({
     <main className="mx-auto max-w-4xl px-4 py-6">
       {/* ヒーロー：ワイドは [左=プロフィール+紹介+ジャンル | 右=動画] */}
       <section
-        style={{ background: "linear-gradient(to bottom right, #3B3670, #5B4FCF)" }}
+        style={{ background: "linear-gradient(to bottom right, #3B3670, #C2772A)" }}
         className="overflow-hidden rounded-2xl p-4 text-white"
       >
         <div className="md:flex md:gap-4">
@@ -239,7 +239,7 @@ export default async function WorkPage({
                   <span className="block text-sm font-bold text-[#1C1C2E]">公式X（旧Twitter）</span>
                   <span className="block text-[11px] text-[#6B7280]">最新ポストを見る</span>
                 </span>
-                <span className="text-xs font-bold text-[#5B4FCF]">開く ›</span>
+                <span className="text-xs font-bold text-[#C2772A]">開く ›</span>
               </a>
             </section>
           )}
@@ -253,7 +253,7 @@ export default async function WorkPage({
                     <span className="w-40 flex-none text-xs text-[#6B7280]">{c.character}</span>
                     <Link
                       href={`/search?person=${encodeURIComponent(c.actor)}`}
-                      className="font-semibold text-[#5B4FCF] underline-offset-2 hover:underline"
+                      className="font-semibold text-[#C2772A] underline-offset-2 hover:underline"
                     >
                       {c.actor}
                     </Link>

@@ -34,7 +34,7 @@ export default function VerifyGate({ children }: { children: ReactNode }) {
               setBusy(false);
             }
           }}
-          className="w-full rounded-xl bg-[#5B4FCF] py-3 text-sm font-bold text-white disabled:opacity-60"
+          className="w-full rounded-xl bg-[#C2772A] py-3 text-sm font-bold text-white disabled:opacity-60"
         >
           {busy ? "確認中…" : "認証しました（再読み込み）"}
         </button>
@@ -48,7 +48,7 @@ export default function VerifyGate({ children }: { children: ReactNode }) {
               /* noop */
             }
           }}
-          className="w-full rounded-xl border border-[#ECECF2] bg-white py-3 text-sm font-bold text-[#5B4FCF]"
+          className="w-full rounded-xl border border-[#ECECF2] bg-white py-3 text-sm font-bold text-[#C2772A]"
         >
           確認メールを再送する
         </button>

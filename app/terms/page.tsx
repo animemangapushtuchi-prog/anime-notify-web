@@ -80,7 +80,7 @@ export default function TermsPage() {
         <Article title="第7条（広告の掲載）">
           <p>
             本サービスには、Google AdSense をはじめとする第三者配信事業者による広告が表示されることがあります。広告の取り扱い、Cookieの利用、パーソナライズ広告の停止方法については、別途定める
-            <a href="/privacy" className="font-bold text-[#5B4FCF] underline">プライバシーポリシー</a>
+            <a href="/privacy" className="font-bold text-[#C2772A] underline">プライバシーポリシー</a>
             をご確認ください。
           </p>
         </Article>
@@ -111,7 +111,7 @@ export default function TermsPage() {
           <p>
             本規約または本サービスに関するお問い合わせは、次の連絡先までお願いします。<br />
             Animiru運営
-            <a href="mailto:animemangapushtuchi@gmail.com" className="font-bold text-[#5B4FCF] underline">
+            <a href="mailto:animemangapushtuchi@gmail.com" className="font-bold text-[#C2772A] underline">
               animemangapushtuchi@gmail.com
             </a>
           </p>

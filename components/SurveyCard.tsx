@@ -23,7 +23,7 @@ export default function SurveyCard() {
       <div className="mt-3 flex items-center gap-3">
         <Link
           href="/survey"
-          className="flex-1 rounded-xl bg-[#5B4FCF] py-2.5 text-center text-sm font-bold text-white"
+          className="flex-1 rounded-xl bg-[#C2772A] py-2.5 text-center text-sm font-bold text-white"
         >
           答える
         </Link>

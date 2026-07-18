@@ -25,7 +25,7 @@ export default function WorkRow({
         <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
           <span className="text-sm font-bold text-[#1C1C2E]">{title}</span>
           {format && (
-            <span className="rounded-full bg-[#ECEAFD] px-2 py-0.5 text-[10px] font-bold text-[#5B4FCF]">
+            <span className="rounded-full bg-[#F6E9D5] px-2 py-0.5 text-[10px] font-bold text-[#C2772A]">
               {format}
             </span>
           )}

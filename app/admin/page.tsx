@@ -40,7 +40,7 @@ function Bars({ data }: { data: { label: string; value: number }[] }) {
         <div key={i} className="flex items-center gap-2">
           <span className="w-40 flex-none truncate text-[12px] text-[#374151]">{d.label}</span>
           <div className="h-3 flex-1 overflow-hidden rounded-full bg-[#F1F1F5]">
-            <div className="h-full rounded-full bg-[#5B4FCF]" style={{ width: `${(d.value / max) * 100}%` }} />
+            <div className="h-full rounded-full bg-[#C2772A]" style={{ width: `${(d.value / max) * 100}%` }} />
           </div>
           <span className="w-8 flex-none text-right text-[11px] font-bold text-[#1C1C2E]">{d.value}</span>
         </div>
@@ -99,7 +99,7 @@ export default function AdminPage() {
     <main className="mx-auto max-w-2xl px-4 py-6">
       <div className="flex items-center justify-between">
         <h1 className="text-xl font-extrabold text-[#1C1C2E]">📊 ダッシュボード</h1>
-        <button type="button" onClick={load} className="rounded-full border border-[#ECECF2] bg-white px-3 py-1 text-xs font-bold text-[#5B4FCF]">再読み込み</button>
+        <button type="button" onClick={load} className="rounded-full border border-[#ECECF2] bg-white px-3 py-1 text-xs font-bold text-[#C2772A]">再読み込み</button>
       </div>
       <p className="mt-1 text-[11px] text-[#6B7280]">集計時刻：{updated}（自動更新：3時間ごと）</p>
 

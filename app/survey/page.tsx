@@ -39,7 +39,7 @@ function RadioRow({
             type="button"
             onClick={() => onChange(o)}
             className={`rounded-full px-3 py-1.5 text-xs font-bold transition ${
-              value === o ? "bg-[#5B4FCF] text-white" : "bg-[#ECEAFD] text-[#5B4FCF]"
+              value === o ? "bg-[#C2772A] text-white" : "bg-[#F6E9D5] text-[#C2772A]"
             }`}
           >
             {o}
@@ -94,7 +94,7 @@ export default function SurveyPage() {
         <p className="text-2xl">🙏</p>
         <p className="mt-2 text-lg font-extrabold text-[#1C1C2E]">ご協力ありがとうございました！</p>
         <p className="mt-1 text-sm text-black/60">いただいた感想は次の改善に活かします。</p>
-        <Link href="/" className="mt-5 inline-block rounded-full bg-[#5B4FCF] px-5 py-2.5 text-sm font-bold text-white">
+        <Link href="/" className="mt-5 inline-block rounded-full bg-[#C2772A] px-5 py-2.5 text-sm font-bold text-white">
           ホームへ
         </Link>
       </main>
@@ -120,7 +120,7 @@ export default function SurveyPage() {
                 type="button"
                 onClick={() => toggleFeature(f)}
                 className={`rounded-full px-3 py-1.5 text-xs font-bold transition ${
-                  features.includes(f) ? "bg-[#5B4FCF] text-white" : "bg-[#ECEAFD] text-[#5B4FCF]"
+                  features.includes(f) ? "bg-[#C2772A] text-white" : "bg-[#F6E9D5] text-[#C2772A]"
                 }`}
               >
                 {f}
@@ -135,7 +135,7 @@ export default function SurveyPage() {
             value={trouble}
             onChange={(e) => setTrouble(e.target.value)}
             rows={3}
-            className="mt-2 w-full rounded-xl border border-[#ECECF2] p-2 text-sm outline-none focus:border-[#5B4FCF]"
+            className="mt-2 w-full rounded-xl border border-[#ECECF2] p-2 text-sm outline-none focus:border-[#C2772A]"
             placeholder="自由記述（任意）"
           />
         </div>
@@ -146,7 +146,7 @@ export default function SurveyPage() {
             value={wish}
             onChange={(e) => setWish(e.target.value)}
             rows={3}
-            className="mt-2 w-full rounded-xl border border-[#ECECF2] p-2 text-sm outline-none focus:border-[#5B4FCF]"
+            className="mt-2 w-full rounded-xl border border-[#ECECF2] p-2 text-sm outline-none focus:border-[#C2772A]"
             placeholder="自由記述（任意）"
           />
         </div>
@@ -154,7 +154,7 @@ export default function SurveyPage() {
         <button
           type="submit"
           disabled={busy}
-          className="w-full rounded-xl bg-[#5B4FCF] py-3 text-sm font-bold text-white disabled:opacity-60"
+          className="w-full rounded-xl bg-[#C2772A] py-3 text-sm font-bold text-white disabled:opacity-60"
         >
           {busy ? "送信中…" : "回答を送信する"}
         </button>
