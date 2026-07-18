@@ -9,14 +9,13 @@ import {
   addWork,
   removeWork,
   setWatchStatus,
-  MAX_SLOTS,
   type Work,
   type WatchStatus,
 } from "@/lib/works";
 import StatusPicker from "@/components/StatusPicker";
 
 export default function RegisterButton({ work }: { work: Work }) {
-  const { user, loading } = useAuth();
+  const { user, loading, slotCap } = useAuth();
   const [works, setWorks] = useState<Work[] | null>(null);
   const [busy, setBusy] = useState(false);
 
@@ -53,7 +52,7 @@ export default function RegisterButton({ work }: { work: Work }) {
 
   const me = works.find((w) => w.id === work.id);
   const registered = !!me;
-  const full = !registered && works.length >= MAX_SLOTS;
+  const full = !registered && works.length >= slotCap;
 
   async function toggle() {
     if (!user || busy || full) return;
@@ -95,7 +94,7 @@ export default function RegisterButton({ work }: { work: Work }) {
           : registered
             ? "✓ 登録済み（タップで解除）"
             : full
-              ? `登録は${MAX_SLOTS}件までです`
+              ? `登録は${slotCap}件までです`
               : "＋ 登録して新着通知を受け取る"}
       </button>
 

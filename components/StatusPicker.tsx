@@ -44,8 +44,8 @@ export default function StatusPicker({
 
   const triggerCls =
     size === "sm"
-      ? "px-2.5 py-1 text-[11px]"
-      : "px-3 py-1.5 text-xs";
+      ? "px-3 py-1 text-xs"
+      : "px-3.5 py-1.5 text-sm";
 
   const options: (WatchStatus | null)[] = [
     "want",
@@ -62,13 +62,15 @@ export default function StatusPicker({
         type="button"
         onClick={() => setOpen(true)}
         aria-label="視聴ステータスを変更"
-        className={`flex-none rounded-full font-bold transition ${triggerCls} ${
-          cur ? "" : "border border-[#ECECF2] bg-white text-[#6B7280]"
+        className={`inline-flex flex-none items-center gap-1 rounded-full font-bold transition ${triggerCls} ${
+          cur
+            ? ""
+            : "border border-dashed border-[#5B4FCF] bg-[#F6F5FF] text-[#5B4FCF]"
         }`}
         style={cur ? { color: cur.color, background: cur.bg } : undefined}
       >
-        {cur ? cur.label : "＋ 状態"}
-        <span className="ml-1 opacity-60">▾</span>
+        {cur ? cur.label : "＋ 状態を選ぶ"}
+        <span className="opacity-60">▾</span>
       </button>
 
       {open && (

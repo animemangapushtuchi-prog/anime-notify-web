@@ -3,7 +3,19 @@
 import { doc, getDoc, setDoc, serverTimestamp } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 
-export const MAX_SLOTS = 10;
+export const BASE_SLOTS = 10;
+export const MAX_BONUS_SLOTS = 10;
+// 後方互換：基本枠（ボーナス無しの上限）
+export const MAX_SLOTS = BASE_SLOTS;
+
+// 累計ログイン日数 → 付与ボーナス枠（初日=0、以降1日ごとに+1、上限 MAX_BONUS_SLOTS）
+export function slotBonus(days: number): number {
+  return Math.min(Math.max((days ?? 0) - 1, 0), MAX_BONUS_SLOTS);
+}
+// 累計ログイン日数 → 実効の登録上限
+export function slotCap(days: number): number {
+  return BASE_SLOTS + slotBonus(days);
+}
 
 // 視聴ステータス（Annict風の多段管理）。放送状態(status)とは別軸。
 export type WatchStatus = "want" | "watching" | "watched" | "paused" | "dropped";
@@ -50,11 +62,17 @@ async function saveWorks(uid: string, works: Work[]): Promise<Work[]> {
   return works;
 }
 
-// 追加（既に登録済み or 枠オーバーなら現状のまま返す）
+// 追加（既に登録済み or 枠オーバーなら現状のまま返す）。
+// 上限は基本枠＋ログインボーナス（users/{uid}.login.days から算出）。
 export async function addWork(uid: string, w: Work): Promise<Work[]> {
-  const cur = await getWorks(uid);
+  const snap = await getDoc(doc(db, "users", uid));
+  const data = snap.data() ?? {};
+  const cur = ((data.works as Work[] | undefined) ?? []).filter(
+    (x) => x && typeof x.id === "number"
+  );
   if (cur.some((x) => x.id === w.id)) return cur;
-  if (cur.length >= MAX_SLOTS) return cur;
+  const cap = slotCap((data.login as { days?: number } | undefined)?.days ?? 0);
+  if (cur.length >= cap) return cur;
   return saveWorks(uid, [...cur, { ...w, added: Date.now() }]);
 }
 

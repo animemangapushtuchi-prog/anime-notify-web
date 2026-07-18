@@ -21,6 +21,8 @@ import {
 } from "firebase/auth";
 import { auth } from "@/lib/firebase";
 import { unregisterPush } from "@/lib/fcm";
+import { recordLogin } from "@/lib/login";
+import { BASE_SLOTS } from "@/lib/works";
 
 const LEGACY_DOMAIN = "@user.anime-notify.app";
 export const idToEmail = (id: string) => `${id.trim().toLowerCase()}${LEGACY_DOMAIN}`;
@@ -37,21 +39,61 @@ export const displayName = (email: string | null) => {
 export const needsVerification = (user: User | null) =>
   !!user && !user.emailVerified && !(user.email ?? "").endsWith(LEGACY_DOMAIN);
 
-type AuthState = { user: User | null; loading: boolean; idLabel: string };
-const AuthCtx = createContext<AuthState>({ user: null, loading: true, idLabel: "" });
+type AuthState = {
+  user: User | null;
+  loading: boolean;
+  idLabel: string;
+  slotCap: number;
+  loginDays: number;
+  loginBonusToday: boolean;
+};
+const AuthCtx = createContext<AuthState>({
+  user: null,
+  loading: true,
+  idLabel: "",
+  slotCap: BASE_SLOTS,
+  loginDays: 0,
+  loginBonusToday: false,
+});
 export const useAuth = () => useContext(AuthCtx);
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
+  const [slots, setSlots] = useState({ days: 0, cap: BASE_SLOTS, gained: false });
   useEffect(() => {
     return onAuthStateChanged(auth, (u) => {
       setUser(u);
       setLoading(false);
     });
   }, []);
+  useEffect(() => {
+    if (!user) {
+      setSlots({ days: 0, cap: BASE_SLOTS, gained: false });
+      return;
+    }
+    let alive = true;
+    recordLogin(user.uid)
+      .then((r) => {
+        if (alive)
+          setSlots({ days: r.days, cap: r.cap, gained: r.gainedToday && r.bonus > 0 });
+      })
+      .catch(() => {});
+    return () => {
+      alive = false;
+    };
+  }, [user]);
   return (
-    <AuthCtx.Provider value={{ user, loading, idLabel: displayName(user?.email ?? null) }}>
+    <AuthCtx.Provider
+      value={{
+        user,
+        loading,
+        idLabel: displayName(user?.email ?? null),
+        slotCap: slots.cap,
+        loginDays: slots.days,
+        loginBonusToday: slots.gained,
+      }}
+    >
       {children}
     </AuthCtx.Provider>
   );

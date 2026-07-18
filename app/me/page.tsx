@@ -3,10 +3,10 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useAuth } from "@/lib/auth";
-import { getWorks, removeWork, MAX_SLOTS, type Work } from "@/lib/works";
+import { getWorks, removeWork, type Work } from "@/lib/works";
 
 export default function MePage() {
-  const { user, loading, idLabel } = useAuth();
+  const { user, loading, idLabel, slotCap } = useAuth();
   const [works, setWorks] = useState<Work[] | null>(null);
   const [busyId, setBusyId] = useState<number | null>(null);
 
@@ -59,7 +59,7 @@ export default function MePage() {
       <div className="flex items-baseline justify-between">
         <h1 className="text-2xl font-extrabold text-[#1C1C2E]">マイリスト</h1>
         <span className="text-xs font-bold text-black/50">
-          {works?.length ?? 0}/{MAX_SLOTS}
+          {works?.length ?? 0}/{slotCap}
         </span>
       </div>
       <p className="mt-1 text-sm text-black/60">ID: {idLabel}</p>

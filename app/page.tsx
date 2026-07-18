@@ -8,7 +8,6 @@ import {
   getWorks,
   removeWork,
   setWatchStatus,
-  MAX_SLOTS,
   WATCH_STATUSES,
   type Work,
   type WatchStatus,
@@ -42,7 +41,7 @@ type View = "calendar" | "list";
 type Filter = WatchStatus | "all";
 
 export default function Home() {
-  const { user, loading } = useAuth();
+  const { user, loading, slotCap, loginBonusToday } = useAuth();
   const [works, setWorks] = useState<Work[] | null>(null);
   const [watched, setWatched] = useState<Map<number, WatchedInfo>>(new Map());
   const [progs, setProgs] = useState<TvProgram[]>([]);
@@ -170,6 +169,11 @@ export default function Home() {
 
   return (
     <main className="mx-auto max-w-2xl px-4 py-5 lg:max-w-6xl lg:px-8">
+      {loginBonusToday && (
+        <div className="mb-3 rounded-2xl bg-[#ECEAFD] px-4 py-2.5 text-xs font-bold text-[#5B4FCF]">
+          🎁 ログインボーナス！ 登録枠が {slotCap} 枠になりました
+        </div>
+      )}
       <SurveyCard />
 
       <div className="flex items-center justify-between">
@@ -192,12 +196,12 @@ export default function Home() {
         </div>
         <span
           className={`rounded-full px-2 py-0.5 text-[11px] font-bold ${
-            (works?.length ?? 0) >= MAX_SLOTS
+            (works?.length ?? 0) >= slotCap
               ? "bg-[#FDEAEA] text-[#DC2626]"
               : "bg-[#ECEAFD] text-[#5B4FCF]"
           }`}
         >
-          {works?.length ?? 0}/{MAX_SLOTS}
+          {works?.length ?? 0}/{slotCap}
         </span>
       </div>
 

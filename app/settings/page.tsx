@@ -6,7 +6,7 @@ import Link from "next/link";
 import { doc, getDoc, setDoc, serverTimestamp } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import { useAuth } from "@/lib/auth";
-import { getWorks, MAX_SLOTS } from "@/lib/works";
+import { getWorks } from "@/lib/works";
 import { getTvPrograms, distinctChannels, channelGroup } from "@/lib/home";
 import EnablePush from "@/components/EnablePush";
 
@@ -47,7 +47,7 @@ function Toggle({
 }
 
 export default function SettingsPage() {
-  const { user, loading, idLabel } = useAuth();
+  const { user, loading, idLabel, slotCap } = useAuth();
   const [s, setS] = useState<Settings | null>(null);
   const [services, setServices] = useState<Record<string, boolean>>({});
   const [channels, setChannels] = useState<string[]>([]);
@@ -164,7 +164,7 @@ export default function SettingsPage() {
         </div>
         <div className="min-w-0 flex-1">
           <p className="truncate text-sm font-extrabold text-[#1C1C2E]">{idLabel}</p>
-          <p className="text-[11px] text-[#6B7280]">無料プラン・登録 {count}/{MAX_SLOTS}</p>
+          <p className="text-[11px] text-[#6B7280]">無料プラン・登録 {count}/{slotCap}</p>
         </div>
         <button type="button" title="準備中" className="flex-none rounded-xl border border-[#5B4FCF] px-3 py-1.5 text-xs font-bold text-[#5B4FCF]">
           プラン変更
