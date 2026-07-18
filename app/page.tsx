@@ -153,7 +153,7 @@ export default function Home() {
   };
 
   return (
-    <main className="mx-auto max-w-2xl px-4 py-5">
+    <main className="mx-auto max-w-2xl px-4 py-5 lg:max-w-6xl lg:px-8">
       <SurveyCard />
 
       <div className="flex items-center justify-between">
@@ -186,7 +186,7 @@ export default function Home() {
       </div>
 
       {view === "calendar" ? (
-        <div className="mt-4">
+        <div className="mt-4 lg:mx-auto lg:max-w-4xl">
           <ScheduleCalendar entries={entries} />
         </div>
       ) : (
@@ -240,7 +240,7 @@ export default function Home() {
               この状態の作品はありません。
             </div>
           ) : (
-            <ul className="mt-4 divide-y divide-[#ECECF2] overflow-hidden rounded-2xl border border-[#ECECF2] bg-white">
+            <ul className="mt-4 grid grid-cols-1 gap-3 lg:grid-cols-2 2xl:grid-cols-3">
               {shown.map((w) => {
                 const info = watched.get(w.id);
                 const station = matchStation(w.title, progs)?.ch ?? "";
@@ -248,7 +248,7 @@ export default function Home() {
                 const cover = w.cover || info?.cover || "";
                 const airing = w.status === "RELEASING";
                 return (
-                  <li key={w.id} className="flex items-center gap-3 px-3 py-3">
+                  <li key={w.id} className="flex items-center gap-3 rounded-2xl border border-[#ECECF2] bg-white px-3 py-3">
                     <Link href={`/work/${w.id}`} className="flex min-w-0 flex-1 items-center gap-3">
                       {cover && (
                         // eslint-disable-next-line @next/next/no-img-element
