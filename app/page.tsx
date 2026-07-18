@@ -114,7 +114,7 @@ export default function Home() {
             👋 ようこそ！3ステップで始まります
           </p>
           <ol className="mt-3 space-y-2 text-sm text-black/70">
-            <li>① ログイン（ID＋パスワードだけ）</li>
+            <li>① メールアドレスで無料登録</li>
             <li>② 「検索」タブから好きな作品を登録</li>
             <li>③ 新話の放送・配信入りを自動で通知</li>
           </ol>

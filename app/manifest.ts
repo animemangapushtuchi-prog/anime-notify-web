@@ -3,9 +3,9 @@ import type { MetadataRoute } from "next";
 // PWA マニフェスト（/manifest.webmanifest として配信される）
 export default function manifest(): MetadataRoute.Manifest {
   return {
-    name: "アニメ・漫画 新着通知",
-    short_name: "アニメ通知",
-    description: "登録した作品の新話放送・配信入りを自動で通知するアプリ",
+    name: "アニミル（Animiru）",
+    short_name: "アニミル",
+    description: "登録した作品の新話放送・配信入りを自動で通知。放送カレンダー・今期アニメ・おすすめ特集も。",
     start_url: "/",
     display: "standalone",
     background_color: "#F6F6FA",

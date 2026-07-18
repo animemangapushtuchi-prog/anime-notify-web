@@ -21,10 +21,11 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "アニメ・漫画 新着通知",
-  description: "登録した作品の新話放送・配信入りを自動で通知するアプリ（Web版）",
+  title: "アニミル（Animiru）｜アニメの放送・配信を自動で新着通知",
+  description:
+    "登録した作品の新話放送・配信入りを自動でお知らせ。放送カレンダー・今期アニメ・おすすめ特集も。アニメ好きのための新着通知サービス「アニミル」。",
   manifest: "/manifest.webmanifest",
-  appleWebApp: { capable: true, title: "アニメ通知", statusBarStyle: "default" },
+  appleWebApp: { capable: true, title: "アニミル", statusBarStyle: "default" },
   icons: { icon: "/icon-192.png", apple: "/apple-icon.png" },
   other: { "google-adsense-account": "ca-pub-6458901222804186" },
 };
