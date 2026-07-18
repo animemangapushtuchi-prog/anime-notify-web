@@ -3,6 +3,7 @@
 // PC(lg以上)専用の左サイドバー。モバイルでは非表示（下タブを使う）。
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import Logo from "./Logo";
 
 function NavIcon({ name, active }: { name: string; active: boolean }) {
   const c = active ? "#C2772A" : "#6B7280";
@@ -65,12 +66,9 @@ export default function Sidebar() {
     href === "/" ? path === "/" : path.startsWith(href);
   return (
     <aside className="sticky top-0 hidden h-screen w-56 shrink-0 flex-col border-r border-[#ECECF2] bg-[#F6F6FA] px-3 py-4 lg:flex">
-      <Link
-        href="/"
-        className="px-3 pb-5 text-xl font-extrabold text-[#C2772A]"
-      >
-        アニミル！
-      </Link>
+      <div className="px-3 pb-5">
+        <Logo size="md" />
+      </div>
       <nav className="flex flex-col gap-1">
         {NAV.map((t) => {
           const on = isActive(t.href);
