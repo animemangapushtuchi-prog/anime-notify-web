@@ -1,6 +1,6 @@
 "use client";
 
-// ホーム＝放送カレンダー(既定)／登録作品リスト をタップで切り替え。
+// ホーム＝マイリスト。放送予定は独立したカレンダーページで表示する。
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { useAuth } from "@/lib/auth";
@@ -23,11 +23,9 @@ import {
 import { svcRank } from "@/lib/anilist";
 import ServiceIcon from "@/components/ServiceIcon";
 import SurveyCard from "@/components/SurveyCard";
-import ScheduleCalendar, { type AiringEntry } from "@/components/ScheduleCalendar";
 import StatusPicker from "@/components/StatusPicker";
 import AdSlot from "@/components/AdSlot";
 import Mascot from "@/components/Mascot";
-import TodayAnime from "@/components/TodayAnime";
 
 const WD = ["日", "月", "火", "水", "木", "金", "土"];
 function fmtNext(nextEp: number | null, nextAt: number | null, station: string): string | null {
@@ -40,7 +38,6 @@ function fmtNext(nextEp: number | null, nextAt: number | null, station: string):
 }
 
 type Sort = "air" | "added";
-type View = "calendar" | "list";
 type Filter = WatchStatus | "all";
 
 export default function Home() {
@@ -49,8 +46,6 @@ export default function Home() {
   const [watched, setWatched] = useState<Map<number, WatchedInfo>>(new Map());
   const [progs, setProgs] = useState<TvProgram[]>([]);
   const [channels, setChannels] = useState<string[]>([]);
-  const [scheduleReady, setScheduleReady] = useState(false);
-  const [view, setView] = useState<View>("calendar");
   const [sort, setSort] = useState<Sort>("air");
   const [filter, setFilter] = useState<Filter>("all");
   const [svc, setSvc] = useState<string>("all");
@@ -60,16 +55,14 @@ export default function Home() {
   useEffect(() => {
     if (!user) {
       setWorks(null);
-      setScheduleReady(false);
       return;
     }
-    setScheduleReady(false);
     getWorks(user.uid).then(setWorks).catch(() => setWorks([]));
     Promise.all([
       getWatchedMap().then(setWatched).catch(() => setWatched(new Map())),
       getTvPrograms().then(setProgs).catch(() => setProgs([])),
       getUserChannels(user.uid).then(setChannels).catch(() => setChannels([])),
-    ]).finally(() => setScheduleReady(true));
+    ]);
   }, [user]);
 
   const sorted = useMemo(() => {
@@ -109,28 +102,6 @@ export default function Home() {
       for (const s of watched.get(w.id)?.services ?? []) set.add(s);
     return [...set].sort((a, b) => svcRank(a, "") - svcRank(b, ""));
   }, [works, watched]);
-
-  const entries = useMemo<AiringEntry[]>(() => {
-    const out: AiringEntry[] = [];
-    for (const w of works ?? []) {
-      const info = watched.get(w.id);
-      // 設定した放送局の番組表を優先し、無ければ全局、最後にAniList予定へ戻す。
-      const tv =
-        nextBroadcast(w.title, progs, channels) ??
-        nextBroadcast(w.title, progs);
-      const at = tv?.st ?? info?.nextAt ?? null;
-      if (at == null) continue;
-      out.push({
-        id: w.id,
-        title: w.title,
-        cover: w.cover || info?.cover || "",
-        at,
-        ep: tv?.count ?? info?.nextEp ?? null,
-        station: tv?.ch ?? "",
-      });
-    }
-    return out;
-  }, [works, watched, progs, channels]);
 
   if (loading) {
     return <main className="mx-auto max-w-2xl px-4 py-10 text-sm text-black/50">読み込み中…</main>;
@@ -194,28 +165,14 @@ export default function Home() {
         </div>
       )}
       <SurveyCard />
-      <TodayAnime entries={entries} loading={!scheduleReady || works === null} />
 
-      <div className="mt-5 flex items-center justify-between">
+      <div className="mt-4 flex items-center justify-between">
         <div className="flex items-center gap-2">
           <Mascot pose="stand" h={40} />
-          <div className="flex rounded-full bg-[#F6E9D5] p-1">
-          {([
-            ["calendar", "放送カレンダー"],
-            ["list", "登録作品"],
-          ] as const).map(([v, label]) => (
-            <button
-              key={v}
-              type="button"
-              onClick={() => setView(v)}
-              className={`rounded-full px-4 py-1.5 text-xs font-bold transition ${
-                view === v ? "bg-[#C2772A] text-white" : "text-[#C2772A]"
-              }`}
-            >
-              {label}
-            </button>
-          ))}
-        </div>
+          <div>
+            <h1 className="text-xl font-extrabold text-[#1C1C2E]">マイリスト</h1>
+            <p className="text-[10px] text-[#6B7280]">通知登録した作品</p>
+          </div>
         </div>
         <span
           className={`rounded-full px-2 py-0.5 text-[11px] font-bold ${
@@ -228,12 +185,7 @@ export default function Home() {
         </span>
       </div>
 
-      {view === "calendar" ? (
-        <div className="mt-4 lg:mx-auto lg:max-w-4xl">
-          <ScheduleCalendar entries={entries} />
-        </div>
-      ) : (
-        <div className="mt-4">
+      <div className="mt-4">
           <div className="-mx-4 flex gap-2 overflow-x-auto px-4 pb-1">
             <button
               type="button"
@@ -360,8 +312,7 @@ export default function Home() {
               })}
             </ul>
           )}
-        </div>
-      )}
+      </div>
 
       <AdSlot className="mt-8" />
     </main>

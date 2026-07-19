@@ -1,6 +1,6 @@
 "use client";
 
-// 登録作品のうち、今日放送される作品をホーム上部にまとめて表示する。
+// 登録作品のうち、今日放送される作品をカレンダー上部にまとめて表示する。
 import Link from "next/link";
 import type { AiringEntry } from "@/components/ScheduleCalendar";
 

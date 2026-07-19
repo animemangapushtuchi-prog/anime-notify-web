@@ -1,6 +1,6 @@
 import Link from "next/link";
 
-// 使い方ガイド（静的・7セクション）。プロフィールメニューから開く。
+// 使い方ガイド。プロフィールメニューから開く。
 export const metadata = {
   title: "使い方ガイド｜アニメ・漫画 新着通知",
 };
@@ -32,28 +32,35 @@ export default function GuidePage() {
           </p>
         </Section>
 
-        <Section title="② ホーム">
+        <Section title="② マイリスト">
           <p>
-            登録した作品の一覧です。各作品の「次の予定（第◯話・放送日時・放送局）」や配信サービスが表示されます。
+            通知登録した作品の一覧です。各作品の「次の予定（第◯話・放送日時・放送局）」や配信サービスが表示されます。
             右上のソートで並び替え、「編集」で解除ができます（登録は10件まで）。
           </p>
         </Section>
 
-        <Section title="③ 検索・登録">
+        <Section title="③ カレンダー">
           <p>
-            下タブの「検索」から作品を探せます。チップ（アニメ/漫画/今期放送中…）やジャンルのタグ、ソートで絞り込み。
-            作品を開いて「＋ 登録して新着通知を受け取る」で登録できます。
+            「カレンダー」タブでは、マイリストのテレビ放送予定を週・月表示で確認できます。
+            月表示の作品画像を押すと、その作品の詳細画面を開けます。
           </p>
         </Section>
 
-        <Section title="④ 通知の仕組み">
+        <Section title="④ 検索・登録">
+          <p>
+            下タブの「検索」から作品を探せます。チップ（アニメ/漫画/今期放送中…）やジャンルのタグ、ソートで絞り込み。
+            作品を開いて「🔔 この作品を通知登録」で登録できます。
+          </p>
+        </Section>
+
+        <Section title="⑤ 通知の仕組み">
           <p>
             サーバーが毎日、登録作品の「新話の放送」「配信入り」を自動でチェックし、通知します。
             「通知」タブに履歴が残ります。設定で通知のON/OFF（全体・種別ごと）を切り替えられます。
           </p>
         </Section>
 
-        <Section title="⑤ ブラウザ通知（iPhoneの方は特に重要）">
+        <Section title="⑥ ブラウザ通知（iPhoneの方は特に重要）">
           <p>
             設定 →「ブラウザ通知を有効にする」でこの端末に通知が届きます。
           </p>
@@ -62,14 +69,14 @@ export default function GuidePage() {
           </p>
         </Section>
 
-        <Section title="⑥ データと安全性">
+        <Section title="⑦ データと安全性">
           <p>
             パスワードはGoogleの認証基盤が管理し、開発者にも見えません。集めるのはID・登録作品・通知設定・履歴・配達用トークンのみで、メール・本名・位置情報は集めません。
             データは本人以外読めないようDBルールで守られています。通知は設定OFFかログアウトで完全に止まります。
           </p>
         </Section>
 
-        <Section title="⑦ よくある質問">
+        <Section title="⑧ よくある質問">
           <p>
             <span className="font-bold">Q. 通知が来ない？</span> → 設定でブラウザ通知が有効か、通知トグルがONかを確認。iPhoneはホーム画面追加が必要です。
           </p>
@@ -83,7 +90,7 @@ export default function GuidePage() {
       </div>
 
       <Link href="/" className="mt-5 inline-block text-sm font-bold text-[#C2772A]">
-        ← ホームへ
+        ← マイリストへ
       </Link>
     </main>
   );

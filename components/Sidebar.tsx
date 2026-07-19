@@ -24,6 +24,14 @@ function NavIcon({ name, active }: { name: string; active: boolean }) {
         <path d="M5 9.5V21h14V9.5" />
       </svg>
     );
+  if (name === "calendar")
+    return (
+      <svg {...common}>
+        <rect x="3" y="5" width="18" height="16" rx="2" />
+        <path d="M16 3v4M8 3v4M3 10h18" />
+        <path d="M8 14h.01M12 14h.01M16 14h.01M8 18h.01M12 18h.01" />
+      </svg>
+    );
   if (name === "search")
     return (
       <svg {...common}>
@@ -53,7 +61,8 @@ function NavIcon({ name, active }: { name: string; active: boolean }) {
 }
 
 const NAV = [
-  { href: "/", label: "ホーム", icon: "home" },
+  { href: "/", label: "マイリスト", icon: "home" },
+  { href: "/calendar", label: "カレンダー", icon: "calendar" },
   { href: "/search", label: "検索", icon: "search" },
   { href: "/osusume", label: "おすすめ", icon: "star" },
   { href: "/notifications", label: "通知", icon: "bell" },

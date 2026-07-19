@@ -14,7 +14,7 @@ const RADIOS = {
   satisfaction: { q: "総合満足度は？", opts: ["満足", "やや満足", "普通", "不満"] },
   continueUse: { q: "使い続けたいと思いますか？", opts: ["はい", "どちらとも", "いいえ"] },
 };
-const FEATURES = ["ホーム（登録作品）", "検索", "通知", "作品詳細・配信情報"];
+const FEATURES = ["マイリスト", "カレンダー", "検索", "通知", "作品詳細・配信情報"];
 
 function RadioRow({
   name,

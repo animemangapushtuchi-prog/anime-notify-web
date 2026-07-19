@@ -149,29 +149,75 @@ export default function ScheduleCalendar({ entries }: { entries: AiringEntry[] }
             <span className="text-sm font-bold text-[#1C1C2E]">{mYear}年{mMonth + 1}月</span>
             <button onClick={() => { setMonthOffset((v) => v + 1); setSelDay(-1); }} className="px-3 py-1 text-sm font-bold text-[#C2772A]">▶</button>
           </div>
+          <p className="mt-1 text-center text-[10px] text-[#6B7280]">
+            作品画像を押すと詳細を開けます
+          </p>
 
-          <div className="mt-2 grid grid-cols-7 gap-1 text-center">
+          <div className="mt-2 grid grid-cols-7 gap-1">
             {WD.map((w) => (
-              <div key={w} className="py-1 text-[10px] font-bold text-[#6B7280]">{w}</div>
+              <div key={w} className="py-1 text-center text-[10px] font-bold text-[#6B7280]">{w}</div>
             ))}
             {cells.map((d, i) => {
-              if (d == null) return <div key={i} />;
-              const count = byWeekday[new Date(mYear, mMonth, d).getDay()].length;
+              if (d == null) return <div key={i} className="min-h-16 sm:min-h-24" />;
+              const dayEntries = byWeekday[new Date(mYear, mMonth, d).getDay()];
               const sel = d === selectedDay;
               return (
-                <button
+                <div
                   key={i}
-                  type="button"
-                  onClick={() => setSelDay(d)}
-                  className={`flex aspect-square flex-col items-center justify-center rounded-lg text-xs ${
-                    sel ? "bg-[#C2772A] text-white" : isToday(d) ? "bg-[#F6E9D5] text-[#C2772A]" : "text-[#1C1C2E]"
+                  className={`min-h-16 rounded-lg border p-1 sm:min-h-24 ${
+                    sel
+                      ? "border-[#C2772A] bg-[#FBF3E6]"
+                      : isToday(d)
+                        ? "border-[#F3D9A9] bg-[#FFF9EE]"
+                        : "border-[#ECECF2] bg-white"
                   }`}
                 >
-                  <span className={sel ? "font-bold" : ""}>{d}</span>
-                  {count > 0 && (
-                    <span className={`mt-0.5 h-1.5 w-1.5 rounded-full ${sel ? "bg-white" : "bg-[#C2772A]"}`} />
-                  )}
-                </button>
+                  <button
+                    type="button"
+                    onClick={() => setSelDay(d)}
+                    aria-label={`${mMonth + 1}月${d}日の予定を表示`}
+                    className={`block w-full text-left text-[10px] font-bold sm:text-xs ${
+                      sel || isToday(d) ? "text-[#C2772A]" : "text-[#1C1C2E]"
+                    }`}
+                  >
+                    {d}
+                    {isToday(d) && <span className="ml-0.5 hidden text-[8px] sm:inline">今日</span>}
+                  </button>
+                  <div className="mt-1 flex flex-wrap gap-0.5">
+                    {dayEntries.slice(0, 4).map((entry) => (
+                      <Link
+                        key={`${d}-${entry.id}`}
+                        href={`/work/${entry.id}`}
+                        title={`${entry.title} ${hhmm(entry.at)}`}
+                        aria-label={`${entry.title}の詳細を開く`}
+                        className="block"
+                      >
+                        {entry.cover ? (
+                          // eslint-disable-next-line @next/next/no-img-element
+                          <img
+                            src={entry.cover}
+                            alt=""
+                            className="h-5 w-5 rounded-sm object-cover ring-1 ring-black/5 sm:h-7 sm:w-7"
+                          />
+                        ) : (
+                          <span className="flex h-5 w-5 items-center justify-center rounded-sm bg-[#F6E9D5] text-[8px] font-bold text-[#C2772A] sm:h-7 sm:w-7">
+                            {entry.title.slice(0, 1)}
+                          </span>
+                        )}
+                      </Link>
+                    ))}
+                    {dayEntries.length > 4 && (
+                      <button
+                        type="button"
+                        onClick={() => setSelDay(d)}
+                        className="flex h-5 min-w-5 items-center justify-center rounded-sm bg-black/5 px-0.5 text-[8px] font-bold text-[#6B7280] sm:h-7"
+                        aria-label={`${dayEntries.length - 4}作品をさらに表示`}
+                      >
+                        +{dayEntries.length - 4}
+                      </button>
+                    )}
+                  </div>
+                </div>
               );
             })}
           </div>
