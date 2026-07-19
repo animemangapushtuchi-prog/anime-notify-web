@@ -22,6 +22,13 @@ function pwScore(pw: string): number {
 const PW_LABEL = ["とても弱い", "弱い", "普通", "強い", "とても強い"];
 const PW_COLOR = ["#DC2626", "#DC2626", "#B45309", "#059669", "#059669"];
 
+// ログイン後の戻り先はサイト内URLだけを許可する。
+function returnPath(): string {
+  if (typeof window === "undefined") return "/";
+  const next = new URLSearchParams(window.location.search).get("next");
+  return next?.startsWith("/") && !next.startsWith("//") ? next : "/";
+}
+
 // 強いパスワードを生成（紛らわしい文字は除外）
 function generatePw(): string {
   const chars = "abcdefghijkmnpqrstuvwxyzABCDEFGHJKLMNPQRSTUVWXYZ23456789!@#$%&*?";
@@ -81,7 +88,7 @@ export default function LoginPage() {
     try {
       if (mode === "signup") await signUp(email, pw);
       else await signIn(email, pw);
-      router.push("/");
+      router.push(returnPath());
     } catch (e2) {
       setErr(authErrorJa(e2));
       setBusy(false);
