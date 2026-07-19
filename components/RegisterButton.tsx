@@ -11,11 +11,13 @@ import {
   addWork,
   removeWork,
   setWatchStatus,
+  setWatchedEpisode,
   type Work,
   type WatchStatus,
 } from "@/lib/works";
 import StatusPicker from "@/components/StatusPicker";
 import EnablePush from "@/components/EnablePush";
+import EpisodeProgress from "@/components/EpisodeProgress";
 
 type NoticeSettings = {
   enabled: boolean;
@@ -153,6 +155,20 @@ export default function RegisterButton({ work }: { work: Work }) {
     } catch {}
   }
 
+  async function changeEpisode(episode: number) {
+    if (!user) return;
+    setWorks((prev) =>
+      prev
+        ? prev.map((w) =>
+            w.id === work.id ? { ...w, watchedEpisode: episode || undefined } : w
+          )
+        : prev
+    );
+    try {
+      await setWatchedEpisode(user.uid, work.id, episode);
+    } catch {}
+  }
+
   return (
     <div>
       {!registered ? (
@@ -224,9 +240,16 @@ export default function RegisterButton({ work }: { work: Work }) {
       )}
 
       {registered && (
-        <div className="mt-3 flex items-center justify-between rounded-xl border border-[#ECECF2] bg-white px-3 py-2.5">
-          <span className="text-[13px] font-bold text-[#1C1C2E]">視聴ステータス</span>
-          <StatusPicker current={me?.watchStatus} onChange={changeStatus} size="md" />
+        <div className="mt-3 rounded-xl border border-[#ECECF2] bg-white p-3">
+          <div className="flex items-center justify-between">
+            <span className="text-[13px] font-bold text-[#1C1C2E]">視聴ステータス</span>
+            <StatusPicker current={me?.watchStatus} onChange={changeStatus} size="md" />
+          </div>
+          <EpisodeProgress
+            current={me?.watchedEpisode}
+            totalEpisodes={work.episodes}
+            onChange={changeEpisode}
+          />
         </div>
       )}
     </div>

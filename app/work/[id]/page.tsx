@@ -157,6 +157,7 @@ export default async function WorkPage({
             meta: [d.type, d.seasonLabel].filter(Boolean).join("・"),
             status: d.status === "放送中" ? "RELEASING" : "FINISHED",
             cover: d.coverUrl,
+            episodes: d.episodes ?? undefined,
           }}
         />
       </div>

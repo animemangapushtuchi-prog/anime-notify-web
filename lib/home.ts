@@ -7,6 +7,7 @@ import { isOverseasOnlyService, svcRank } from "@/lib/anilist";
 export type WatchedInfo = {
   nextEp: number | null;
   nextAt: number | null; // UNIX秒
+  episodes: number | null;
   services: string[];
   cover: string;
 };
@@ -35,6 +36,7 @@ export async function getWatchedMap(): Promise<Map<number, WatchedInfo>> {
       map.set(w.id, {
         nextEp: w.nextAiringEpisode?.episode ?? null,
         nextAt: w.nextAiringEpisode?.airingAt ?? null,
+        episodes: typeof w.episodes === "number" ? w.episodes : null,
         services: services.slice(0, 3),
         cover: String(w.coverImage?.large ?? ""),
       });

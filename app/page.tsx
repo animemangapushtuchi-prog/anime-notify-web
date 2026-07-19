@@ -7,6 +7,7 @@ import { useAuth } from "@/lib/auth";
 import {
   getWorks,
   removeWork,
+  setWatchedEpisode,
   setWatchStatus,
   WATCH_STATUSES,
   type Work,
@@ -24,6 +25,7 @@ import { svcRank } from "@/lib/anilist";
 import ServiceIcon from "@/components/ServiceIcon";
 import SurveyCard from "@/components/SurveyCard";
 import StatusPicker from "@/components/StatusPicker";
+import EpisodeProgress from "@/components/EpisodeProgress";
 import AdSlot from "@/components/AdSlot";
 import Mascot from "@/components/Mascot";
 
@@ -156,6 +158,22 @@ export default function Home() {
     } catch {}
   };
 
+  const changeEpisode = async (id: number, episode: number) => {
+    if (!user) return;
+    setWorks((prev) =>
+      prev
+        ? prev.map((w) =>
+            w.id === id ? { ...w, watchedEpisode: episode || undefined } : w
+          )
+        : prev
+    );
+    try {
+      await setWatchedEpisode(user.uid, id, episode);
+    } catch {
+      // 画面上の操作感を優先し、次回の再読み込み時に保存結果と同期する
+    }
+  };
+
   return (
     <main className="mx-auto max-w-2xl px-4 py-5 lg:max-w-6xl lg:px-8">
       {loginBonusToday && (
@@ -264,47 +282,58 @@ export default function Home() {
                 const cover = w.cover || info?.cover || "";
                 const airing = w.status === "RELEASING";
                 return (
-                  <li key={w.id} className="flex items-center gap-3 rounded-2xl border border-[#ECECF2] bg-white px-3 py-3">
-                    <Link href={`/work/${w.id}`} className="flex min-w-0 flex-1 items-center gap-3">
-                      {cover && (
-                        // eslint-disable-next-line @next/next/no-img-element
-                        <img src={cover} alt={w.title} className="h-16 w-11 flex-none rounded-md object-cover" />
-                      )}
-                      <div className="min-w-0">
-                        <div className="flex items-center gap-2">
-                          <span className="truncate text-sm font-bold text-[#1C1C2E]">{w.title}</span>
-                          <span
-                            className={`flex-none rounded-full px-2 py-0.5 text-[10px] font-bold ${
-                              airing ? "bg-[#FDEAEA] text-[#DC2626]" : "bg-black/5 text-black/50"
-                            }`}
-                          >
-                            {airing ? "放送中" : "放送終了"}
-                          </span>
-                        </div>
-                        <p className="mt-0.5 truncate text-[11px] text-[#6B7280]">{next ?? w.meta}</p>
-                        {info && info.services.length > 0 && (
-                          <div className="mt-1 flex gap-1">
-                            {info.services.map((s) => (
-                              <ServiceIcon key={s} name={s} size={18} />
-                            ))}
-                          </div>
+                  <li key={w.id} className="rounded-2xl border border-[#ECECF2] bg-white p-3">
+                    <div className="flex items-center gap-3">
+                      <Link href={`/work/${w.id}`} className="flex min-w-0 flex-1 items-center gap-3">
+                        {cover && (
+                          // eslint-disable-next-line @next/next/no-img-element
+                          <img src={cover} alt={w.title} className="h-16 w-11 flex-none rounded-md object-cover" />
                         )}
-                      </div>
-                    </Link>
-                    {edit ? (
-                      <button
-                        type="button"
-                        onClick={() => unregister(w.id)}
-                        disabled={busyId === w.id}
-                        className="flex-none rounded-full bg-[#FDEAEA] px-3 py-1 text-[11px] font-bold text-[#DC2626]"
-                      >
-                        {busyId === w.id ? "…" : "解除"}
-                      </button>
-                    ) : (
-                      <StatusPicker
-                        current={w.watchStatus}
-                        onChange={(s) => changeStatus(w.id, s)}
-                        size="sm"
+                        <div className="min-w-0">
+                          <div className="flex items-center gap-2">
+                            <span className="truncate text-sm font-bold text-[#1C1C2E]">{w.title}</span>
+                            <span
+                              className={`flex-none rounded-full px-2 py-0.5 text-[10px] font-bold ${
+                                airing ? "bg-[#FDEAEA] text-[#DC2626]" : "bg-black/5 text-black/50"
+                              }`}
+                            >
+                              {airing ? "放送中" : "放送終了"}
+                            </span>
+                          </div>
+                          <p className="mt-0.5 truncate text-[11px] text-[#6B7280]">{next ?? w.meta}</p>
+                          {info && info.services.length > 0 && (
+                            <div className="mt-1 flex gap-1">
+                              {info.services.map((s) => (
+                                <ServiceIcon key={s} name={s} size={18} />
+                              ))}
+                            </div>
+                          )}
+                        </div>
+                      </Link>
+                      {edit ? (
+                        <button
+                          type="button"
+                          onClick={() => unregister(w.id)}
+                          disabled={busyId === w.id}
+                          className="flex-none rounded-full bg-[#FDEAEA] px-3 py-1 text-[11px] font-bold text-[#DC2626]"
+                        >
+                          {busyId === w.id ? "…" : "解除"}
+                        </button>
+                      ) : (
+                        <StatusPicker
+                          current={w.watchStatus}
+                          onChange={(s) => changeStatus(w.id, s)}
+                          size="sm"
+                        />
+                      )}
+                    </div>
+                    {!edit && (
+                      <EpisodeProgress
+                        current={w.watchedEpisode}
+                        nextEpisode={tv?.count ?? info?.nextEp ?? null}
+                        totalEpisodes={w.episodes ?? info?.episodes ?? null}
+                        onChange={(episode) => changeEpisode(w.id, episode)}
+                        compact
                       />
                     )}
                   </li>

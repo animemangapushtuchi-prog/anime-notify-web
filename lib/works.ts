@@ -42,8 +42,10 @@ export type Work = {
   meta: string;
   status: string; // "RELEASING" | "FINISHED"
   cover?: string;
+  episodes?: number; // 総話数（取得できた作品のみ）
   added?: number;
   watchStatus?: WatchStatus; // 見たい/見てる/見た/中断/中止（未設定=未選択）
+  watchedEpisode?: number; // 何話まで見たか（未設定=0話）
 };
 
 export async function getWorks(uid: string): Promise<Work[]> {
@@ -97,6 +99,24 @@ export async function setWatchStatus(
     if (status) c.watchStatus = status;
     else delete c.watchStatus;
     return c;
+  });
+  return saveWorks(uid, next);
+}
+
+// 視聴済み話数を保存（0話は未記録としてキーごと削除）。
+export async function setWatchedEpisode(
+  uid: string,
+  id: number,
+  episode: number
+): Promise<Work[]> {
+  const value = Math.max(0, Math.floor(episode));
+  const cur = await getWorks(uid);
+  const next = cur.map((w) => {
+    if (w.id !== id) return w;
+    const copy: Work = { ...w };
+    if (value > 0) copy.watchedEpisode = value;
+    else delete copy.watchedEpisode;
+    return copy;
   });
   return saveWorks(uid, next);
 }
