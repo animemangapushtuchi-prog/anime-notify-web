@@ -1,11 +1,10 @@
 "use client";
 
-// 通知センター。users/{uid}/notifs をリアルタイム購読し、今日/昨日/それ以前に分けて表示。
-// フィルタチップ（新話/配信入り/発表）・タップで既読＋詳細・✓✓で全既読。
+// 通知センター。通知から作品詳細・配信先・カレンダー・視聴状態の変更へ進める。
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
 import Mascot from "@/components/Mascot";
+import StatusPicker from "@/components/StatusPicker";
 import {
   collection,
   query,
@@ -18,6 +17,12 @@ import {
 } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import { useAuth } from "@/lib/auth";
+import {
+  getWorks,
+  setWatchStatus,
+  type Work,
+  type WatchStatus,
+} from "@/lib/works";
 
 type Notif = {
   id: string;
@@ -30,13 +35,14 @@ type Notif = {
 
 const KIND_FILTERS = [
   { key: "all", label: "すべて" },
-  { key: "ep", label: "新話" },
+  { key: "ep", label: "放送・新話" },
   { key: "stream", label: "配信入り" },
   { key: "adapt", label: "発表" },
 ];
 function matchesFilter(kind: string, filter: string): boolean {
   if (filter === "all") return true;
-  if (filter === "ep") return kind === "ep" || kind === "start" || kind === "finish";
+  if (filter === "ep")
+    return ["ep", "start", "finish", "bcsoon", "bctomorrow"].includes(kind);
   return kind === filter;
 }
 
@@ -46,6 +52,10 @@ function kindInfo(kind: string): { label: string; cls: string } {
       return { label: "配信入り", cls: "bg-[#E6F7F1] text-[#059669]" };
     case "adapt":
       return { label: "発表", cls: "bg-[#F1E9FE] text-[#7C3AED]" };
+    case "bcsoon":
+      return { label: "放送前", cls: "bg-[#FDEAEA] text-[#DC2626]" };
+    case "bctomorrow":
+      return { label: "明日の予定", cls: "bg-[#FEF3C7] text-[#B45309]" };
     case "test":
       return { label: "テスト", cls: "bg-black/5 text-black/50" };
     default:
@@ -69,15 +79,18 @@ function fmtTime(d: Date): string {
 
 export default function NotificationsPage() {
   const { user, loading } = useAuth();
-  const router = useRouter();
   const [notifs, setNotifs] = useState<Notif[] | null>(null);
+  const [works, setWorks] = useState<Work[]>([]);
   const [filter, setFilter] = useState("all");
+  const [unreadOnly, setUnreadOnly] = useState(false);
 
   useEffect(() => {
     if (!user) {
       setNotifs(null);
+      setWorks([]);
       return;
     }
+    getWorks(user.uid).then(setWorks).catch(() => setWorks([]));
     const q = query(
       collection(db, "users", user.uid, "notifs"),
       orderBy("at", "desc"),
@@ -124,14 +137,13 @@ export default function NotificationsPage() {
 
   const uid = user.uid;
 
-  const open = async (n: Notif) => {
-    if (!n.read) {
-      try {
-        await updateDoc(doc(db, "users", uid, "notifs", n.id), { read: true });
-      } catch {}
-    }
-    if (n.workId) router.push(`/work/${n.workId}`);
+  const markRead = async (n: Notif) => {
+    if (n.read) return;
+    try {
+      await updateDoc(doc(db, "users", uid, "notifs", n.id), { read: true });
+    } catch {}
   };
+
   const markAllRead = async () => {
     const list = (notifs ?? []).filter((n) => !n.read);
     await Promise.all(
@@ -141,7 +153,21 @@ export default function NotificationsPage() {
     );
   };
 
-  const shown = (notifs ?? []).filter((n) => matchesFilter(n.kind, filter));
+  const changeStatus = async (id: number, status: WatchStatus | null) => {
+    setWorks((prev) =>
+      prev.map((work) =>
+        work.id === id ? { ...work, watchStatus: status ?? undefined } : work
+      )
+    );
+    try {
+      await setWatchStatus(uid, id, status);
+    } catch {}
+  };
+
+  const unreadCount = (notifs ?? []).filter((n) => !n.read).length;
+  const shown = (notifs ?? []).filter(
+    (n) => matchesFilter(n.kind, filter) && (!unreadOnly || !n.read)
+  );
   const groups = ["今日", "昨日", "それ以前"]
     .map((label) => ({
       label,
@@ -159,13 +185,25 @@ export default function NotificationsPage() {
         <button
           type="button"
           onClick={markAllRead}
-          className="rounded-full bg-[#F6E9D5] px-3 py-1 text-xs font-bold text-[#C2772A]"
+          disabled={unreadCount === 0}
+          className="rounded-full bg-[#F6E9D5] px-3 py-1 text-xs font-bold text-[#C2772A] disabled:opacity-40"
         >
-          ✓✓ 全既読
+          ✓✓ 全既読{unreadCount > 0 ? `（${unreadCount}）` : ""}
         </button>
       </div>
 
       <div className="mt-3 flex flex-wrap gap-2">
+        <button
+          type="button"
+          onClick={() => setUnreadOnly((value) => !value)}
+          className={`rounded-full px-3 py-1 text-xs font-bold transition ${
+            unreadOnly
+              ? "bg-[#1C1C2E] text-white"
+              : "border border-[#ECECF2] bg-white text-[#6B7280]"
+          }`}
+        >
+          未読のみ {unreadCount}
+        </button>
         {KIND_FILTERS.map((t) => (
           <button
             key={t.key}
@@ -186,7 +224,7 @@ export default function NotificationsPage() {
         <div className="mt-6 flex flex-col items-center gap-3 rounded-2xl border border-[#ECECF2] bg-white p-6 text-center text-sm text-black/50">
           {notifs.length === 0 ? (
             <>
-              <Mascot pose="sit" h={120} />
+              <Mascot pose="sleep" h={120} />
               <p>まだ通知はありません。作品を登録すると、新話や配信入りが届きます。</p>
             </>
           ) : (
@@ -201,16 +239,35 @@ export default function NotificationsPage() {
               <ul className="mt-2 space-y-2">
                 {g.items.map((n) => {
                   const k = kindInfo(n.kind);
+                  const work = n.workId
+                    ? works.find((item) => item.id === n.workId)
+                    : undefined;
+                  const actionHref = n.workId
+                    ? `/work/${n.workId}`
+                    : n.kind === "bctomorrow"
+                      ? "/calendar"
+                      : null;
+                  const actionLabel =
+                    n.kind === "stream"
+                      ? "配信先を確認"
+                      : n.kind === "bctomorrow"
+                        ? "カレンダーを見る"
+                        : n.kind === "bcsoon"
+                          ? "放送情報を見る"
+                          : "作品詳細を見る";
                   return (
-                    <li key={n.id}>
-                      <button
-                        type="button"
-                        onClick={() => open(n)}
-                        className={`flex w-full items-start gap-3 rounded-2xl border p-3 text-left ${
-                          n.read ? "border-[#ECECF2] bg-white" : "border-[#C2772A]/30 bg-[#FBF3E6]"
-                        }`}
-                      >
-                        <span className={`mt-0.5 flex-none rounded-full px-2 py-0.5 text-[10px] font-bold ${k.cls}`}>
+                    <li
+                      key={n.id}
+                      className={`rounded-2xl border p-3 ${
+                        n.read
+                          ? "border-[#ECECF2] bg-white"
+                          : "border-[#C2772A]/30 bg-[#FBF3E6]"
+                      }`}
+                    >
+                      <div className="flex items-start gap-3">
+                        <span
+                          className={`mt-0.5 flex-none rounded-full px-2 py-0.5 text-[10px] font-bold ${k.cls}`}
+                        >
                           {k.label}
                         </span>
                         <span className="min-w-0 flex-1">
@@ -224,7 +281,39 @@ export default function NotificationsPage() {
                         {!n.read && (
                           <span className="mt-1.5 h-2 w-2 flex-none rounded-full bg-[#C2772A]" />
                         )}
-                      </button>
+                      </div>
+
+                      <div
+                        className={`mt-3 flex flex-wrap items-center gap-2 border-t pt-2.5 ${
+                          n.read ? "border-[#ECECF2]" : "border-[#C2772A]/15"
+                        }`}
+                      >
+                        {actionHref && (
+                          <Link
+                            href={actionHref}
+                            onClick={() => markRead(n)}
+                            className="rounded-full bg-[#C2772A] px-3 py-1.5 text-[11px] font-bold text-white"
+                          >
+                            {actionLabel} ›
+                          </Link>
+                        )}
+                        {work && (
+                          <StatusPicker
+                            current={work.watchStatus}
+                            onChange={(status) => changeStatus(work.id, status)}
+                            size="sm"
+                          />
+                        )}
+                        {!n.read && (
+                          <button
+                            type="button"
+                            onClick={() => markRead(n)}
+                            className="ml-auto px-2 py-1 text-[11px] font-bold text-[#6B7280]"
+                          >
+                            既読にする
+                          </button>
+                        )}
+                      </div>
                     </li>
                   );
                 })}
