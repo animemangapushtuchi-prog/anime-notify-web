@@ -15,7 +15,8 @@ import {
 import {
   getWatchedMap,
   getTvPrograms,
-  matchStation,
+  getUserChannels,
+  nextBroadcast,
   type WatchedInfo,
   type TvProgram,
 } from "@/lib/home";
@@ -26,6 +27,7 @@ import ScheduleCalendar, { type AiringEntry } from "@/components/ScheduleCalenda
 import StatusPicker from "@/components/StatusPicker";
 import AdSlot from "@/components/AdSlot";
 import Mascot from "@/components/Mascot";
+import TodayAnime from "@/components/TodayAnime";
 
 const WD = ["日", "月", "火", "水", "木", "金", "土"];
 function fmtNext(nextEp: number | null, nextAt: number | null, station: string): string | null {
@@ -46,6 +48,8 @@ export default function Home() {
   const [works, setWorks] = useState<Work[] | null>(null);
   const [watched, setWatched] = useState<Map<number, WatchedInfo>>(new Map());
   const [progs, setProgs] = useState<TvProgram[]>([]);
+  const [channels, setChannels] = useState<string[]>([]);
+  const [scheduleReady, setScheduleReady] = useState(false);
   const [view, setView] = useState<View>("calendar");
   const [sort, setSort] = useState<Sort>("air");
   const [filter, setFilter] = useState<Filter>("all");
@@ -56,11 +60,16 @@ export default function Home() {
   useEffect(() => {
     if (!user) {
       setWorks(null);
+      setScheduleReady(false);
       return;
     }
+    setScheduleReady(false);
     getWorks(user.uid).then(setWorks).catch(() => setWorks([]));
-    getWatchedMap().then(setWatched).catch(() => {});
-    getTvPrograms().then(setProgs).catch(() => {});
+    Promise.all([
+      getWatchedMap().then(setWatched).catch(() => setWatched(new Map())),
+      getTvPrograms().then(setProgs).catch(() => setProgs([])),
+      getUserChannels(user.uid).then(setChannels).catch(() => setChannels([])),
+    ]).finally(() => setScheduleReady(true));
   }, [user]);
 
   const sorted = useMemo(() => {
@@ -105,18 +114,23 @@ export default function Home() {
     const out: AiringEntry[] = [];
     for (const w of works ?? []) {
       const info = watched.get(w.id);
-      if (!info || info.nextAt == null) continue;
+      // 設定した放送局の番組表を優先し、無ければ全局、最後にAniList予定へ戻す。
+      const tv =
+        nextBroadcast(w.title, progs, channels) ??
+        nextBroadcast(w.title, progs);
+      const at = tv?.st ?? info?.nextAt ?? null;
+      if (at == null) continue;
       out.push({
         id: w.id,
         title: w.title,
-        cover: w.cover || info.cover || "",
-        at: info.nextAt,
-        ep: info.nextEp ?? null,
-        station: matchStation(w.title, progs)?.ch ?? "",
+        cover: w.cover || info?.cover || "",
+        at,
+        ep: tv?.count ?? info?.nextEp ?? null,
+        station: tv?.ch ?? "",
       });
     }
     return out;
-  }, [works, watched, progs]);
+  }, [works, watched, progs, channels]);
 
   if (loading) {
     return <main className="mx-auto max-w-2xl px-4 py-10 text-sm text-black/50">読み込み中…</main>;
@@ -180,8 +194,9 @@ export default function Home() {
         </div>
       )}
       <SurveyCard />
+      <TodayAnime entries={entries} loading={!scheduleReady || works === null} />
 
-      <div className="flex items-center justify-between">
+      <div className="mt-5 flex items-center justify-between">
         <div className="flex items-center gap-2">
           <Mascot pose="stand" h={40} />
           <div className="flex rounded-full bg-[#F6E9D5] p-1">
@@ -286,8 +301,14 @@ export default function Home() {
             <ul className="mt-4 grid grid-cols-1 gap-3 lg:grid-cols-2 2xl:grid-cols-3">
               {shown.map((w) => {
                 const info = watched.get(w.id);
-                const station = matchStation(w.title, progs)?.ch ?? "";
-                const next = fmtNext(info?.nextEp ?? null, info?.nextAt ?? null, station);
+                const tv =
+                  nextBroadcast(w.title, progs, channels) ??
+                  nextBroadcast(w.title, progs);
+                const next = fmtNext(
+                  tv?.count ?? info?.nextEp ?? null,
+                  tv?.st ?? info?.nextAt ?? null,
+                  tv?.ch ?? ""
+                );
                 const cover = w.cover || info?.cover || "";
                 const airing = w.status === "RELEASING";
                 return (
