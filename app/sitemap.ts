@@ -1,7 +1,7 @@
 import type { MetadataRoute } from "next";
 import { listOsusumeSlugs } from "@/lib/osusume";
 
-const BASE = "https://animiru.com";
+const BASE = "https://www.animiru.com";
 
 export default function sitemap(): MetadataRoute.Sitemap {
   const staticUrls = ["", "/search", "/osusume", "/guide", "/terms", "/privacy"].map((p) => ({

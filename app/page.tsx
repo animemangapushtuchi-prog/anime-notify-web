@@ -106,7 +106,15 @@ export default function Home() {
   }, [works, watched]);
 
   if (loading) {
-    return <main className="mx-auto max-w-2xl px-4 py-10 text-sm text-black/50">読み込み中…</main>;
+    return (
+      <main className="mx-auto max-w-2xl px-4 py-10">
+        <h1 className="text-lg font-extrabold text-[#C2772A]">アニミル！</h1>
+        <p className="mt-1 text-sm text-black/60">
+          アニメの放送・配信入りを自動で新着通知。登録した作品の新話・配信入りをお知らせします。
+        </p>
+        <p className="mt-4 text-sm text-black/40">読み込み中…</p>
+      </main>
+    );
   }
 
   if (!user) {

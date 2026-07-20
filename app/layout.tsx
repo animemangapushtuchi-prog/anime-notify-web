@@ -22,6 +22,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
+  metadataBase: new URL("https://www.animiru.com"),
   title: "アニミル！（Animiru）｜アニメの放送・配信を自動で新着通知",
   description:
     "登録した作品の新話放送・配信入りを自動でお知らせ。放送カレンダー・今期アニメ・おすすめ特集も。アニメ好きのための新着通知サービス「アニミル！」。",
