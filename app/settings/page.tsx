@@ -9,7 +9,7 @@ import { useAuth } from "@/lib/auth";
 import { getWorks } from "@/lib/works";
 import Mascot from "@/components/Mascot";
 import { getTvPrograms, distinctChannels, channelGroup } from "@/lib/home";
-import EnablePush from "@/components/EnablePush";
+import PushStatusCard from "@/components/PushStatusCard";
 import { SERVICE_KEYS, invalidateUserPrefs } from "@/lib/subscriptions";
 
 type Settings = { enabled: boolean; ep: boolean; stream: boolean; adapt: boolean };
@@ -177,14 +177,8 @@ export default function SettingsPage() {
         </button>
       </div>
 
-      {/* ブラウザ通知 */}
-      <div className="mt-4 rounded-2xl border border-[#ECECF2] bg-white p-4">
-        <h2 className="mb-2 text-xs font-bold text-black/50">📱 ブラウザ通知</h2>
-        <EnablePush />
-        <p className="mt-2 text-[11px] leading-relaxed text-black/50">
-          有効にすると、この端末に新話・配信入りのブラウザ通知が届きます。ログアウトすると、この端末への通知は止まります。
-        </p>
-      </div>
+      {/* この端末の通知状態（診断・表示テスト・再設定。旧「ブラウザ通知」カードの後継） */}
+      <PushStatusCard appEnabled={s ? s.enabled : null} />
 
       {/* 通知トグル */}
       {s && (

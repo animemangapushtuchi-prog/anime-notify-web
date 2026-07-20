@@ -19,3 +19,20 @@ messaging.onBackgroundMessage((payload) => {
   const body = (payload.notification && payload.notification.body) || "";
   self.registration.showNotification(title, { body });
 });
+
+/* 通知クリック時：通知を閉じ、既にタブが開いていればフォーカス、なければ遷移先を開く。
+   遷移先は通知の data.url（テスト通知など）、無ければ通知センター。 */
+self.addEventListener("notificationclick", (event) => {
+  event.notification.close();
+  const url = (event.notification.data && event.notification.data.url) || "/notifications";
+  event.waitUntil(
+    self.clients
+      .matchAll({ type: "window", includeUncontrolled: true })
+      .then((list) => {
+        const client = list.find((c) => "focus" in c);
+        if (client) return client.focus();
+        return self.clients.openWindow(url);
+      })
+      .catch(() => {})
+  );
+});
