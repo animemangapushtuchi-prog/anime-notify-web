@@ -113,7 +113,7 @@ function relationJa(r: string): string {
     default: return r;
   }
 }
-function seasonLabel(season: string | null, year: number | null): string {
+export function seasonLabel(season: string | null, year: number | null): string {
   if (!season || !year) return "";
   const s: Record<string, string> = {
     WINTER: "冬", SPRING: "春", SUMMER: "夏", FALL: "秋",
@@ -162,6 +162,8 @@ export function svcRank(site: string, language: string): number {
 }
 export function isOverseasOnlyService(site: string): boolean {
   const s = site.toLowerCase();
+  // iQIYI国際版はサービス名が「iQ」だけで来ることがあり、部分一致では拾えないため完全一致で除外
+  if (s.trim() === "iq") return true;
   const blocked = [
     "bilibili", "crunchyroll", "iqiyi", "iq.com", "viki", "wetv", "viu",
     "youku", "tving", "laftel", "hidive", "funimation", "bahamut", "巴哈",
@@ -319,6 +321,9 @@ export type SeasonAnime = {
   coverUrl: string;
   format: string;
   status: string;
+  // 検索レスポンスに含まれる前作・続編（PREQUEL/SEQUEL）のアニメID。
+  // 検索結果のシリーズまとめ表示にだけ使う（追加APIは呼ばない）
+  relatedIds?: number[];
 };
 function currentSeason(): { season: string; seasonYear: number } {
   const jst = new Date(Date.now() + 9 * 3600 * 1000);
@@ -461,6 +466,7 @@ export async function searchMediaPage(
     pageInfo { hasNextPage lastPage }
     media(${args.join(", ")}) {
       id title { native romaji } format status coverImage { large }
+      relations { edges { relationType node { id type } } }
     }
   }
 }`;
@@ -476,13 +482,24 @@ export async function searchMediaPage(
   const hasNextPage = !!json?.data?.Page?.pageInfo?.hasNextPage;
   const lastPage = Number(json?.data?.Page?.pageInfo?.lastPage ?? 1) || 1;
   return {
-    items: media.map((m: any) => ({
-      id: m.id,
-      title: String(m.title?.native ?? m.title?.romaji ?? ""),
-      coverUrl: String(m.coverImage?.large ?? ""),
-      format: formatJa(String(m.format ?? "")),
-      status: statusJa(String(m.status ?? "")),
-    })),
+    items: media.map((m: any) => {
+      // 同一レスポンス内の前作・続編IDだけを控える（推測グループ化はしない）
+      const relatedIds: number[] = [];
+      for (const e of m.relations?.edges ?? []) {
+        const rel = String(e?.relationType ?? "");
+        if ((rel === "SEQUEL" || rel === "PREQUEL") && e?.node?.type === "ANIME" && typeof e.node.id === "number") {
+          relatedIds.push(e.node.id);
+        }
+      }
+      return {
+        id: m.id,
+        title: String(m.title?.native ?? m.title?.romaji ?? ""),
+        coverUrl: String(m.coverImage?.large ?? ""),
+        format: formatJa(String(m.format ?? "")),
+        status: statusJa(String(m.status ?? "")),
+        relatedIds,
+      };
+    }),
     hasNextPage,
     lastPage,
   };
@@ -728,17 +745,58 @@ export type SeriesEntry = {
   format: string;
   episodes: number | null;
   isCurrent: boolean;
+  cover: string; // カバー画像URL（一括登録時のWork.cover用）
+  status: string; // AniList生値（RELEASING等）
+  season: string | null;
+  seasonYear: number | null;
+  startYear: number | null;
+  startMonth: number | null;
+  startDay: number | null;
 };
 const RELATIONS_QUERY = `
 query ($id: Int) {
   Media(id: $id) {
     id type format episodes status title { native romaji }
+    coverImage { large } startDate { year month day } season seasonYear
     relations { edges { relationType node { id type format status episodes title { native romaji } } } }
   }
 }`;
-export async function fetchSeriesInfo(
-  startId: number
-): Promise<{ chain: SeriesEntry[]; related: RelatedWork[]; complete: boolean }> {
+
+// 公開順の目安キー：開始日 → シーズン年・シーズン → AniList ID の順で安定フォールバック
+const SEASON_MONTH: Record<string, number> = { WINTER: 1, SPRING: 4, SUMMER: 7, FALL: 10 };
+function seriesSortKey(e: SeriesEntry): number {
+  if (e.startYear) {
+    return e.startYear * 10000 + (e.startMonth ?? 1) * 100 + (e.startDay ?? 1);
+  }
+  if (e.seasonYear) {
+    return e.seasonYear * 10000 + (SEASON_MONTH[e.season ?? ""] ?? 1) * 100 + 1;
+  }
+  return Number.MAX_SAFE_INTEGER; // 日付不明は末尾（ID順で安定）
+}
+
+export type SeriesInfo = { chain: SeriesEntry[]; related: RelatedWork[]; complete: boolean };
+
+// 同一セッション内の再取得・同時呼び出しを防ぐPromiseキャッシュ
+// （失敗・不完全な結果は保持せず、次回開いたときに再取得する）
+const seriesCache = new Map<number, Promise<SeriesInfo>>();
+
+export function fetchSeriesInfo(startId: number): Promise<SeriesInfo> {
+  const hit = seriesCache.get(startId);
+  if (hit) return hit;
+  const p = fetchSeriesInfoRaw(startId)
+    .then((r) => {
+      if (!r.complete) seriesCache.delete(startId);
+      return r;
+    })
+    .catch((err) => {
+      seriesCache.delete(startId);
+      throw err;
+    });
+  seriesCache.set(startId, p);
+  return p;
+}
+
+async function fetchSeriesInfoRaw(startId: number): Promise<SeriesInfo> {
   const visited = new Set<number>();
   const chain = new Map<number, SeriesEntry>();
   const related = new Map<number, RelatedWork>();
@@ -774,6 +832,13 @@ export async function fetchSeriesInfo(
         format: String(m.format ?? ""),
         episodes: typeof m.episodes === "number" ? m.episodes : null,
         isCurrent: m.id === startId,
+        cover: String(m.coverImage?.large ?? ""),
+        status: String(m.status ?? ""),
+        season: m.season ? String(m.season) : null,
+        seasonYear: typeof m.seasonYear === "number" ? m.seasonYear : null,
+        startYear: typeof m.startDate?.year === "number" ? m.startDate.year : null,
+        startMonth: typeof m.startDate?.month === "number" ? m.startDate.month : null,
+        startDay: typeof m.startDate?.day === "number" ? m.startDate.day : null,
       });
     }
     for (const e of m.relations?.edges ?? []) {
@@ -800,7 +865,11 @@ export async function fetchSeriesInfo(
   }
   if (queue.length > 0) complete = false;
   return {
-    chain: [...chain.values()].sort((a, b) => a.id - b.id),
+    // 公開順の目安（開始日→シーズン→ID）で安定ソート
+    chain: [...chain.values()].sort((a, b) => {
+      const ka = seriesSortKey(a), kb = seriesSortKey(b);
+      return ka !== kb ? ka - kb : a.id - b.id;
+    }),
     related: [...related.values()],
     complete,
   };

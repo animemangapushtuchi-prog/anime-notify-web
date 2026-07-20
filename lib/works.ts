@@ -46,6 +46,10 @@ export type Work = {
   added?: number;
   watchStatus?: WatchStatus; // 見たい/見てる/見た/中断/中止（未設定=未選択）
   watchedEpisode?: number; // 何話まで見たか（未設定=0話）
+  // シリーズまとめ表示用（後方互換の任意フィールド。無い作品は従来どおり単独表示）
+  seriesId?: number; // 取得できたチェーンの最初の公開作品ID（同じ取得結果で安定）
+  seriesTitle?: string;
+  seriesOrder?: number; // シリーズ内の公開順の目安
 };
 
 export async function getWorks(uid: string): Promise<Work[]> {
@@ -76,6 +80,77 @@ export async function addWork(uid: string, w: Work): Promise<Work[]> {
   const cap = slotCap((data.login as { days?: number } | undefined)?.days ?? 0);
   if (cur.length >= cap) return cur;
   return saveWorks(uid, [...cur, { ...w, added: Date.now() }]);
+}
+
+// Firestoreはundefinedを保存できないため、undefinedのキーを取り除く
+function cleanWork(w: Work): Work {
+  const c = { ...w } as Record<string, unknown>;
+  for (const k of Object.keys(c)) if (c[k] === undefined) delete c[k];
+  return c as Work;
+}
+
+export type AddWorksResult = {
+  works: Work[]; // 更新後（未変更時は現状）の一覧
+  addedIds: number[]; // 実際に追加したID
+  alreadyIds: number[]; // すでに登録済みだったID
+  needed: number; // 新規に必要だった枠数
+  free: number; // 追加前の空き枠数
+  blocked: boolean; // 枠不足で未変更だったか
+};
+
+// 複数作品の一括追加。ユーザードキュメントの取得・保存は各1回。
+// 枠不足時は一件も追加せずに返す（部分登録しない）。
+// 既存作品にはシリーズ情報だけを補完し、視聴状態・話数・追加日時は保持する。
+export async function addWorks(uid: string, candidates: Work[]): Promise<AddWorksResult> {
+  const snap = await getDoc(doc(db, "users", uid));
+  const data = snap.data() ?? {};
+  const cur = ((data.works as Work[] | undefined) ?? []).filter(
+    (x) => x && typeof x.id === "number"
+  );
+  const cap = slotCap((data.login as { days?: number } | undefined)?.days ?? 0);
+  const free = Math.max(0, cap - cur.length);
+
+  // 候補の重複IDを除去
+  const seen = new Set<number>();
+  const uniq: Work[] = [];
+  for (const c of candidates) {
+    if (c && typeof c.id === "number" && !seen.has(c.id)) {
+      seen.add(c.id);
+      uniq.push(c);
+    }
+  }
+  const curIds = new Set(cur.map((w) => w.id));
+  const newOnes = uniq.filter((c) => !curIds.has(c.id));
+  const alreadyIds = uniq.filter((c) => curIds.has(c.id)).map((c) => c.id);
+  const needed = newOnes.length;
+
+  if (needed > free) {
+    return { works: cur, addedIds: [], alreadyIds, needed, free, blocked: true };
+  }
+
+  // 既存作品へシリーズ情報を補完（ユーザー固有の値は上書きしない）
+  const byId = new Map(uniq.map((c) => [c.id, c]));
+  let seriesChanged = false;
+  const merged = cur.map((w) => {
+    const c = byId.get(w.id);
+    if (!c || typeof c.seriesId !== "number") return w;
+    if (w.seriesId === c.seriesId && w.seriesOrder === c.seriesOrder && w.seriesTitle === c.seriesTitle) return w;
+    seriesChanged = true;
+    const copy: Work = { ...w, seriesId: c.seriesId };
+    if (c.seriesTitle !== undefined) copy.seriesTitle = c.seriesTitle;
+    if (c.seriesOrder !== undefined) copy.seriesOrder = c.seriesOrder;
+    return copy;
+  });
+
+  if (needed === 0 && !seriesChanged) {
+    return { works: cur, addedIds: [], alreadyIds, needed, free, blocked: false };
+  }
+
+  const now = Date.now();
+  const additions = newOnes.map((c) => cleanWork({ ...c, added: now }));
+  const next = [...merged.map(cleanWork), ...additions];
+  await saveWorks(uid, next);
+  return { works: next, addedIds: additions.map((a) => a.id), alreadyIds, needed, free, blocked: false };
 }
 
 export async function removeWork(uid: string, id: number): Promise<Work[]> {

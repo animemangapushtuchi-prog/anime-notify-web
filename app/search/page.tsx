@@ -6,7 +6,7 @@
 //   万一空ページに当たっても直前の有効ページへ戻る（操作不能を防止）。
 // ・セッション内キャッシュ：遷移復帰でも再取得せず位置復元。
 // ・詳細ページの声優クリック → /search?person=名前 で自動表示。
-import { useEffect, useRef, useState } from "react";
+import { Fragment, useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import {
   searchMediaPage,
@@ -80,6 +80,42 @@ export default function SearchPage() {
 
   const [sug, setSug] = useState<Suggestion[]>([]);
   const [sugOpen, setSugOpen] = useState(false);
+  // シリーズまとめの展開状態（代表作品ID単位）
+  const [openGroups, setOpenGroups] = useState<Set<number>>(new Set());
+
+  // 検索レスポンス内でPREQUEL/SEQUEL関係が確認できた作品だけを同一シリーズ候補としてまとめる。
+  // タイトルの類似などによる推測統合はしない。追加のAniListリクエストも発生しない。
+  const groups = useMemo(() => {
+    const byId = new Map(items.map((i) => [i.id, i]));
+    // Union-Find（表示中のページ内だけで安全に連結）
+    const parent = new Map<number, number>();
+    const find = (x: number): number => {
+      let r = x;
+      while (parent.get(r) !== undefined && parent.get(r) !== r) r = parent.get(r)!;
+      parent.set(x, r);
+      return r;
+    };
+    const union = (a: number, b: number) => {
+      const ra = find(a), rb = find(b);
+      if (ra !== rb) parent.set(ra, rb);
+    };
+    for (const it of items) {
+      parent.set(it.id, find(it.id));
+      for (const rid of it.relatedIds ?? []) {
+        if (byId.has(rid)) union(it.id, rid);
+      }
+    }
+    const seen = new Set<number>();
+    const out: { rep: SeasonAnime; members: SeasonAnime[] }[] = [];
+    for (const it of items) {
+      const root = find(it.id);
+      if (seen.has(root)) continue;
+      seen.add(root);
+      const members = items.filter((x) => find(x.id) === root);
+      out.push({ rep: members[0], members: members.slice(1) });
+    }
+    return out;
+  }, [items]);
 
   const keyRef = useRef<string>("");
   const listTopRef = useRef<HTMLDivElement | null>(null);
@@ -396,11 +432,39 @@ export default function SearchPage() {
       ) : (
         <>
           <ul className={`mt-4 grid grid-cols-2 gap-x-3 gap-y-5 transition-opacity sm:grid-cols-3 lg:grid-cols-5 ${paging ? "opacity-50" : ""}`}>
-            {items.map((a) => (
-              <li key={a.id}>
-                <WorkCard {...a} />
-              </li>
-            ))}
+            {groups.map((g) => {
+              const total = g.members.length + 1;
+              const open = openGroups.has(g.rep.id);
+              return (
+                <Fragment key={g.rep.id}>
+                  <li>
+                    <WorkCard {...g.rep} />
+                    {g.members.length > 0 && (
+                      <button
+                        type="button"
+                        onClick={() =>
+                          setOpenGroups((prev) => {
+                            const next = new Set(prev);
+                            if (next.has(g.rep.id)) next.delete(g.rep.id);
+                            else next.add(g.rep.id);
+                            return next;
+                          })
+                        }
+                        className="mt-1 w-full rounded-lg bg-[#F6E9D5] px-2 py-1.5 text-[11px] font-bold text-[#C2772A]"
+                      >
+                        📚 シリーズ全{total}作品 {open ? "▴" : "▾"}
+                      </button>
+                    )}
+                  </li>
+                  {open &&
+                    g.members.map((m) => (
+                      <li key={m.id}>
+                        <WorkCard {...m} />
+                      </li>
+                    ))}
+                </Fragment>
+              );
+            })}
           </ul>
 
           {(page > 1 || hasNext) && (

@@ -55,6 +55,8 @@ export default function Home() {
   const [svc, setSvc] = useState<string>("all");
   const [edit, setEdit] = useState(false);
   const [busyId, setBusyId] = useState<number | null>(null);
+  // シリーズカードの展開状態（seriesId単位）
+  const [openSeries, setOpenSeries] = useState<Set<number>>(new Set());
 
   useEffect(() => {
     if (!user) {
@@ -121,6 +123,37 @@ export default function Home() {
       for (const s of watched.get(w.id)?.services ?? []) set.add(s);
     return [...set].sort((a, b) => svcRank(a, "") - svcRank(b, ""));
   }, [works, watched]);
+
+  // 絞り込み後の一覧を表示単位へ変換：同じseriesIdが2件以上あればシリーズとしてまとめる。
+  // グループの位置は現在のソート順での先頭作品（＝放送が近い順なら最も近い作品）に合わせる。
+  type DisplayItem =
+    | { kind: "single"; w: Work }
+    | { kind: "series"; seriesId: number; title: string; rep: Work; items: Work[] };
+  const display = useMemo<DisplayItem[]>(() => {
+    const counts = new Map<number, number>();
+    for (const w of shown) if (typeof w.seriesId === "number") counts.set(w.seriesId, (counts.get(w.seriesId) ?? 0) + 1);
+    const used = new Set<number>();
+    const out: DisplayItem[] = [];
+    for (const w of shown) {
+      const sid = w.seriesId;
+      if (typeof sid === "number" && (counts.get(sid) ?? 0) >= 2) {
+        if (used.has(sid)) continue;
+        used.add(sid);
+        const members = shown.filter((x) => x.seriesId === sid);
+        const items = [...members].sort((a, b) => (a.seriesOrder ?? a.id) - (b.seriesOrder ?? b.id));
+        out.push({
+          kind: "series",
+          seriesId: sid,
+          title: w.seriesTitle ?? items[0].seriesTitle ?? items[0].title,
+          rep: w,
+          items,
+        });
+      } else {
+        out.push({ kind: "single", w });
+      }
+    }
+    return out;
+  }, [shown]);
 
   if (loading) {
     return (
@@ -307,20 +340,74 @@ export default function Home() {
             </div>
           ) : (
             <ul className="mt-4 grid grid-cols-1 gap-3 lg:grid-cols-2 2xl:grid-cols-3">
-              {shown.map((w) => {
-                const info = watched.get(w.id);
-                const tv =
-                  nextBroadcast(w.title, progs, channels) ??
-                  nextBroadcast(w.title, progs);
-                const next = fmtNext(
-                  tv?.count ?? info?.nextEp ?? null,
-                  tv?.st ?? info?.nextAt ?? null,
-                  tv?.ch ?? ""
-                );
-                const cover = w.cover || info?.cover || "";
-                const airing = w.status === "RELEASING";
+              {display.map((g) => {
+                // シリーズカード：見出し＋（閉：代表作品のみ／開：公開順の全作品）
+                if (g.kind === "series") {
+                  const open = openSeries.has(g.seriesId) || edit;
+                  const shownItems = open ? g.items : [g.rep];
+                  return (
+                    <li key={`s-${g.seriesId}`} className="rounded-2xl border border-[#ECECF2] bg-white p-3">
+                      <button
+                        type="button"
+                        onClick={() =>
+                          setOpenSeries((prev) => {
+                            const next = new Set(prev);
+                            if (next.has(g.seriesId)) next.delete(g.seriesId);
+                            else next.add(g.seriesId);
+                            return next;
+                          })
+                        }
+                        className="flex w-full items-center justify-between gap-2 border-b border-black/5 pb-2 text-left"
+                      >
+                        <span className="min-w-0">
+                          <span className="block truncate text-[13px] font-extrabold text-[#1C1C2E]">📚 {g.title}</span>
+                          <span className="block text-[10px] text-[#6B7280]">
+                            シリーズ {g.items.length}作品を登録中{open ? "（公開順の目安）" : "・次に見る作品を表示中"}
+                          </span>
+                        </span>
+                        <span className="flex-none rounded-full bg-[#F6E9D5] px-2 py-1 text-[11px] font-bold text-[#C2772A]">
+                          {open ? (edit ? "編集中" : "閉じる ▴") : "展開 ▾"}
+                        </span>
+                      </button>
+                      <div className="divide-y divide-black/5">
+                        {shownItems.map((w) => (
+                          <div key={w.id} className="pt-3 [&:not(:last-child)]:pb-3">
+                            {workCard(w)}
+                          </div>
+                        ))}
+                      </div>
+                    </li>
+                  );
+                }
                 return (
-                  <li key={w.id} className="rounded-2xl border border-[#ECECF2] bg-white p-3">
+                  <li key={g.w.id} className="rounded-2xl border border-[#ECECF2] bg-white p-3">
+                    {workCard(g.w)}
+                  </li>
+                );
+              })}
+            </ul>
+          )}
+      </div>
+
+      <AdSlot className="mt-8" />
+    </main>
+  );
+
+  // 1作品ぶんのカード本体（単独カードとシリーズ内の行で共用）
+  function workCard(w: Work) {
+    const info = watched.get(w.id);
+    const tv =
+      nextBroadcast(w.title, progs, channels) ??
+      nextBroadcast(w.title, progs);
+    const next = fmtNext(
+      tv?.count ?? info?.nextEp ?? null,
+      tv?.st ?? info?.nextAt ?? null,
+      tv?.ch ?? ""
+    );
+    const cover = w.cover || info?.cover || "";
+    const airing = w.status === "RELEASING";
+    return (
+      <div>
                     <div className="flex items-center gap-3">
                       <Link href={`/work/${w.id}`} className="flex min-w-0 flex-1 items-center gap-3">
                         {cover && (
@@ -387,14 +474,7 @@ export default function Home() {
                         compact
                       />
                     )}
-                  </li>
-                );
-              })}
-            </ul>
-          )}
       </div>
-
-      <AdSlot className="mt-8" />
-    </main>
-  );
+    );
+  }
 }

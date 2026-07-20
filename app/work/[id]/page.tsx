@@ -259,9 +259,9 @@ export default async function WorkPage({
             </Collapsible>
           )}
 
-          {/* 関連作品 */}
+          {/* シリーズ・関連作品（公開順の目安＋まとめて登録） */}
           {d.relations.length > 0 && (
-            <Collapsible title="🔗 関連作品">
+            <Collapsible title="🔗 シリーズ・関連作品">
               <RelatedWorks id={d.id} fallback={d.relations} />
             </Collapsible>
           )}
