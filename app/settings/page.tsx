@@ -10,10 +10,10 @@ import { getWorks } from "@/lib/works";
 import Mascot from "@/components/Mascot";
 import { getTvPrograms, distinctChannels, channelGroup } from "@/lib/home";
 import EnablePush from "@/components/EnablePush";
+import { SERVICE_KEYS, invalidateUserPrefs } from "@/lib/subscriptions";
 
 type Settings = { enabled: boolean; ep: boolean; stream: boolean; adapt: boolean };
 type Bn = { before30: boolean; dayBefore: boolean };
-const SERVICE_KEYS = ["dアニメストア", "ABEMA（プレミアム）", "Netflix", "Prime Video", "U-NEXT"];
 const GROUPS: ("地上波" | "BS" | "CS")[] = ["地上波", "BS", "CS"];
 
 function Toggle({
@@ -127,6 +127,8 @@ export default function SettingsPage() {
         },
         { merge: true }
       );
+      // 他画面が共有キャッシュから古い設定を読まないようにする
+      invalidateUserPrefs();
     } catch {}
   };
   const save = (next: Settings) => {
@@ -247,10 +249,18 @@ export default function SettingsPage() {
 
       {/* 契約中の配信サービス */}
       <div className="mt-4 rounded-2xl border border-[#ECECF2] bg-white p-4">
-        <h2 className="mb-1 text-xs font-bold text-black/50">📡 契約中の配信サービス（優先表示に使います）</h2>
+        <h2 className="mb-1 text-xs font-bold text-black/50">📡 契約中の配信サービス</h2>
+        <p className="mb-2 text-[11px] leading-snug text-black/50">
+          選んだサービスを作品詳細とマイリストで優先表示します。未選択の場合はすべての配信先を同じ順序で表示します。
+        </p>
         {SERVICE_KEYS.map((key, i) => (
           <Toggle key={key} label={key} value={services[key] ?? false} onChange={() => toggleService(key)} divider={i !== SERVICE_KEYS.length - 1} />
         ))}
+        {Object.values(services).filter(Boolean).length > 0 && (
+          <p className="mt-2 text-[11px] text-[#6B7280]">
+            選択中：{Object.values(services).filter(Boolean).length}件
+          </p>
+        )}
         <p className="mt-2 text-[11px] text-black/50">対応サービスは順次追加予定です。</p>
       </div>
 

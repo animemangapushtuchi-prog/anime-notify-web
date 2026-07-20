@@ -16,12 +16,12 @@ import {
 import {
   getWatchedMap,
   getTvPrograms,
-  getUserChannels,
   nextBroadcast,
   type WatchedInfo,
   type TvProgram,
 } from "@/lib/home";
 import { svcRank } from "@/lib/anilist";
+import { getUserPrefs, isSubscribedService, sortSubscribedFirst } from "@/lib/subscriptions";
 import ServiceIcon from "@/components/ServiceIcon";
 import SurveyCard from "@/components/SurveyCard";
 import StatusPicker from "@/components/StatusPicker";
@@ -48,6 +48,8 @@ export default function Home() {
   const [watched, setWatched] = useState<Map<number, WatchedInfo>>(new Map());
   const [progs, setProgs] = useState<TvProgram[]>([]);
   const [channels, setChannels] = useState<string[]>([]);
+  // 契約中の配信サービス（設定でONにしたキー。未設定・未ログイン・取得失敗時は空＝従来表示）
+  const [subKeys, setSubKeys] = useState<string[]>([]);
   const [sort, setSort] = useState<Sort>("air");
   const [filter, setFilter] = useState<Filter>("all");
   const [svc, setSvc] = useState<string>("all");
@@ -63,7 +65,16 @@ export default function Home() {
     Promise.all([
       getWatchedMap().then(setWatched).catch(() => setWatched(new Map())),
       getTvPrograms().then(setProgs).catch(() => setProgs([])),
-      getUserChannels(user.uid).then(setChannels).catch(() => setChannels([])),
+      // users/{uid} は1回だけ読み、放送局と契約中サービスを同時に取得する
+      getUserPrefs(user.uid)
+        .then((p) => {
+          setChannels(p.channels);
+          setSubKeys(p.services);
+        })
+        .catch(() => {
+          setChannels([]);
+          setSubKeys([]);
+        }),
     ]);
   }, [user]);
 
@@ -83,12 +94,18 @@ export default function Home() {
 
   const shown = useMemo(
     () =>
-      sorted.filter(
-        (w) =>
-          (filter === "all" || w.watchStatus === filter) &&
-          (svc === "all" || (watched.get(w.id)?.services ?? []).includes(svc))
-      ),
-    [sorted, filter, svc, watched]
+      sorted.filter((w) => {
+        if (filter !== "all" && w.watchStatus !== filter) return false;
+        const services = watched.get(w.id)?.services ?? [];
+        if (svc === "all") return true;
+        if (svc === "_sub") {
+          // 契約中サービス未設定なら絞り込まない（作品が消えないように）
+          if (subKeys.length === 0) return true;
+          return services.some((s) => isSubscribedService(s, subKeys));
+        }
+        return services.includes(svc);
+      }),
+    [sorted, filter, svc, watched, subKeys]
   );
 
   const counts = useMemo(() => {
@@ -244,6 +261,9 @@ export default function Home() {
                 className="rounded-full border border-[#ECECF2] bg-white px-2 py-1 text-[#1C1C2E]"
               >
                 <option value="all">全サービス</option>
+                <option value="_sub" disabled={subKeys.length === 0}>
+                  {subKeys.length === 0 ? "契約中のみ（未設定）" : "契約中のみ"}
+                </option>
                 {svcList.map((s) => (
                   <option key={s} value={s}>
                     {s}
@@ -263,6 +283,16 @@ export default function Home() {
               {edit ? "完了" : "編集"}
             </button>
           </div>
+
+          {/* 契約中サービス未設定のときは設定画面への短い導線を出す */}
+          {subKeys.length === 0 && svcList.length > 0 && (
+            <p className="mt-1 text-right text-[11px] text-[#6B7280]">
+              <Link href="/settings" className="font-bold text-[#C2772A] underline-offset-2 hover:underline">
+                設定
+              </Link>
+              で契約中の配信サービスを選ぶと優先表示できます
+            </p>
+          )}
 
           {works === null ? (
             <p className="mt-6 text-sm text-black/50">読み込み中…</p>
@@ -310,10 +340,23 @@ export default function Home() {
                           </div>
                           <p className="mt-0.5 truncate text-[11px] text-[#6B7280]">{next ?? w.meta}</p>
                           {info && info.services.length > 0 && (
-                            <div className="mt-1 flex gap-1">
-                              {info.services.map((s) => (
-                                <ServiceIcon key={s} name={s} size={18} />
-                              ))}
+                            <div className="mt-1 flex gap-1.5">
+                              {/* 契約中サービスを先頭に並べ、✓マーク（色に依存しない印）を付ける */}
+                              {sortSubscribedFirst(info.services, (s) => s, subKeys).map((s) =>
+                                subKeys.length > 0 && isSubscribedService(s, subKeys) ? (
+                                  <span key={s} className="relative inline-flex" title={`${s}（契約中）`}>
+                                    <ServiceIcon name={s} size={18} />
+                                    <span
+                                      aria-label="契約中"
+                                      className="absolute -right-1 -top-1 flex h-3 w-3 items-center justify-center rounded-full bg-white text-[8px] font-black leading-none text-[#C2772A] ring-1 ring-[#C2772A]"
+                                    >
+                                      ✓
+                                    </span>
+                                  </span>
+                                ) : (
+                                  <ServiceIcon key={s} name={s} size={18} />
+                                )
+                              )}
                             </div>
                           )}
                         </div>

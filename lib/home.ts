@@ -3,6 +3,7 @@
 import { doc, getDoc } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import { isOverseasOnlyService, svcRank } from "@/lib/anilist";
+import { getUserPrefs } from "@/lib/subscriptions";
 
 export type WatchedInfo = {
   nextEp: number | null;
@@ -202,11 +203,10 @@ export function channelGroup(ch: string): "地上波" | "BS" | "CS" {
 }
 
 // ユーザーが設定した「視聴できる放送局」
+// users/{uid} の読み込みは共有キャッシュ（lib/subscriptions）に集約し、同一ページ内の重複読込を避ける
 export async function getUserChannels(uid: string): Promise<string[]> {
   try {
-    const snap = await getDoc(doc(db, "users", uid));
-    const ch = (snap.data()?.settings as { channels?: unknown } | undefined)?.channels;
-    return Array.isArray(ch) ? (ch as string[]) : [];
+    return (await getUserPrefs(uid)).channels;
   } catch {
     return [];
   }

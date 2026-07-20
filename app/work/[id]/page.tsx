@@ -9,7 +9,7 @@ import Collapsible from "@/components/Collapsible";
 import RegisterButton from "@/components/RegisterButton";
 import RelatedWorks from "@/components/RelatedWorks";
 import BroadcastInfo from "@/components/BroadcastInfo";
-import ServiceIcon from "@/components/ServiceIcon";
+import StreamingLinks from "@/components/StreamingLinks";
 import NextBroadcast from "@/components/NextBroadcast";
 import AdSlot from "@/components/AdSlot";
 
@@ -181,24 +181,8 @@ export default async function WorkPage({
             <p className="mt-1 text-xs text-[#6B7280]">
               配信開始日時は各サービスの公式ページでご確認ください
             </p>
-            <ul className="mt-2 grid gap-1 sm:grid-cols-2">
-              {d.streaming.map((s) => (
-                <li key={s.name}>
-                  <a
-                    href={s.url}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="flex items-center gap-3 rounded-xl bg-white px-3 py-2"
-                  >
-                    <ServiceIcon name={s.name} size={22} />
-                    <span className="min-w-0 flex-1 truncate text-sm font-bold text-[#1C1C2E]">
-                      {s.name}
-                    </span>
-                    <span className="text-xs font-bold text-[#C2772A]">開く ›</span>
-                  </a>
-                </li>
-              ))}
-            </ul>
+            {/* 契約中サービスの優先表示はクライアント側で行う（未ログイン時は従来順のまま） */}
+            <StreamingLinks items={d.streaming.map((s) => ({ name: s.name, url: s.url }))} />
           </>
         )}
         <p className="mt-2 text-[10px] text-[#6B7280]">
