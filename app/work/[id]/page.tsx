@@ -169,25 +169,14 @@ export default async function WorkPage({
         fallbackEp={d.nextEpisode ?? null}
       />
 
-      {/* ネット配信はテレビ放送と混ぜず、日時を推測せずに配信先として表示 */}
+      {/* ネット配信はテレビ放送と混ぜない。AniListと番組表(配信枠)の統合はクライアント側で行う */}
       <section className={`${CARD} mt-4 border-[#F3D9A9] bg-[#FBF3E6]`}>
         <h2 className={CARD_TITLE}>▶ ネット配信</h2>
-        {d.streaming.length === 0 ? (
-          <p className="mt-2 text-xs text-[#6B7280]">
-            日本で見られる配信情報は現在確認中です
-          </p>
-        ) : (
-          <>
-            <p className="mt-1 text-xs text-[#6B7280]">
-              配信開始日時は各サービスの公式ページでご確認ください
-            </p>
-            {/* 契約中サービスの優先表示はクライアント側で行う（未ログイン時は従来順のまま） */}
-            <StreamingLinks items={d.streaming.map((s) => ({ name: s.name, url: s.url }))} />
-          </>
-        )}
-        <p className="mt-2 text-[10px] text-[#6B7280]">
-          出典：AniList／配信日時はサービス側の情報を優先してください
-        </p>
+        <StreamingLinks
+          items={d.streaming.map((s) => ({ name: s.name, url: s.url }))}
+          title={d.title}
+          workId={d.id}
+        />
       </section>
 
       {/* 2カラム（ワイド）／縦積み（狭幅） */}

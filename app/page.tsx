@@ -22,6 +22,7 @@ import {
 } from "@/lib/home";
 import { svcRank } from "@/lib/anilist";
 import { getUserPrefs, isSubscribedService, sortSubscribedFirst } from "@/lib/subscriptions";
+import { getStreamSchedule, matchPrograms, toService, type StreamProgram } from "@/lib/streaming";
 import ServiceIcon from "@/components/ServiceIcon";
 import SurveyCard from "@/components/SurveyCard";
 import StatusPicker from "@/components/StatusPicker";
@@ -50,6 +51,8 @@ export default function Home() {
   const [channels, setChannels] = useState<string[]>([]);
   // 契約中の配信サービス（設定でONにしたキー。未設定・未ログイン・取得失敗時は空＝従来表示）
   const [subKeys, setSubKeys] = useState<string[]>([]);
+  // しょぼいカレンダー由来のネット配信枠（AniListに無い配信サービスの補完用）
+  const [streamProgs, setStreamProgs] = useState<StreamProgram[]>([]);
   const [sort, setSort] = useState<Sort>("air");
   const [filter, setFilter] = useState<Filter>("all");
   const [svc, setSvc] = useState<string>("all");
@@ -67,6 +70,7 @@ export default function Home() {
     Promise.all([
       getWatchedMap().then(setWatched).catch(() => setWatched(new Map())),
       getTvPrograms().then(setProgs).catch(() => setProgs([])),
+      getStreamSchedule().then((r) => setStreamProgs(r.programs)).catch(() => setStreamProgs([])),
       // users/{uid} は1回だけ読み、放送局と契約中サービスを同時に取得する
       getUserPrefs(user.uid)
         .then((p) => {
@@ -94,11 +98,34 @@ export default function Home() {
     return list;
   }, [works, watched, sort]);
 
+  // 作品ごとの配信サービス：AniListリンク(watchedWorks)と配信枠(streamSchedule)を正規化キーで統合。
+  // YouTubeや海外専用は toService が除外する（既存キャッシュに残っていても表示しない）
+  const combinedServices = useMemo(() => {
+    const m = new Map<number, string[]>();
+    for (const w of works ?? []) {
+      const seen = new Set<string>();
+      const names: string[] = [];
+      for (const raw of watched.get(w.id)?.services ?? []) {
+        const s = toService(raw);
+        if (!s || seen.has(s.key)) continue;
+        seen.add(s.key);
+        names.push(s.name);
+      }
+      for (const p of matchPrograms(w.title, streamProgs)) {
+        if (seen.has(p.serviceKey)) continue;
+        seen.add(p.serviceKey);
+        names.push(p.serviceName);
+      }
+      m.set(w.id, names.slice(0, 4));
+    }
+    return m;
+  }, [works, watched, streamProgs]);
+
   const shown = useMemo(
     () =>
       sorted.filter((w) => {
         if (filter !== "all" && w.watchStatus !== filter) return false;
-        const services = watched.get(w.id)?.services ?? [];
+        const services = combinedServices.get(w.id) ?? [];
         if (svc === "all") return true;
         if (svc === "_sub") {
           // 契約中サービス未設定なら絞り込まない（作品が消えないように）
@@ -107,7 +134,7 @@ export default function Home() {
         }
         return services.includes(svc);
       }),
-    [sorted, filter, svc, watched, subKeys]
+    [sorted, filter, svc, combinedServices, subKeys]
   );
 
   const counts = useMemo(() => {
@@ -116,13 +143,13 @@ export default function Home() {
     return c;
   }, [works]);
 
-  // 登録作品が実際に持つ配信サービスだけを動的に列挙（主要サービス順）
+  // 登録作品が実際に持つ配信サービスだけを動的に列挙（主要サービス順・正規化済み）
   const svcList = useMemo(() => {
     const set = new Set<string>();
     for (const w of works ?? [])
-      for (const s of watched.get(w.id)?.services ?? []) set.add(s);
+      for (const s of combinedServices.get(w.id) ?? []) set.add(s);
     return [...set].sort((a, b) => svcRank(a, "") - svcRank(b, ""));
-  }, [works, watched]);
+  }, [works, combinedServices]);
 
   // 絞り込み後の一覧を表示単位へ変換：同じseriesIdが2件以上あればシリーズとしてまとめる。
   // グループの位置は現在のソート順での先頭作品（＝放送が近い順なら最も近い作品）に合わせる。
@@ -426,10 +453,10 @@ export default function Home() {
                             </span>
                           </div>
                           <p className="mt-0.5 truncate text-[11px] text-[#6B7280]">{next ?? w.meta}</p>
-                          {info && info.services.length > 0 && (
+                          {(combinedServices.get(w.id) ?? []).length > 0 && (
                             <div className="mt-1 flex gap-1.5">
                               {/* 契約中サービスを先頭に並べ、✓マーク（色に依存しない印）を付ける */}
-                              {sortSubscribedFirst(info.services, (s) => s, subKeys).map((s) =>
+                              {sortSubscribedFirst(combinedServices.get(w.id) ?? [], (s) => s, subKeys).map((s) =>
                                 subKeys.length > 0 && isSubscribedService(s, subKeys) ? (
                                   <span key={s} className="relative inline-flex" title={`${s}（契約中）`}>
                                     <ServiceIcon name={s} size={18} />

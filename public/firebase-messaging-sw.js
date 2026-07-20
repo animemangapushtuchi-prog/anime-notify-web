@@ -17,7 +17,9 @@ const messaging = firebase.messaging();
 messaging.onBackgroundMessage((payload) => {
   const title = (payload.notification && payload.notification.title) || "アニメ新着情報";
   const body = (payload.notification && payload.notification.body) || "";
-  self.registration.showNotification(title, { body });
+  /* サーバーが data.url に遷移先(animiru.com内)を入れてくる。クリック処理へ引き継ぐ */
+  const url = (payload.data && payload.data.url) || "";
+  self.registration.showNotification(title, { body, data: url ? { url } : {} });
 });
 
 /* 通知クリック時：通知を閉じ、既にタブが開いていればフォーカス、なければ遷移先を開く。

@@ -152,7 +152,6 @@ export function svcRank(site: string, language: string): number {
   if (s.includes("netflix")) return 1;
   if (s.includes("u-next") || s.includes("unext")) return 2;
   if (s.includes("d anime") || s.includes("danime") || s.includes("dアニメ")) return 3;
-  if (s.includes("youtube")) return 4;
   if (s.includes("abema")) return 5;
   if (s.includes("niconico")) return 6;
   if (s.includes("hulu")) return 7;
@@ -170,6 +169,18 @@ export function isOverseasOnlyService(site: string): boolean {
     "muse", "vrv", "catchplay", "aniplus", "anime onegai",
   ];
   return blocked.some((b) => s.includes(b));
+}
+
+// YouTubeは海外向け配信のみのため、アニミルでは全経路（表示・絞り込み・通知）で扱わない
+export function isYouTubeService(site: string): boolean {
+  const s = (site || "").trim().toLowerCase();
+  if (!s) return false;
+  return s.includes("youtube") || s.includes("youtu.be");
+}
+
+// 「アニミルで表示しない配信サービス」の共通入口（海外専用＋YouTube）
+export function isHiddenService(site: string): boolean {
+  return isYouTubeService(site) || isOverseasOnlyService(site);
 }
 
 // ---- 詳細取得 ----
@@ -210,7 +221,7 @@ export async function fetchAnimeDetail(id: number): Promise<AnimeDetail | null> 
     const name = String(l.site ?? "");
     if (!name || seen.has(name)) continue;
     seen.add(name);
-    if (isOverseasOnlyService(name)) continue;
+    if (isHiddenService(name)) continue; // 海外専用＋YouTubeを除外
     streaming.push({ name, url: String(l.url ?? ""), language: String(l.language ?? "") });
   }
   streaming.sort((a, b) => {

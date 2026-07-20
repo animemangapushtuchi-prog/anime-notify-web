@@ -2,7 +2,7 @@
 // 登録作品の「次の予定」「放送局」「配信サービス」を補完する（旧Flutter版のHomeData相当）。
 import { doc, getDoc } from "firebase/firestore";
 import { db } from "@/lib/firebase";
-import { isOverseasOnlyService, svcRank } from "@/lib/anilist";
+import { isHiddenService, svcRank } from "@/lib/anilist";
 import { getUserPrefs } from "@/lib/subscriptions";
 
 export type WatchedInfo = {
@@ -24,7 +24,7 @@ export async function getWatchedMap(): Promise<Map<number, WatchedInfo>> {
       const raw = ((w.externalLinks ?? []) as any[])
         .filter((l) => (l.type ?? "") === "STREAMING")
         .map((l) => String(l.site ?? ""))
-        .filter((s) => s && !isOverseasOnlyService(s));
+        .filter((s) => s && !isHiddenService(s)); // 既存キャッシュにYouTubeが残っていても即時除外
       raw.sort((a, b) => svcRank(a, "") - svcRank(b, ""));
       const seen = new Set<string>();
       const services: string[] = [];
@@ -50,7 +50,7 @@ export async function getWatchedMap(): Promise<Map<number, WatchedInfo>> {
 
 export type TvProgram = { title: string; st: number; ch: string; count: number | null };
 
-function normTitle(s: string): string {
+export function normTitle(s: string): string {
   return (s || "")
     .replace(/[\s　]/g, "")
     .replace(/[～〜~！!？?・、。「」『』（）()]/g, "")

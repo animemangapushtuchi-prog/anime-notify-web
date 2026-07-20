@@ -30,6 +30,7 @@ type Notif = {
   kind: string;
   text: string;
   workId: number | null;
+  targetWorkId: number | null; // 続編通知：新しく発表された続編のAniList ID（後方互換の任意項目）
   read: boolean;
 };
 
@@ -108,6 +109,7 @@ export default function NotificationsPage() {
               kind: String(x.kind ?? "ep"),
               text: String(x.text ?? ""),
               workId: typeof x.workId === "number" ? x.workId : null,
+              targetWorkId: typeof x.targetWorkId === "number" ? x.targetWorkId : null,
               read: !!x.read,
             };
           })
@@ -242,19 +244,24 @@ export default function NotificationsPage() {
                   const work = n.workId
                     ? works.find((item) => item.id === n.workId)
                     : undefined;
-                  const actionHref = n.workId
-                    ? `/work/${n.workId}`
+                  // 続編通知は新しく発表された続編（targetWorkId）へ、配信通知は対象作品のネット配信欄へ
+                  const detailId =
+                    n.kind === "adapt" && n.targetWorkId ? n.targetWorkId : n.workId;
+                  const actionHref = detailId
+                    ? `/work/${detailId}`
                     : n.kind === "bctomorrow"
                       ? "/calendar"
                       : null;
                   const actionLabel =
                     n.kind === "stream"
                       ? "配信先を確認"
-                      : n.kind === "bctomorrow"
-                        ? "カレンダーを見る"
-                        : n.kind === "bcsoon"
-                          ? "放送情報を見る"
-                          : "作品詳細を見る";
+                      : n.kind === "adapt" && n.targetWorkId
+                        ? "新しい作品を見る"
+                        : n.kind === "bctomorrow"
+                          ? "カレンダーを見る"
+                          : n.kind === "bcsoon"
+                            ? "放送情報を見る"
+                            : "作品詳細を見る";
                   return (
                     <li
                       key={n.id}
