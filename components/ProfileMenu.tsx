@@ -7,15 +7,19 @@ import { useAuth, logout } from "@/lib/auth";
 import { auth } from "@/lib/firebase";
 
 export default function ProfileMenu() {
-  const { user, idLabel } = useAuth();
+  const { user, idLabel, isGuest } = useAuth();
   const [open, setOpen] = useState(false);
   const [deleting, setDeleting] = useState(false);
   const close = () => setOpen(false);
 
   async function handleDelete() {
     if (deleting) return;
-    if (!window.confirm("退会すると、登録した作品や課金状況などは二度と復元できなくなります。続けますか？")) return;
-    if (!window.confirm("本当に退会してよろしいですか？")) return;
+    const first = isGuest
+      ? "ゲストデータ（登録作品・視聴状況・通知設定）を削除します。削除後は復元できません。続けますか？"
+      : "退会すると、登録した作品や課金状況などは二度と復元できなくなります。続けますか？";
+    const second = isGuest ? "本当にゲストデータを削除してよろしいですか？" : "本当に退会してよろしいですか？";
+    if (!window.confirm(first)) return;
+    if (!window.confirm(second)) return;
     setDeleting(true);
     try {
       const idToken = await auth.currentUser?.getIdToken();
@@ -59,7 +63,21 @@ export default function ProfileMenu() {
           <div className="fixed inset-0 z-30" onClick={close} />
           <div className="absolute right-0 z-40 mt-2 w-60 overflow-hidden rounded-2xl border border-[#ECECF2] bg-white py-1 shadow-xl">
             {user ? (
-              <p className="px-4 py-2.5 text-sm font-bold text-[#1C1C2E]">ID: {idLabel}</p>
+              isGuest ? (
+                <>
+                  <p className="px-4 py-2.5 text-sm font-bold text-[#1C1C2E]">👤 ゲスト利用中</p>
+                  {/* ゲストの最重要導線：メール登録でデータ保護 */}
+                  <Link
+                    href="/login"
+                    onClick={close}
+                    className="mx-3 mb-1 block rounded-xl bg-[#C2772A] px-3 py-2 text-center text-xs font-bold text-white"
+                  >
+                    📧 メール登録してデータを保護
+                  </Link>
+                </>
+              ) : (
+                <p className="px-4 py-2.5 text-sm font-bold text-[#1C1C2E]">ID: {idLabel}</p>
+              )
             ) : (
               <Link href="/login" onClick={close} className="block px-4 py-2.5 text-sm font-bold text-[#C2772A]">
                 ログイン
@@ -98,7 +116,28 @@ export default function ProfileMenu() {
             <Link href="/privacy" onClick={close} className="block px-4 py-2 text-sm text-[#1C1C2E]">
               プライバシーポリシー
             </Link>
-            {user && (
+            {user && isGuest && (
+              <>
+                <div className="my-1 border-t border-[#ECECF2]" />
+                {/* 匿名状態でログアウトすると再ログインできないため、通常のログアウトは出さない */}
+                <Link
+                  href="/login"
+                  onClick={close}
+                  className="block px-4 py-2.5 text-sm font-bold text-[#C2772A]"
+                >
+                  既存アカウントへログイン（データ統合）
+                </Link>
+                <button
+                  type="button"
+                  onClick={handleDelete}
+                  disabled={deleting}
+                  className="block w-full px-4 py-2.5 text-left text-xs text-black/40 disabled:opacity-50"
+                >
+                  {deleting ? "削除中…" : "ゲストデータを削除"}
+                </button>
+              </>
+            )}
+            {user && !isGuest && (
               <>
                 <div className="my-1 border-t border-[#ECECF2]" />
                 <button

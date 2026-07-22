@@ -5,7 +5,7 @@
 // 開いた時（親のCollapsibleが開く）に初めて実行される＝AniList負荷の軽減。
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { useAuth } from "@/lib/auth";
+import { useAuth, ensureGuestSession, authErrorJa } from "@/lib/auth";
 import {
   fetchSeriesInfo,
   formatJa,
@@ -160,6 +160,29 @@ export default function RelatedWorks({
     }
   };
 
+  // 未ログイン：押したときにだけ匿名ゲストを開始してまとめて登録（枠不足なら一件も登録しない）
+  const guestBulkRegister = async () => {
+    if (busy) return;
+    setBusy(true);
+    setMsg(null);
+    try {
+      const u = await ensureGuestSession();
+      const r = await addWorks(u.uid, toCandidates(data.chain));
+      setWorks(r.works);
+      if (r.blocked) {
+        setMsg(`ゲストの登録枠（5件）では足りません。あと${r.needed - r.free}枠必要です。メール登録で枠を増やせます。`);
+      } else if (r.addedIds.length > 0) {
+        setMsg(`${r.addedIds.length}作品をこの端末へ保存しました（ゲスト利用）。メール登録するとデータを保護できます。`);
+      } else {
+        setMsg("すべて登録済みです。");
+      }
+    } catch (e) {
+      setMsg(authErrorJa(e));
+    } finally {
+      setBusy(false);
+    }
+  };
+
   return (
     <div className="space-y-3">
       {data.chain.length > 0 && (
@@ -223,12 +246,22 @@ export default function RelatedWorks({
                   </>
                 )
               ) : (
-                <Link
-                  href={`/login?next=${encodeURIComponent(`/work/${id}`)}`}
-                  className="block w-full rounded-xl bg-[#C2772A] py-2.5 text-center text-sm font-bold text-white"
-                >
-                  🔔 ログインしてシリーズをまとめて登録
-                </Link>
+                <>
+                  <button
+                    type="button"
+                    onClick={guestBulkRegister}
+                    disabled={busy}
+                    className="block w-full rounded-xl bg-[#C2772A] py-2.5 text-center text-sm font-bold text-white disabled:opacity-60"
+                  >
+                    {busy ? "登録中…" : "🔔 シリーズをまとめて登録（登録なしでOK）"}
+                  </button>
+                  <p className="mt-1 text-[10px] leading-snug text-black/40">
+                    メール登録なしでも5作品まで使えます（押すとゲスト利用が始まります）。
+                    <Link href={`/login?next=${encodeURIComponent(`/work/${id}`)}`} className="font-bold text-[#C2772A]">
+                      ログイン／メール登録
+                    </Link>
+                  </p>
+                </>
               )}
               <p aria-live="polite" className="mt-1">
                 {msg && <span className="block text-[11px] font-semibold text-[#1C1C2E]">{msg}</span>}

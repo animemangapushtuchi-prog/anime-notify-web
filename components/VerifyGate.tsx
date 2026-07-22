@@ -1,66 +1,66 @@
 "use client";
 
-// メール認証ゲート。実メールで未認証のユーザーには、認証を促す画面を出して先に進ませない。
+// メール確認バナー。実メールで未認証（pending）のユーザーに、サイトを塞がず上部で認証を促す。
+// 匿名ゲスト・旧IDアカウントには表示しない。
 import { useState, type ReactNode } from "react";
-import { useAuth, needsVerification, resendVerification, logout } from "@/lib/auth";
-import { auth } from "@/lib/firebase";
+import { useAuth, needsVerification, resendVerification } from "@/lib/auth";
 
 export default function VerifyGate({ children }: { children: ReactNode }) {
-  const { user, loading } = useAuth();
+  const { user, loading, refreshAccount } = useAuth();
   const [sent, setSent] = useState(false);
   const [busy, setBusy] = useState(false);
+  const [checked, setChecked] = useState(false);
 
   if (loading || !needsVerification(user)) return <>{children}</>;
 
   return (
-    <main className="mx-auto max-w-md px-4 py-14 text-center">
-      <div className="text-4xl">📧</div>
-      <h1 className="mt-3 text-xl font-extrabold text-[#1C1C2E]">メール認証をお願いします</h1>
-      <p className="mt-2 text-sm leading-relaxed text-[#6B7280]">
-        <span className="font-bold text-[#1C1C2E]">{user?.email}</span> に確認メールを送りました。
-        メール内のリンクを開いて認証を完了すると、アプリが使えるようになります。
-      </p>
-
-      <div className="mt-6 space-y-2">
-        <button
-          type="button"
-          disabled={busy}
-          onClick={async () => {
-            setBusy(true);
-            try {
-              await auth.currentUser?.reload();
-              window.location.reload();
-            } finally {
-              setBusy(false);
-            }
-          }}
-          className="w-full rounded-xl bg-[#C2772A] py-3 text-sm font-bold text-white disabled:opacity-60"
-        >
-          {busy ? "確認中…" : "認証しました（再読み込み）"}
-        </button>
-        <button
-          type="button"
-          onClick={async () => {
-            try {
-              await resendVerification();
-              setSent(true);
-            } catch {
-              /* noop */
-            }
-          }}
-          className="w-full rounded-xl border border-[#ECECF2] bg-white py-3 text-sm font-bold text-[#C2772A]"
-        >
-          確認メールを再送する
-        </button>
-        {sent && <p className="text-xs text-[#059669]">再送しました。メールをご確認ください。</p>}
-        <button type="button" onClick={() => logout()} className="w-full py-2 text-xs font-semibold text-[#6B7280]">
-          別のアカウントでログイン（ログアウト）
-        </button>
+    <>
+      <div className="border-b border-[#F3D9A9] bg-[#FBF3E6] px-4 py-2.5">
+        <div className="mx-auto flex max-w-4xl flex-wrap items-center gap-x-3 gap-y-1.5">
+          <p className="min-w-0 flex-1 text-xs leading-snug text-[#1C1C2E]">
+            📧 <span className="font-bold">メール確認待ち：</span>
+            {user?.email} 宛の確認メールのリンクを開いてください。認証まで登録枠は5件です。
+          </p>
+          <div className="flex flex-none items-center gap-2">
+            <button
+              type="button"
+              disabled={busy}
+              onClick={async () => {
+                setBusy(true);
+                setChecked(false);
+                try {
+                  await refreshAccount();
+                  setChecked(true);
+                } finally {
+                  setBusy(false);
+                }
+              }}
+              className="rounded-full bg-[#C2772A] px-3 py-1.5 text-[11px] font-bold text-white disabled:opacity-60"
+            >
+              {busy ? "確認中…" : "認証を確認"}
+            </button>
+            <button
+              type="button"
+              onClick={async () => {
+                try {
+                  await resendVerification();
+                  setSent(true);
+                } catch {
+                  /* noop */
+                }
+              }}
+              className="rounded-full border border-[#C2772A] bg-white px-3 py-1.5 text-[11px] font-bold text-[#C2772A]"
+            >
+              再送
+            </button>
+          </div>
+          {sent && <p className="w-full text-[11px] text-[#059669]">確認メールを再送しました。迷惑メールフォルダもご確認ください。</p>}
+          {checked && needsVerification(user) && (
+            <p className="w-full text-[11px] text-[#DC2626]">まだ認証を確認できませんでした。メールのリンクを開いてから再度お試しください。</p>
+          )}
+        </div>
       </div>
-
-      <p className="mt-4 text-[11px] leading-relaxed text-black/40">
-        メールが届かない場合は、迷惑メールフォルダもご確認ください。
-      </p>
-    </main>
+      {children}
+    </>
   );
 }

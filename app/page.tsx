@@ -44,7 +44,7 @@ type Sort = "air" | "added";
 type Filter = WatchStatus | "all";
 
 export default function Home() {
-  const { user, loading, slotCap, loginBonusToday } = useAuth();
+  const { user, loading, slotCap, loginBonusToday, isGuest, accountType, loginDays } = useAuth();
   const [works, setWorks] = useState<Work[] | null>(null);
   const [watched, setWatched] = useState<Map<number, WatchedInfo>>(new Map());
   const [progs, setProgs] = useState<TvProgram[]>([]);
@@ -205,10 +205,13 @@ export default function Home() {
             ようこそ！3ステップで始まります
           </p>
           <ol className="mt-3 space-y-2 text-sm text-black/70">
-            <li>① メールアドレスで無料登録</li>
-            <li>② 「検索」タブから好きな作品を登録</li>
+            <li>① 「検索」タブから好きな作品を見つける</li>
+            <li>② 「通知登録」を押すと登録なしで5作品まで使えます</li>
             <li>③ 新話の放送・配信入りを自動で通知</li>
           </ol>
+          <p className="mt-2 text-[11px] text-black/50">
+            メール登録すると10作品（ログインボーナスで最大15作品）＋端末をまたいだ引き継ぎができます。
+          </p>
           <Link
             href="/login"
             className="mt-4 inline-block rounded-full bg-[#C2772A] px-5 py-2.5 text-sm font-bold text-white"
@@ -269,6 +272,33 @@ export default function Home() {
       )}
       <SurveyCard />
 
+      {/* ゲスト利用の状態カード（メール登録CTA＋端末依存の注意） */}
+      {isGuest && works !== null && (
+        <div className="mt-3 rounded-2xl border border-[#F3D9A9] bg-[#FBF3E6] px-4 py-3">
+          <p className="text-xs font-bold text-[#1C1C2E]">
+            👤 ゲスト利用 {works.length}/{slotCap}件
+            {works.length >= slotCap
+              ? "　メール登録でさらに5件登録できます"
+              : works.length === slotCap - 1
+                ? "　あと1件登録できます"
+                : ""}
+          </p>
+          <p className="mt-1 text-[11px] leading-snug text-[#6B7280]">
+            ゲストデータはこのブラウザの匿名IDと結び付いています。
+            <Link href="/login" className="font-bold text-[#C2772A] underline-offset-2 hover:underline">
+              メール登録
+            </Link>
+            するとデータを引き継いで保護でき、登録枠も10件（最大15件）になります。
+          </p>
+        </div>
+      )}
+      {/* 旧仕様で上限を超えて登録済みのユーザーへの案内 */}
+      {works !== null && works.length > slotCap && (
+        <div className="mt-3 rounded-2xl border border-[#ECECF2] bg-white px-4 py-3 text-[11px] leading-snug text-[#6B7280]">
+          既存の登録（{works.length}件）は維持されています。新規登録には作品の整理が必要です（現在の上限：{slotCap}件）。
+        </div>
+      )}
+
       <div className="mt-4 flex items-center justify-between">
         <div className="flex items-center gap-2">
           <Mascot pose="stand" h={40} />
@@ -287,6 +317,13 @@ export default function Home() {
           {works?.length ?? 0}/{slotCap}
         </span>
       </div>
+
+      {/* 会員のログインボーナス進捗 */}
+      {(accountType === "member" || accountType === "legacy") && slotCap < 15 && (
+        <p className="mt-1 text-[11px] text-[#6B7280]">
+          ログインボーナス {Math.min(Math.max(loginDays - 1, 0), 5)}/5日・現在{slotCap}件（あと{15 - slotCap}日で最大15件）
+        </p>
+      )}
 
       <div className="mt-4">
           <div className="-mx-4 flex gap-2 overflow-x-auto px-4 pb-1">

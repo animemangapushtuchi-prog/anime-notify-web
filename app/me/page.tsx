@@ -7,7 +7,7 @@ import { getWorks, removeWork, type Work } from "@/lib/works";
 import Mascot from "@/components/Mascot";
 
 export default function MePage() {
-  const { user, loading, idLabel, slotCap } = useAuth();
+  const { user, loading, idLabel, slotCap, accountType, isGuest } = useAuth();
   const [works, setWorks] = useState<Work[] | null>(null);
   const [busyId, setBusyId] = useState<number | null>(null);
 
@@ -66,7 +66,19 @@ export default function MePage() {
           {works?.length ?? 0}/{slotCap}
         </span>
       </div>
-      <p className="mt-1 text-sm text-black/60">ID: {idLabel}</p>
+      <p className="mt-1 text-sm text-black/60">
+        {isGuest ? idLabel : `ID: ${idLabel}`}
+        <span className="ml-2 text-xs text-black/40">
+          {accountType === "guest" ? "（ゲスト）" : accountType === "pending" ? "（メール確認待ち）" : "（登録済み）"}
+        </span>
+      </p>
+      {isGuest && (
+        <p className="mt-2 rounded-2xl bg-[#FBF3E6] px-4 py-3 text-[11px] leading-relaxed text-[#6B7280]">
+          ゲストデータはこのブラウザの匿名IDと結び付いています。
+          <Link href="/login" className="font-bold text-[#C2772A] underline-offset-2 hover:underline">メール登録</Link>
+          するとデータを引き継いで保護でき、登録枠も10件（最大15件）になります。
+        </p>
+      )}
 
       {works === null ? (
         <p className="mt-6 text-sm text-black/50">読み込み中…</p>

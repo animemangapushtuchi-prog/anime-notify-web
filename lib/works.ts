@@ -3,18 +3,36 @@
 import { doc, getDoc, setDoc, serverTimestamp } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 
-export const BASE_SLOTS = 10;
-export const MAX_BONUS_SLOTS = 10;
-// 後方互換：基本枠（ボーナス無しの上限）
-export const MAX_SLOTS = BASE_SLOTS;
+// 登録枠：ゲスト5件／メール認証済み10件＋ログインボーナス最大+5＝最大15件
+export const GUEST_SLOTS = 5;
+export const MEMBER_BASE_SLOTS = 10;
+export const MAX_BONUS_SLOTS = 5;
+export const MEMBER_MAX_SLOTS = MEMBER_BASE_SLOTS + MAX_BONUS_SLOTS;
+// 後方互換エイリアス
+export const BASE_SLOTS = MEMBER_BASE_SLOTS;
+export const MAX_SLOTS = MEMBER_BASE_SLOTS;
+
+// アカウント種別（auth側と共通の型）
+export type AccountKind = "visitor" | "guest" | "pending" | "member" | "legacy";
 
 // 累計ログイン日数 → 付与ボーナス枠（初日=0、以降1日ごとに+1、上限 MAX_BONUS_SLOTS）
 export function slotBonus(days: number): number {
   return Math.min(Math.max((days ?? 0) - 1, 0), MAX_BONUS_SLOTS);
 }
-// 累計ログイン日数 → 実効の登録上限
+// 累計ログイン日数 → 会員の実効登録上限（基本10＋ボーナス）
 export function slotCap(days: number): number {
-  return BASE_SLOTS + slotBonus(days);
+  return MEMBER_BASE_SLOTS + slotBonus(days);
+}
+// アカウント種別ごとの登録上限（唯一の計算場所）
+export function slotCapFor(kind: AccountKind, days: number): number {
+  if (kind === "member" || kind === "legacy") return slotCap(days);
+  return GUEST_SLOTS; // visitor / guest / pending は5件
+}
+// Firestoreのユーザードキュメントから上限を計算（addWork/addWorks共通）
+function capFromUserData(data: Record<string, unknown>): number {
+  const kind = (data.account as { kind?: string } | undefined)?.kind;
+  if (kind === "guest" || kind === "pending") return GUEST_SLOTS;
+  return slotCap((data.login as { days?: number } | undefined)?.days ?? 0);
 }
 
 // 視聴ステータス（Annict風の多段管理）。放送状態(status)とは別軸。
@@ -77,7 +95,7 @@ export async function addWork(uid: string, w: Work): Promise<Work[]> {
     (x) => x && typeof x.id === "number"
   );
   if (cur.some((x) => x.id === w.id)) return cur;
-  const cap = slotCap((data.login as { days?: number } | undefined)?.days ?? 0);
+  const cap = capFromUserData(data);
   if (cur.length >= cap) return cur;
   return saveWorks(uid, [...cur, { ...w, added: Date.now() }]);
 }
@@ -107,7 +125,7 @@ export async function addWorks(uid: string, candidates: Work[]): Promise<AddWork
   const cur = ((data.works as Work[] | undefined) ?? []).filter(
     (x) => x && typeof x.id === "number"
   );
-  const cap = slotCap((data.login as { days?: number } | undefined)?.days ?? 0);
+  const cap = capFromUserData(data);
   const free = Math.max(0, cap - cur.length);
 
   // 候補の重複IDを除去

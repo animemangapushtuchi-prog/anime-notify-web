@@ -48,7 +48,7 @@ function Toggle({
 }
 
 export default function SettingsPage() {
-  const { user, loading, idLabel, slotCap } = useAuth();
+  const { user, loading, idLabel, slotCap, accountType, isGuest } = useAuth();
   const [s, setS] = useState<Settings | null>(null);
   const [services, setServices] = useState<Record<string, boolean>>({});
   const [channels, setChannels] = useState<string[]>([]);
@@ -170,12 +170,38 @@ export default function SettingsPage() {
         </div>
         <div className="min-w-0 flex-1">
           <p className="truncate text-sm font-extrabold text-[#1C1C2E]">{idLabel}</p>
-          <p className="text-[11px] text-[#6B7280]">無料プラン・登録 {count}/{slotCap}</p>
+          <p className="text-[11px] text-[#6B7280]">
+            {accountType === "guest"
+              ? "ゲスト利用"
+              : accountType === "pending"
+                ? "メール確認待ち"
+                : "登録済み"}
+            ・登録 {count}/{slotCap}
+            {(accountType === "member" || accountType === "legacy") && "（最大15）"}
+          </p>
         </div>
-        <button type="button" title="準備中" className="flex-none rounded-xl border border-[#C2772A] px-3 py-1.5 text-xs font-bold text-[#C2772A]">
-          プラン変更
-        </button>
+        {isGuest || accountType === "pending" ? (
+          <Link
+            href="/login"
+            className="flex-none rounded-xl bg-[#C2772A] px-3 py-1.5 text-xs font-bold text-white"
+          >
+            {isGuest ? "メール登録" : "認証を確認"}
+          </Link>
+        ) : (
+          <button type="button" title="準備中" className="flex-none rounded-xl border border-[#C2772A] px-3 py-1.5 text-xs font-bold text-[#C2772A]">
+            プラン変更
+          </button>
+        )}
       </div>
+
+      {/* ゲストデータの注意（ゲスト時のみ） */}
+      {isGuest && (
+        <p className="mt-2 rounded-2xl bg-[#FBF3E6] px-4 py-3 text-[11px] leading-relaxed text-[#6B7280]">
+          ゲストデータはこのブラウザに保存された匿名IDと結び付いています。ブラウザデータの削除、端末変更、ゲスト状態でのログアウト後は利用できなくなる場合があります。
+          <Link href="/login" className="font-bold text-[#C2772A] underline-offset-2 hover:underline">メール登録</Link>
+          するとデータを引き継いで保護できます。
+        </p>
+      )}
 
       {/* この端末の通知状態（診断・表示テスト・再設定。旧「ブラウザ通知」カードの後継） */}
       <PushStatusCard appEnabled={s ? s.enabled : null} />

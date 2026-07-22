@@ -4,11 +4,12 @@
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { doc, getDoc } from "firebase/firestore";
-import { useAuth } from "@/lib/auth";
+import { useAuth, ensureGuestSession, authErrorJa } from "@/lib/auth";
 import { db } from "@/lib/firebase";
 import {
   getWorks,
   addWork,
+  GUEST_SLOTS,
   removeWork,
   setWatchStatus,
   setWatchedEpisode,
@@ -40,11 +41,12 @@ const DEFAULT_NOTICE: NoticeSettings = {
 };
 
 export default function RegisterButton({ work }: { work: Work }) {
-  const { user, loading, slotCap } = useAuth();
+  const { user, loading, slotCap, isGuest } = useAuth();
   const [works, setWorks] = useState<Work[] | null>(null);
   const [notice, setNotice] = useState<NoticeSettings | null>(null);
   const [justRegistered, setJustRegistered] = useState(false);
   const [busy, setBusy] = useState(false);
+  const [guestMsg, setGuestMsg] = useState<string | null>(null); // ゲスト開始時の案内・エラー
   const autoTried = useRef(false);
 
   useEffect(() => {
@@ -108,14 +110,47 @@ export default function RegisterButton({ work }: { work: Work }) {
 
   if (loading) return null;
 
+  // 未ログイン：ボタンを押したときにだけ匿名ゲストを開始して登録する（閲覧だけでは作らない）
   if (!user) {
+    const guestRegister = async () => {
+      if (busy) return;
+      setBusy(true);
+      setGuestMsg(null);
+      try {
+        const u = await ensureGuestSession();
+        const next = await addWork(u.uid, work);
+        if (next.some((w) => w.id === work.id)) {
+          setWorks(next);
+          setJustRegistered(true);
+          setGuestMsg(`この端末へ保存しました（${next.length}/${GUEST_SLOTS}）`);
+        } else {
+          setGuestMsg("登録できませんでした。時間をおいて再度お試しください。");
+        }
+      } catch (e) {
+        // 匿名作成や保存に失敗したときは登録済みと表示しない
+        setGuestMsg(authErrorJa(e));
+      } finally {
+        setBusy(false);
+      }
+    };
     return (
-      <Link
-        href={`/login?next=${encodeURIComponent(`/work/${work.id}?register=1`)}`}
-        className="block w-full rounded-xl bg-[#C2772A] py-3 text-center text-sm font-bold text-white"
-      >
-        🔔 この作品を通知登録
-      </Link>
+      <div>
+        <button
+          type="button"
+          onClick={guestRegister}
+          disabled={busy}
+          className="block w-full rounded-xl bg-[#C2772A] py-3 text-center text-sm font-bold text-white disabled:opacity-60"
+        >
+          {busy ? "登録中…" : "🔔 この作品を通知登録（登録なしでOK）"}
+        </button>
+        <p aria-live="polite" className="mt-1">
+          {guestMsg && <span className="block text-[11px] font-semibold text-[#DC2626]">{guestMsg}</span>}
+        </p>
+        <p className="mt-1 text-[10px] leading-snug text-black/40">
+          メール登録なしでも{GUEST_SLOTS}作品まで通知登録できます（押すとゲスト利用が始まります）。
+          <Link href="/login" className="font-bold text-[#C2772A]">ログイン／メール登録はこちら</Link>
+        </p>
+      </div>
     );
   }
 
@@ -172,6 +207,7 @@ export default function RegisterButton({ work }: { work: Work }) {
   return (
     <div>
       {!registered ? (
+        <>
         <button
           type="button"
           onClick={toggle}
@@ -181,9 +217,20 @@ export default function RegisterButton({ work }: { work: Work }) {
           {busy
             ? "通知登録中…"
             : full
-              ? `登録は${slotCap}件までです`
+              ? isGuest
+                ? `ゲストは${slotCap}件までです`
+                : `登録は${slotCap}件までです`
               : "🔔 この作品を通知登録"}
         </button>
+        {full && isGuest && (
+          <p className="mt-1 text-[11px] text-[#C2772A]">
+            <Link href="/login" className="font-bold underline-offset-2 hover:underline">
+              メール登録
+            </Link>
+            すると登録枠が10件（ログインボーナスで最大15件）になります。
+          </p>
+        )}
+        </>
       ) : (
         <div className="overflow-hidden rounded-2xl border border-[#B9E5D3] bg-white">
           <div className="bg-[#E6F7F1] px-4 py-3">
@@ -237,6 +284,14 @@ export default function RegisterButton({ work }: { work: Work }) {
             </div>
           </div>
         </div>
+      )}
+
+      {registered && isGuest && (
+        <p className="mt-2 rounded-xl bg-[#FBF3E6] px-3 py-2 text-[11px] leading-snug text-[#6B7280]">
+          ✓ この端末へ保存しました（{works.length}/{slotCap}）。ゲストデータはこのブラウザの匿名IDと結び付いています。
+          <Link href="/login" className="font-bold text-[#C2772A]">メール登録</Link>
+          するとデータを引き継いで保護できます。
+        </p>
       )}
 
       {registered && (
