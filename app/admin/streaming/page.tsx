@@ -179,24 +179,47 @@ export default function AdminStreamingPage() {
 
   if (loading) return <main className="mx-auto max-w-2xl px-4 py-10 text-sm text-black/50">読み込み中…</main>;
 
-  if (!adminConfigured)
+  // 管理者UIDが未設定 / 権限なしのときは、設定に必要な「自分のUID」を画面に出す
+  if (!adminConfigured || !admin)
     return (
       <main className="mx-auto max-w-2xl px-4 py-10">
         <h1 className="text-xl font-extrabold text-[#1C1C2E]">今期配信データ管理</h1>
-        <p className="mt-3 text-sm text-black/60">
-          管理者UIDが未設定です。Vercelの環境変数 <code>NEXT_PUBLIC_ADMIN_UIDS</code> に、管理者の
-          Firebase UID（カンマ区切り）を設定して再デプロイしてください。
-        </p>
-      </main>
-    );
-
-  if (!admin)
-    return (
-      <main className="mx-auto max-w-2xl px-4 py-10">
-        <h1 className="text-xl font-extrabold text-[#1C1C2E]">今期配信データ管理</h1>
-        <p className="mt-3 text-sm text-black/60">
-          {user ? "このアカウントには権限がありません。" : "管理者アカウントでログインしてください。"}
-        </p>
+        {!user ? (
+          <p className="mt-3 text-sm text-black/60">
+            管理に使うアカウントで<a href="/login" className="font-bold text-[#C2772A] underline">ログイン</a>してください。
+            ログインすると、ここにあなたのUIDが表示されます。
+          </p>
+        ) : (
+          <>
+            <p className="mt-3 text-sm text-black/60">
+              {adminConfigured
+                ? "このアカウントには権限がありません。管理者にするには、下のUIDを設定してください。"
+                : "管理者がまだ設定されていません。下のUIDを設定すると、このアカウントで管理できます。"}
+            </p>
+            <div className="mt-4 rounded-2xl border border-[#ECECF2] bg-white p-4">
+              <p className="text-[11px] font-bold text-[#6B7280]">ログイン中のアカウント</p>
+              <p className="mt-0.5 text-sm text-[#1C1C2E]">{user.email ?? "（メール未設定）"}</p>
+              <p className="mt-3 text-[11px] font-bold text-[#6B7280]">あなたのUID</p>
+              <p className="mt-0.5 break-all font-mono text-sm text-[#1C1C2E]">{user.uid}</p>
+              <button
+                type="button"
+                onClick={() => {
+                  navigator.clipboard?.writeText(user.uid);
+                  setMsg("UIDをコピーしました");
+                }}
+                className="mt-3 rounded-full bg-[#C2772A] px-4 py-1.5 text-xs font-bold text-white"
+              >
+                UIDをコピー
+              </button>
+              {msg && <p className="mt-2 text-[11px] font-bold text-[#8A5518]">{msg}</p>}
+            </div>
+            <ol className="mt-4 space-y-1 text-[11px] text-[#6B7280]">
+              <li>① このUIDをコピー</li>
+              <li>② Vercel → Settings → Environment Variables に <code>NEXT_PUBLIC_ADMIN_UIDS</code> として登録</li>
+              <li>③ 再デプロイ後、firestore.rules のUIDも同じ値に差し替えてデプロイ</li>
+            </ol>
+          </>
+        )}
       </main>
     );
 
