@@ -25,6 +25,17 @@ const SERVICE_DEFS: { key: string; name: string; re: RegExp }[] = [
   { key: "anime-times", name: "アニメタイムズ", re: /anime\s?times|アニメタイムズ/i },
 ];
 
+// 公開/管理で共有する既知サービス一覧（表示順は SERVICE_DEFS の順）。同じ serviceKey を使う。
+export const STREAM_SERVICES: StreamService[] = SERVICE_DEFS.map((d) => ({
+  key: d.key,
+  name: d.name,
+}));
+
+// serviceKey → 表示名（未知キーはそのまま返す）
+export function serviceNameOf(key: string): string {
+  return SERVICE_DEFS.find((d) => d.key === key)?.name ?? key;
+}
+
 // 既知サービスへ正規化。YouTube・海外専用・不明サービスは null（勝手に既知へ割り当てない）
 export function normalizeService(raw: string): StreamService | null {
   const s = (raw || "").trim();

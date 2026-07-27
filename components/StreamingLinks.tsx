@@ -15,6 +15,9 @@ import {
   type MergedStream,
 } from "@/lib/streaming";
 import ServiceIcon from "@/components/ServiceIcon";
+import Link from "next/link";
+import { currentSeasonKey, seasonInfo } from "@/lib/season";
+import { getPublishedEntries, AVAILABILITY_JA, weeklyLabel, type PublicEntry } from "@/lib/seasonStreaming";
 
 type Item = { name: string; url: string };
 const CONTACT = "animemangapushtuchi@gmail.com";
@@ -40,6 +43,21 @@ export default function StreamingLinks({
   const [subKeys, setSubKeys] = useState<string[]>([]);
   const [merged, setMerged] = useState<MergedStream[] | null>(null);
   const [updatedAt, setUpdatedAt] = useState<Date | null>(null);
+  // 管理画面で確認済みになった今期配信データ（この作品ぶんだけ）
+  const [confirmed, setConfirmed] = useState<PublicEntry[]>([]);
+  const season = seasonInfo(currentSeasonKey());
+
+  useEffect(() => {
+    let alive = true;
+    getPublishedEntries(season.key)
+      .then((all) => {
+        if (alive) setConfirmed(all.filter((e) => e.anilistId === workId));
+      })
+      .catch(() => {});
+    return () => {
+      alive = false;
+    };
+  }, [season.key, workId]);
 
   useEffect(() => {
     let alive = true;
@@ -67,7 +85,23 @@ export default function StreamingLinks({
       .catch(() => setSubKeys([]));
   }, [user]);
 
-  const list = merged ?? mergeStreaming(items, []);
+  const base = merged ?? mergeStreaming(items, []);
+  // 確認済みデータを最優先で統合（同じサービスは1件にまとめる）
+  const confirmedKeys = new Set(confirmed.map((c) => c.serviceKey));
+  const list: MergedStream[] = [
+    ...confirmed.map((c) => {
+      const b = base.find((s) => s.key === c.serviceKey);
+      return {
+        key: c.serviceKey,
+        name: c.serviceName || b?.name || c.serviceKey,
+        url: b?.url, // 推測リンクは作らず、AniListにある場合のみ
+        nextAt: b?.nextAt,
+        nextEp: b?.nextEp,
+      };
+    }),
+    ...base.filter((s) => !confirmedKeys.has(s.key)),
+  ];
+  const confirmedOf = (key: string) => confirmed.find((c) => c.serviceKey === key);
   // 契約中サービスを先頭へ（元の順序は保つ安定並べ替え）
   const sub = list.filter((s) => subKeys.includes(s.key));
   const rest = list.filter((s) => !subKeys.includes(s.key));
@@ -95,13 +129,33 @@ export default function StreamingLinks({
                 <>
                   <ServiceIcon name={s.name} size={22} />
                   <span className="min-w-0 flex-1">
-                    <span className="block truncate text-sm font-bold text-[#1C1C2E]">{s.name}</span>
+                    <span className="flex flex-wrap items-center gap-1">
+                      <span className="truncate text-sm font-bold text-[#1C1C2E]">{s.name}</span>
+                      {confirmedOf(s.key)?.availability &&
+                        AVAILABILITY_JA[confirmedOf(s.key)!.availability] && (
+                          <span className="rounded bg-[#F6E9D5] px-1.5 py-0.5 text-[10px] font-bold text-[#8A5518]">
+                            {AVAILABILITY_JA[confirmedOf(s.key)!.availability]}
+                          </span>
+                        )}
+                      {confirmedOf(s.key)?.isExclusive && (
+                        <span className="rounded bg-[#FDEAEA] px-1.5 py-0.5 text-[10px] font-bold text-[#DC2626]">独占</span>
+                      )}
+                      {confirmedOf(s.key)?.isFastest && (
+                        <span className="rounded bg-[#EAF3DE] px-1.5 py-0.5 text-[10px] font-bold text-[#3B6D11]">最速</span>
+                      )}
+                    </span>
                     {s.nextAt != null && (
                       <span className="block text-[10px] text-[#6B7280]">
                         次回：{fmtAt(s.nextAt)}
                         {s.nextEp != null ? `　第${s.nextEp}話` : ""}
                       </span>
                     )}
+                    {s.nextAt == null &&
+                      weeklyLabel(confirmedOf(s.key)?.weeklyDay ?? null, confirmedOf(s.key)?.weeklyTime ?? null) && (
+                        <span className="block text-[10px] text-[#6B7280]">
+                          {weeklyLabel(confirmedOf(s.key)!.weeklyDay, confirmedOf(s.key)!.weeklyTime)}
+                        </span>
+                      )}
                   </span>
                   {isSub && (
                     <span className="flex-none rounded-full border border-[#C2772A] bg-[#F6E9D5] px-2 py-0.5 text-[10px] font-bold text-[#C2772A]">
@@ -141,10 +195,16 @@ export default function StreamingLinks({
           ? `　配信情報の最終更新：${updatedAt.getMonth() + 1}/${updatedAt.getDate()} ${String(updatedAt.getHours()).padStart(2, "0")}:${String(updatedAt.getMinutes()).padStart(2, "0")}`
           : ""}
       </p>
-      <p className="mt-1 text-[10px]">
+      <p className="mt-1 flex flex-wrap gap-3 text-[10px]">
         <a href={mailto} className="font-bold text-[#C2772A] underline-offset-2 hover:underline">
           情報の不足・誤りを報告
         </a>
+        <Link
+          href={`/streaming/${season.key}`}
+          className="font-bold text-[#C2772A] underline-offset-2 hover:underline"
+        >
+          {season.label}の配信サービス別一覧を見る ›
+        </Link>
       </p>
     </div>
   );

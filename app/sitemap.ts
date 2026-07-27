@@ -1,6 +1,8 @@
 import type { MetadataRoute } from "next";
 import { listOsusumeSlugs } from "@/lib/osusume";
 import { fetchSeasonPopular } from "@/lib/anilist";
+import { currentSeasonKey } from "@/lib/season";
+import { getPublishedEntries } from "@/lib/seasonStreaming";
 
 const BASE = "https://www.animiru.com";
 
@@ -37,5 +39,28 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     /* 取得失敗時は作品なしで返す（サイトマップ自体は必ず生成される） */
   }
 
-  return [...staticUrls, ...osusume, ...works];
+  // 今期配信ページ（確認済みデータがある時だけ載せる＝空ページを入れない）
+  let streaming: MetadataRoute.Sitemap = [];
+  try {
+    const sk = currentSeasonKey();
+    const entries = await getPublishedEntries(sk);
+    if (entries.length > 0) {
+      streaming.push({
+        url: `${BASE}/streaming/${sk}`,
+        changeFrequency: "daily" as const,
+        priority: 0.9,
+      });
+      for (const key of [...new Set(entries.map((e) => e.serviceKey))]) {
+        streaming.push({
+          url: `${BASE}/streaming/${sk}/${key}`,
+          changeFrequency: "weekly" as const,
+          priority: 0.7,
+        });
+      }
+    }
+  } catch {
+    /* 取得失敗時は今期配信URLなしで返す */
+  }
+
+  return [...staticUrls, ...osusume, ...works, ...streaming];
 }

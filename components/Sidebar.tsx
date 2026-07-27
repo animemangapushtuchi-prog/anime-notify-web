@@ -45,6 +45,14 @@ function NavIcon({ name, active }: { name: string; active: boolean }) {
         <path d="M12 3.5l2.6 5.3 5.9.9-4.3 4.1 1 5.8L12 17.9 6.8 20.6l1-5.8-4.3-4.1 5.9-.9L12 3.5z" />
       </svg>
     );
+  if (name === "stream")
+    return (
+      <svg {...common}>
+        <rect x="2" y="4" width="20" height="14" rx="2" />
+        <path d="M10 9l5 3-5 3z" />
+        <path d="M8 21h8" />
+      </svg>
+    );
   if (name === "gear")
     return (
       <svg {...common}>
@@ -64,6 +72,7 @@ const NAV = [
   { href: "/", label: "マイリスト", icon: "home" },
   { href: "/calendar", label: "カレンダー", icon: "calendar" },
   { href: "/search", label: "検索", icon: "search" },
+  { href: "/streaming", label: "今期配信", icon: "stream" },
   { href: "/osusume", label: "おすすめ", icon: "star" },
   { href: "/notifications", label: "通知", icon: "bell" },
   { href: "/settings", label: "設定", icon: "gear" },
