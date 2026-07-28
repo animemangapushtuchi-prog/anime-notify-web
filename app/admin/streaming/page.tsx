@@ -124,6 +124,56 @@ export default function AdminStreamingPage() {
     }
   };
 
+  // 出典URLがある候補を、まとめて「確認済み＋公開」にする。
+  // Prime Video・Netflix は方針どおり対象外（必ず個別に人が確認する）。
+  const confirmAllWithSource = async () => {
+    if (busy || !rows) return;
+    const target = rows.filter(
+      (r) =>
+        r.status === "candidate" &&
+        r.sourceUrl.trim().startsWith("http") &&
+        !MANUAL_ONLY_SERVICES.includes(r.serviceKey)
+    );
+    const skipped = rows.filter(
+      (r) =>
+        r.status === "candidate" &&
+        r.sourceUrl.trim().startsWith("http") &&
+        MANUAL_ONLY_SERVICES.includes(r.serviceKey)
+    ).length;
+    if (target.length === 0) {
+      setMsg("対象（出典URLつきの候補）がありません");
+      return;
+    }
+    if (
+      !window.confirm(
+        `出典URLがある候補 ${target.length} 件を「確認済み＋公開」にします。\n` +
+          (skipped ? `※Prime Video・Netflix の ${skipped} 件は対象外（個別に確認してください）\n` : "") +
+          "よろしいですか？"
+      )
+    )
+      return;
+    setBusy(true);
+    setMsg(null);
+    try {
+      const next = target.map((r) => ({
+        ...r,
+        status: "confirmed" as EntryStatus,
+        published: true,
+        sourceCheckedAt: Math.floor(Date.now() / 1000),
+      }));
+      await saveEntries(seasonKey, next);
+      setMsg(
+        `${target.length}件を確認済み＋公開にしました` +
+          (skipped ? `（Prime/Netflix ${skipped}件は個別対応）` : "")
+      );
+      await load(seasonKey);
+    } catch (err) {
+      setMsg(`一括更新に失敗：${(err as Error).message}`);
+    } finally {
+      setBusy(false);
+    }
+  };
+
   // AniList＋番組表から候補を自動生成（すべて「候補」。自動で確認済みにはしない）
   const doBuild = async () => {
     if (busy) return;
@@ -278,6 +328,7 @@ export default function AdminStreamingPage() {
         <button type="button" onClick={doBuild} disabled={busy} className="rounded-full border border-[#C2772A] bg-white px-3 py-1 text-[#C2772A] disabled:opacity-50">候補を更新</button>
         <button type="button" onClick={exportJson} className="rounded-full border border-[#ECECF2] bg-white px-3 py-1 text-[#C2772A]">JSONエクスポート</button>
         <button type="button" onClick={publishAllConfirmed} disabled={busy} className="rounded-full bg-[#C2772A] px-3 py-1 text-white disabled:opacity-50">確認済みを公開</button>
+        <button type="button" onClick={confirmAllWithSource} disabled={busy} className="rounded-full bg-[#3B6D11] px-3 py-1 text-white disabled:opacity-50">出典つき候補を一括で確認済み＋公開</button>
       </div>
 
       {msg && <p className="mt-3 rounded-xl bg-[#F6E9D5] px-3 py-2 text-xs font-bold text-[#8A5518]">{msg}</p>}
