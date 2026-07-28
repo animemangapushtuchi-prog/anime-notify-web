@@ -204,9 +204,21 @@ export default function StreamingList({
                   <p className="line-clamp-2 text-sm font-bold text-[#1C1C2E]">{w.title}</p>
                   <div className="mt-1.5 flex flex-col gap-1">
                     {w.services.map((e) => (
-                      <div key={e.serviceKey} className="flex items-center gap-1.5 text-[11px] text-[#6B7280]">
+                      <div key={e.serviceKey} className="flex flex-wrap items-center gap-1.5 text-[11px] text-[#6B7280]">
                         <ServiceIcon name={e.serviceName} size={16} />
-                        <span className="font-bold text-[#1C1C2E]">{e.serviceName}</span>
+                        {e.sourceUrl ? (
+                          <a
+                            href={e.sourceUrl}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            onClick={(ev) => ev.stopPropagation()}
+                            className="font-bold text-[#C2772A] underline-offset-2 hover:underline"
+                          >
+                            {e.serviceName} ↗
+                          </a>
+                        ) : (
+                          <span className="font-bold text-[#1C1C2E]">{e.serviceName}</span>
+                        )}
                         {AVAILABILITY_JA[e.availability] && (
                           <span className="rounded bg-[#F6E9D5] px-1.5 py-0.5 font-bold text-[#8A5518]">
                             {AVAILABILITY_JA[e.availability]}

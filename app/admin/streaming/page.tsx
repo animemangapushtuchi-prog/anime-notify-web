@@ -5,7 +5,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { useAuth } from "@/lib/auth";
 import { currentSeasonKey, seasonInfo, adjacentSeasonKey } from "@/lib/season";
-import { STREAM_SERVICES } from "@/lib/streaming";
+import { STREAM_SERVICES, serviceSearchUrl, serviceNameOf } from "@/lib/streaming";
 import {
   listAdminEntries,
   saveEntry,
@@ -136,6 +136,45 @@ export default function AdminStreamingPage() {
       await load(seasonKey);
     } catch (err) {
       setMsg(`候補の作成に失敗：${(err as Error).message}`);
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  // その作品に、別サービスの行を新規追加（U-NEXT・dアニメなど自動で拾えないサービス用）
+  const addServiceRow = async (base: AdminEntry, serviceKey: string) => {
+    if (busy) return;
+    const id = `${base.anilistId}_${serviceKey}`;
+    if ((rows ?? []).some((r) => r.id === id)) {
+      setMsg("その作品には、すでにこのサービスの行があります");
+      return;
+    }
+    const fresh: AdminEntry = {
+      ...base,
+      id,
+      serviceKey,
+      serviceName: serviceNameOf(serviceKey),
+      status: "candidate",
+      availability: "unknown",
+      firstAvailableAt: null,
+      weeklyDay: null,
+      weeklyTime: null,
+      isExclusive: false,
+      isFastest: false,
+      sourceType: "manual",
+      sourceUrl: "",
+      sourceLabel: "手動追加",
+      sourceCheckedAt: null,
+      note: "",
+      published: false,
+    };
+    setBusy(true);
+    try {
+      await saveEntry(seasonKey, fresh);
+      setRows((prev) => (prev ? [...prev, fresh] : [fresh]));
+      setMsg(`${base.title} に「${fresh.serviceName}」の行を追加しました`);
+    } catch (err) {
+      setMsg(`追加できません：${(err as Error).message}`);
     } finally {
       setBusy(false);
     }
@@ -307,6 +346,34 @@ export default function AdminStreamingPage() {
                   <span className="text-[11px] text-[#6B7280]">{e.serviceName}</span>
                   {manualOnly && <span className="rounded bg-[#FDEAEA] px-1.5 py-0.5 text-[10px] font-bold text-[#DC2626]">要手動確認</span>}
                   {e.published && <span className="rounded bg-[#EAF3DE] px-1.5 py-0.5 text-[10px] font-bold text-[#3B6D11]">公開中</span>}
+                  {serviceSearchUrl(e.serviceKey, e.title) && (
+                    <a
+                      href={serviceSearchUrl(e.serviceKey, e.title)!}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="ml-auto text-[11px] font-bold text-[#C2772A] underline-offset-2 hover:underline"
+                    >
+                      {e.serviceName}で検索 ↗
+                    </a>
+                  )}
+                </div>
+
+                {/* この作品に別サービスの行を足す（U-NEXT・dアニメなど自動で拾えないもの用） */}
+                <div className="mt-1.5 flex flex-wrap items-center gap-1 text-[10px] text-[#6B7280]">
+                  <span>他サービスを追加：</span>
+                  {STREAM_SERVICES.filter(
+                    (s) => !(rows ?? []).some((r) => r.anilistId === e.anilistId && r.serviceKey === s.key)
+                  ).map((s) => (
+                    <button
+                      key={s.key}
+                      type="button"
+                      onClick={() => addServiceRow(e, s.key)}
+                      disabled={busy}
+                      className="rounded-full border border-[#ECECF2] px-2 py-0.5 font-bold text-[#C2772A] hover:bg-[#FBF3E6] disabled:opacity-50"
+                    >
+                      ＋{s.name}
+                    </button>
+                  ))}
                 </div>
 
                 <div className="mt-2 grid grid-cols-2 gap-2 text-[11px] md:grid-cols-4">

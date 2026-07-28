@@ -36,6 +36,28 @@ export function serviceNameOf(key: string): string {
   return SERVICE_DEFS.find((d) => d.key === key)?.name ?? key;
 }
 
+// 各サービスの「公式サイト内検索」URL（作品ページの推測リンクは作らない。
+// 確認作業のために公式の検索結果へ作品名を渡すだけの用途）
+const SEARCH_URLS: Record<string, (q: string) => string> = {
+  "d-anime": (q) => `https://animestore.docomo.ne.jp/animestore/tp_search?searchKey=${q}`,
+  "u-next": (q) => `https://video.unext.jp/freeword?query=${q}`,
+  abema: (q) => `https://abema.tv/search?q=${q}`,
+  netflix: (q) => `https://www.netflix.com/search?q=${q}`,
+  "prime-video": (q) => `https://www.amazon.co.jp/s?k=${q}&i=instant-video`,
+  hulu: (q) => `https://www.hulu.jp/search?q=${q}`,
+  "dmm-tv": (q) => `https://tv.dmm.com/vod/search/?keyword=${q}`,
+  lemino: (q) => `https://lemino.docomo.ne.jp/search?query=${q}`,
+  fod: (q) => `https://fod.fujitv.co.jp/search/?keyword=${q}`,
+  "disney-plus": (q) => `https://www.disneyplus.com/ja-jp/search?q=${q}`,
+  telasa: (q) => `https://www.telasa.jp/search?q=${q}`,
+  "bandai-channel": (q) => `https://www.b-ch.com/search/?word=${q}`,
+};
+
+export function serviceSearchUrl(serviceKey: string, title: string): string | null {
+  const f = SEARCH_URLS[serviceKey];
+  return f ? f(encodeURIComponent(title)) : null;
+}
+
 // 既知サービスへ正規化。YouTube・海外専用・不明サービスは null（勝手に既知へ割り当てない）
 export function normalizeService(raw: string): StreamService | null {
   const s = (raw || "").trim();
