@@ -102,25 +102,77 @@ function weeklyOf(p: StreamProgram): { day: number; time: string } {
   return { day: d.getUTCDay(), time: `${two(d.getUTCHours())}:${two(d.getUTCMinutes())}` };
 }
 
+// 今日から、そのシーズンの終わりまでの日数（最大92日）。番組表は未来ぶんしか取れないため。
+function daysToSeasonEnd(seasonKey: string): number {
+  const info = seasonInfo(seasonKey);
+  const startMonth = { winter: 1, spring: 4, summer: 7, fall: 10 }[info.season];
+  const endMs = Date.UTC(info.year, startMonth + 2, 0, 23, 59, 59) - 9 * 3600 * 1000; // JSTの月末
+  const diff = Math.ceil((endMs - Date.now()) / 86400000);
+  return Math.min(Math.max(diff, 1), 92);
+}
+
+// シーズン終わりまでのネット配信枠を取得（既存の8日分キャッシュより広く拾う）
+async function fetchSeasonStreamPrograms(seasonKey: string): Promise<StreamProgram[]> {
+  const res = await fetch(`/api/syobocal?days=${daysToSeasonEnd(seasonKey)}`);
+  if (!res.ok) return [];
+  const json = (await res.json()) as {
+    items?: { pid: number; tid: number; title: string; count: number | null; stTime: number; chName: string }[];
+  };
+  const out: StreamProgram[] = [];
+  for (const p of json.items ?? []) {
+    // ネット配信サービスとして正規化できるものだけ（テレビ局・YouTube・不明は除外）
+    const svc = normalizeService(p.chName);
+    if (!svc) continue;
+    out.push({
+      pid: p.pid,
+      tid: p.tid,
+      title: p.title,
+      count: p.count,
+      stTime: p.stTime,
+      chName: p.chName,
+      serviceKey: svc.key,
+      serviceName: svc.name,
+    });
+  }
+  return out;
+}
+
 export type BuildResult = ImportResult & { works: number; rows: number };
 
 // 候補を生成して取り込む。生成物はすべて candidate（自動で確認済みにはしない）。
 export async function buildCandidates(seasonKey: string): Promise<BuildResult> {
-  const [works, sched] = await Promise.all([fetchSeasonWorks(seasonKey), getStreamSchedule()]);
+  const [works, sched, seasonProgs] = await Promise.all([
+    fetchSeasonWorks(seasonKey),
+    getStreamSchedule(),
+    fetchSeasonStreamPrograms(seasonKey).catch(() => [] as StreamProgram[]),
+  ]);
+  // シーズン期間ぶん＋既存キャッシュを合成（同じ番組IDは1件に）
+  const byPid = new Map<number, StreamProgram>();
+  for (const p of [...seasonProgs, ...sched.programs]) {
+    if (!byPid.has(p.pid)) byPid.set(p.pid, p);
+  }
+  const programs = [...byPid.values()];
+
   const rows: ImportRow[] = [];
   const seen = new Set<string>();
 
   for (const w of works) {
-    // 1) 番組表の配信枠から（日時の根拠あり）
-    for (const p of matchProgramsStrict(w.title, sched.programs)) {
-      const key = `${w.id}_${p.serviceKey}`;
+    // 1) 番組表の配信枠から（日時の根拠あり）。同一作品×サービスは最も早い枠＝初回配信を採用
+    const matched = matchProgramsStrict(w.title, programs);
+    const earliest = new Map<string, StreamProgram>();
+    for (const p of matched) {
+      const cur = earliest.get(p.serviceKey);
+      if (!cur || p.stTime < cur.stTime) earliest.set(p.serviceKey, p);
+    }
+    for (const [serviceKey, p] of earliest) {
+      const key = `${w.id}_${serviceKey}`;
       if (seen.has(key)) continue;
       seen.add(key);
       const wk = weeklyOf(p);
       rows.push({
         anilistId: w.id,
         title: w.title,
-        serviceKey: p.serviceKey,
+        serviceKey,
         coverImage: w.cover,
         availability: "unknown", // 見放題かどうかは根拠がないので確定しない
         firstAvailableAt: p.stTime,
