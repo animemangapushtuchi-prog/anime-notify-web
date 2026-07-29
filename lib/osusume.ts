@@ -14,6 +14,12 @@ export type OsusumeEntry = {
   streaming?: { name: string; url: string }[];
 };
 
+// 読み物としての本文（見出し＋段落）。ランキング形式でない解説記事はこちらを使う。
+export type OsusumeSection = {
+  heading: string;
+  text: string; // 段落は \n\n で区切る
+};
+
 export type Osusume = {
   slug: string;
   title: string;
@@ -22,6 +28,7 @@ export type Osusume = {
   intro?: string;
   updatedAt?: string; // "2026-07-16"
   tags?: string[];
+  body?: OsusumeSection[]; // 解説本文（任意）
   entries: OsusumeEntry[];
 };
 

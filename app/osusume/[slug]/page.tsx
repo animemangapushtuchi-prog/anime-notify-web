@@ -75,6 +75,24 @@ export default async function OsusumeDetail({
         </div>
       </section>
 
+      {/* 解説本文（見出し＋段落）。読み物系の記事で使う */}
+      {o.body && o.body.length > 0 && (
+        <article className="mt-5 space-y-6">
+          {o.body.map((s, i) => (
+            <section key={i}>
+              <h2 className="text-base font-extrabold leading-snug text-[#1C1C2E]">{s.heading}</h2>
+              <div className="mt-2 space-y-3">
+                {s.text.split("\n\n").map((p, j) => (
+                  <p key={j} className="whitespace-pre-line text-[14px] leading-[1.9] text-[#374151]">
+                    {p}
+                  </p>
+                ))}
+              </div>
+            </section>
+          ))}
+        </article>
+      )}
+
       {/* ランキング */}
       <ol className="mt-4 space-y-4">
         {o.entries.map((e) => {
