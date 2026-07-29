@@ -15,9 +15,27 @@ export type OsusumeEntry = {
 };
 
 // 読み物としての本文（見出し＋段落）。ランキング形式でない解説記事はこちらを使う。
+// text のほかに、比較表(table)や横棒グラフ(bars)を section 単位で置ける。
 export type OsusumeSection = {
   heading: string;
-  text: string; // 段落は \n\n で区切る
+  text?: string; // 段落は \n\n で区切る
+  table?: {
+    head: string[];
+    rows: string[][];
+    note?: string;
+  };
+  bars?: {
+    items: { label: string; value: number; max?: number; suffix?: string; color?: string }[];
+    note?: string;
+  };
+};
+
+// カード/ヒーローのサムネイル指定（画像が無い記事でも主題が伝わるようにする）
+export type OsusumeThumbSpec = {
+  label: string; // 主題（大きく出す）
+  sub?: string; // 補助テキスト
+  stat?: string; // 数字などの要点
+  color?: string; // 背景色
 };
 
 export type Osusume = {
@@ -25,6 +43,7 @@ export type Osusume = {
   title: string;
   description?: string;
   heroImage?: string;
+  thumb?: OsusumeThumbSpec; // heroImage が無いときのサムネ
   intro?: string;
   updatedAt?: string; // "2026-07-16"
   tags?: string[];

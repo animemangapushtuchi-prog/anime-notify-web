@@ -3,6 +3,7 @@ import Link from "next/link";
 import type { Metadata } from "next";
 import { getOsusume, listOsusumeSlugs, listOsusume } from "@/lib/osusume";
 import { fetchCovers } from "@/lib/anilist";
+import OsusumeThumb from "@/components/OsusumeThumb";
 
 export const revalidate = 3600;
 
@@ -64,10 +65,12 @@ export default async function OsusumeDetail({
 
       {/* ヒーロー */}
       <section className="mt-2 overflow-hidden rounded-2xl text-white" style={{ background: "linear-gradient(to bottom right, #3B3670, #C2772A)" }}>
-        {o.heroImage && (
+        {o.heroImage ? (
           // eslint-disable-next-line @next/next/no-img-element
           <img src={o.heroImage} alt={o.title} className="h-40 w-full object-cover" />
-        )}
+        ) : o.thumb ? (
+          <OsusumeThumb spec={o.thumb} className="h-40 w-full" />
+        ) : null}
         <div className="p-4">
           <h1 className="text-xl font-extrabold leading-snug">{o.title}</h1>
           {o.updatedAt && <p className="mt-1 text-[11px] text-white/70">更新：{o.updatedAt}</p>}
@@ -80,14 +83,84 @@ export default async function OsusumeDetail({
         <article className="mt-5 space-y-6">
           {o.body.map((s, i) => (
             <section key={i}>
-              <h2 className="text-base font-extrabold leading-snug text-[#1C1C2E]">{s.heading}</h2>
-              <div className="mt-2 space-y-3">
-                {s.text.split("\n\n").map((p, j) => (
-                  <p key={j} className="whitespace-pre-line text-[14px] leading-[1.9] text-[#374151]">
-                    {p}
-                  </p>
-                ))}
-              </div>
+              <h2 className="border-l-4 border-[#C2772A] pl-2.5 text-base font-extrabold leading-snug text-[#1C1C2E]">
+                {s.heading}
+              </h2>
+
+              {s.text && (
+                <div className="mt-2.5 space-y-3">
+                  {s.text.split("\n\n").map((p, j) => (
+                    <p key={j} className="whitespace-pre-line text-[14px] leading-[1.9] text-[#374151]">
+                      {p}
+                    </p>
+                  ))}
+                </div>
+              )}
+
+              {/* 横棒グラフ（カバー率などの比較） */}
+              {s.bars && (
+                <div className="mt-3 rounded-2xl border border-[#ECECF2] bg-white p-4">
+                  <div className="space-y-2.5">
+                    {s.bars.items.map((b, j) => {
+                      const max = b.max ?? Math.max(...s.bars!.items.map((x) => x.value));
+                      const pct = max > 0 ? Math.round((b.value / max) * 100) : 0;
+                      return (
+                        <div key={j} className="flex items-center gap-2">
+                          <span className="w-28 flex-none text-[12px] font-bold text-[#1C1C2E]">{b.label}</span>
+                          <span className="h-4 flex-1 overflow-hidden rounded-full bg-[#F1F1F5]">
+                            <span
+                              className="block h-full rounded-full"
+                              style={{ width: `${pct}%`, background: b.color || "#C2772A" }}
+                            />
+                          </span>
+                          <span className="w-16 flex-none text-right text-[12px] font-bold text-[#1C1C2E]">
+                            {b.value}
+                            {b.suffix ?? ""}
+                          </span>
+                        </div>
+                      );
+                    })}
+                  </div>
+                  {s.bars.note && <p className="mt-2.5 text-[11px] text-[#6B7280]">{s.bars.note}</p>}
+                </div>
+              )}
+
+              {/* 比較表 */}
+              {s.table && (
+                <div className="mt-3">
+                  <div className="overflow-x-auto rounded-2xl border border-[#ECECF2]">
+                    <table className="w-full border-collapse bg-white text-[13px]">
+                      <thead>
+                        <tr className="bg-[#FBF3E6]">
+                          {s.table.head.map((h, j) => (
+                            <th
+                              key={j}
+                              className="whitespace-nowrap border-b border-[#ECECF2] px-3 py-2 text-left font-bold text-[#8A5518]"
+                            >
+                              {h}
+                            </th>
+                          ))}
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {s.table.rows.map((r, j) => (
+                          <tr key={j} className="border-b border-[#F1F1F5] last:border-0">
+                            {r.map((c, k) => (
+                              <td
+                                key={k}
+                                className={`px-3 py-2 align-top ${k === 0 ? "font-bold text-[#1C1C2E]" : "text-[#374151]"}`}
+                              >
+                                {c}
+                              </td>
+                            ))}
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                  {s.table.note && <p className="mt-2 text-[11px] text-[#6B7280]">{s.table.note}</p>}
+                </div>
+              )}
             </section>
           ))}
         </article>
