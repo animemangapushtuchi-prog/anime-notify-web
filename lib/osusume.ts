@@ -36,7 +36,15 @@ export type OsusumeThumbSpec = {
   sub?: string; // 補助テキスト
   stat?: string; // 数字などの要点
   color?: string; // 背景色
+  workIds?: number[]; // 背景に敷く作品カバー（AniList ID）
 };
+
+// 記事一覧・詳細でサムネ背景に使う作品IDをまとめて取り出す
+export function thumbWorkIds(list: Osusume[]): number[] {
+  const ids = new Set<number>();
+  for (const o of list) for (const id of o.thumb?.workIds ?? []) ids.add(id);
+  return [...ids];
+}
 
 export type Osusume = {
   slug: string;

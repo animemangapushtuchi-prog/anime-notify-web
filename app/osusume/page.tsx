@@ -1,6 +1,7 @@
 import Link from "next/link";
 import type { Metadata } from "next";
-import { listOsusume } from "@/lib/osusume";
+import { listOsusume, thumbWorkIds } from "@/lib/osusume";
+import { fetchCovers } from "@/lib/anilist";
 import Mascot from "@/components/Mascot";
 import OsusumeThumb from "@/components/OsusumeThumb";
 
@@ -11,8 +12,10 @@ export const metadata: Metadata = {
   description: "テーマ別のおすすめアニメをランキングで紹介する特集ページ。あらすじ・見どころ・配信先つき。",
 };
 
-export default function OsusumeListPage() {
+export default async function OsusumeListPage() {
   const list = listOsusume();
+  // サムネ背景用のカバー画像をまとめて取得（失敗しても文字だけで成立する）
+  const covers = await fetchCovers(thumbWorkIds(list)).catch(() => ({} as Record<number, string>));
   return (
     <main className="mx-auto max-w-2xl px-4 py-5 lg:max-w-5xl lg:px-8">
       <div className="flex items-center gap-2">
@@ -37,6 +40,7 @@ export default function OsusumeListPage() {
                 ) : (
                   <OsusumeThumb
                     spec={o.thumb ?? { label: o.title.slice(0, 12) }}
+                    images={(o.thumb?.workIds ?? []).map((id) => covers[id]).filter(Boolean)}
                     className="h-32 w-full"
                   />
                 )}

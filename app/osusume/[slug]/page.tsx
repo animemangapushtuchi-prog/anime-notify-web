@@ -38,8 +38,11 @@ export default async function OsusumeDetail({
   const o = getOsusume(slug);
   if (!o) notFound();
 
-  const need = o.entries.filter((e) => e.workId && !e.image).map((e) => e.workId as number);
-  const covers = need.length ? await fetchCovers(need) : {};
+  const need = [
+    ...o.entries.filter((e) => e.workId && !e.image).map((e) => e.workId as number),
+    ...(o.thumb?.workIds ?? []),
+  ];
+  const covers = need.length ? await fetchCovers([...new Set(need)]) : {};
   const others = listOsusume().filter((x) => x.slug !== slug).slice(0, 4);
 
   const jsonLd = {
@@ -69,7 +72,11 @@ export default async function OsusumeDetail({
           // eslint-disable-next-line @next/next/no-img-element
           <img src={o.heroImage} alt={o.title} className="h-40 w-full object-cover" />
         ) : o.thumb ? (
-          <OsusumeThumb spec={o.thumb} className="h-40 w-full" />
+          <OsusumeThumb
+            spec={o.thumb}
+            images={(o.thumb.workIds ?? []).map((id) => covers[id]).filter(Boolean)}
+            className="h-40 w-full"
+          />
         ) : null}
         <div className="p-4">
           <h1 className="text-xl font-extrabold leading-snug">{o.title}</h1>
