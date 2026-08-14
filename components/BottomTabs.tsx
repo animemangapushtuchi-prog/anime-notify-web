@@ -6,7 +6,7 @@ import { usePathname } from "next/navigation";
 
 function Icon({ name, active }: { name: string; active: boolean }) {
   const c = active ? "#C2772A" : "#6B7280";
-  const common = { width: 22, height: 22, viewBox: "0 0 24 24", fill: "none", stroke: c, strokeWidth: 2, strokeLinecap: "round" as const, strokeLinejoin: "round" as const };
+  const common = { width: 20, height: 20, viewBox: "0 0 24 24", fill: "none", stroke: c, strokeWidth: 2, strokeLinecap: "round" as const, strokeLinejoin: "round" as const };
   if (name === "home")
     return (
       <svg {...common}>
@@ -29,6 +29,14 @@ function Icon({ name, active }: { name: string; active: boolean }) {
         <path d="m21 21-4.3-4.3" />
       </svg>
     );
+  if (name === "stream")
+    return (
+      <svg {...common}>
+        <rect x="2" y="4" width="20" height="14" rx="2" />
+        <path d="M10 9l5 3-5 3z" />
+        <path d="M8 21h8" />
+      </svg>
+    );
   if (name === "star")
     return (
       <svg {...common}>
@@ -47,6 +55,7 @@ const TABS = [
   { href: "/", label: "マイリスト", icon: "home" },
   { href: "/calendar", label: "カレンダー", icon: "calendar" },
   { href: "/search", label: "検索", icon: "search" },
+  { href: "/streaming", label: "今期配信", icon: "stream" },
   { href: "/osusume", label: "おすすめ", icon: "star" },
   { href: "/notifications", label: "通知", icon: "bell" },
 ];
@@ -64,17 +73,17 @@ export default function BottomTabs() {
             <Link
               key={t.href}
               href={t.href}
-              className="flex flex-1 flex-col items-center gap-0.5 py-1.5"
+              className="flex min-w-0 flex-1 flex-col items-center gap-0.5 py-1.5"
             >
               <span
-                className={`flex h-8 w-14 items-center justify-center rounded-full ${
+                className={`flex h-7 w-11 items-center justify-center rounded-full ${
                   on ? "bg-[#F6E9D5]" : ""
                 }`}
               >
                 <Icon name={t.icon} active={on} />
               </span>
               <span
-                className={`text-[11px] ${
+                className={`whitespace-nowrap text-[10px] ${
                   on ? "font-bold text-[#C2772A]" : "text-[#6B7280]"
                 }`}
               >

@@ -1,5 +1,5 @@
 import type { MetadataRoute } from "next";
-import { listOsusumeSlugs } from "@/lib/osusume";
+import { listOsusume } from "@/lib/osusume";
 import { fetchSeasonPopular } from "@/lib/anilist";
 import { currentSeasonKey } from "@/lib/season";
 import { getPublishedEntries } from "@/lib/seasonStreaming";
@@ -10,18 +10,26 @@ const BASE = "https://www.animiru.com";
 export const revalidate = 86400;
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-  // 静的な主要ページ（ログイン前提の画面は載せない）
-  const staticUrls = ["", "/search", "/osusume", "/guide", "/terms", "/privacy"].map(
-    (p) => ({
-      url: `${BASE}${p}`,
-      changeFrequency: "weekly" as const,
-      priority: p === "" ? 1 : 0.6,
-    })
-  );
+  // 静的な主要ページ（ログイン前提の画面＝マイリスト/カレンダー/通知/設定は載せない）
+  const staticUrls = [
+    "",
+    "/search",
+    "/osusume",
+    "/streaming",
+    "/guide",
+    "/terms",
+    "/privacy",
+  ].map((p) => ({
+    url: `${BASE}${p}`,
+    changeFrequency: "weekly" as const,
+    priority: p === "" ? 1 : 0.6,
+  }));
 
-  // おすすめ特集ページ
-  const osusume = listOsusumeSlugs().map((slug) => ({
-    url: `${BASE}/osusume/${slug}`,
+  // おすすめ特集ページ。記事の更新日を lastModified として渡す
+  // （更新されたことがGoogleに伝わり、再クロールされやすくなる）
+  const osusume = listOsusume().map((o) => ({
+    url: `${BASE}/osusume/${o.slug}`,
+    lastModified: o.updatedAt ? new Date(`${o.updatedAt}T00:00:00+09:00`) : undefined,
     changeFrequency: "weekly" as const,
     priority: 0.8,
   }));
