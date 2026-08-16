@@ -545,6 +545,40 @@ export async function fetchCovers(ids: number[]): Promise<Record<number, string>
   }
 }
 
+// 記事内の作品カード用：表紙＋日本語タイトル＋形式をまとめて取得
+export type WorkBrief = { id: number; title: string; cover: string; format: string };
+
+export async function fetchWorkBriefs(ids: number[]): Promise<Record<number, WorkBrief>> {
+  const uniq = [...new Set(ids)].filter((n) => Number.isFinite(n));
+  if (uniq.length === 0) return {};
+  const query = `query ($ids: [Int]) { Page(perPage: 50) { media(id_in: $ids) {
+    id title { native romaji } coverImage { large } format
+  } } }`;
+  try {
+    const res = await fetch(ANILIST, {
+      method: "POST",
+      headers: { "Content-Type": "application/json", Accept: "application/json" },
+      body: JSON.stringify({ query, variables: { ids: uniq } }),
+    });
+    if (!res.ok) return {};
+    /* eslint-disable @typescript-eslint/no-explicit-any */
+    const media = (await res.json())?.data?.Page?.media ?? [];
+    const map: Record<number, WorkBrief> = {};
+    for (const m of media as any[]) {
+      map[m.id] = {
+        id: m.id,
+        title: String(m.title?.native ?? m.title?.romaji ?? ""),
+        cover: String(m.coverImage?.large ?? ""),
+        format: formatJa(String(m.format ?? "")),
+      };
+    }
+    /* eslint-enable @typescript-eslint/no-explicit-any */
+    return map;
+  } catch {
+    return {};
+  }
+}
+
 // ---- スタジオ / 人物（声優・スタッフ）検索＋入力補完 ----
 type MediaNode = {
   id: number;

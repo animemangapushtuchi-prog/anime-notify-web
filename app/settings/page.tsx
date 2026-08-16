@@ -180,17 +180,15 @@ export default function SettingsPage() {
             {(accountType === "member" || accountType === "legacy") && "（最大15）"}
           </p>
         </div>
-        {isGuest || accountType === "pending" ? (
+        {/* 有料プランは無いため「プラン変更」は置かない。
+            ゲスト／メール未認証のときだけ、登録を促す導線を出す。 */}
+        {(isGuest || accountType === "pending") && (
           <Link
             href="/login"
             className="flex-none rounded-xl bg-[#C2772A] px-3 py-1.5 text-xs font-bold text-white"
           >
             {isGuest ? "メール登録" : "認証を確認"}
           </Link>
-        ) : (
-          <button type="button" title="準備中" className="flex-none rounded-xl border border-[#C2772A] px-3 py-1.5 text-xs font-bold text-[#C2772A]">
-            プラン変更
-          </button>
         )}
       </div>
 

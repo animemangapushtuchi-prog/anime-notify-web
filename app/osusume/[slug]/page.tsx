@@ -1,8 +1,8 @@
 import { notFound } from "next/navigation";
 import Link from "next/link";
 import type { Metadata } from "next";
-import { getOsusume, listOsusumeSlugs, listOsusume } from "@/lib/osusume";
-import { fetchCovers } from "@/lib/anilist";
+import { getOsusume, listOsusumeSlugs, listOsusume, articleWorkIds } from "@/lib/osusume";
+import { fetchWorkBriefs } from "@/lib/anilist";
 import OsusumeThumb from "@/components/OsusumeThumb";
 
 export const revalidate = 3600;
@@ -38,11 +38,11 @@ export default async function OsusumeDetail({
   const o = getOsusume(slug);
   if (!o) notFound();
 
-  const need = [
-    ...o.entries.filter((e) => e.workId && !e.image).map((e) => e.workId as number),
-    ...(o.thumb?.workIds ?? []),
-  ];
-  const covers = need.length ? await fetchCovers([...new Set(need)]) : {};
+  // サムネ背景・本文の作品カード・ランキングで使う表紙をまとめて取得
+  const need = articleWorkIds(o);
+  const briefs = need.length ? await fetchWorkBriefs(need) : {};
+  const covers: Record<number, string> = {};
+  for (const [id, b] of Object.entries(briefs)) covers[Number(id)] = b.cover;
   const others = listOsusume().filter((x) => x.slug !== slug).slice(0, 4);
 
   const jsonLd = {
@@ -101,6 +101,60 @@ export default async function OsusumeDetail({
                       {p}
                     </p>
                   ))}
+                </div>
+              )}
+
+              {/* 作品カード（表紙つき）。解説記事に絵を入れる主役 */}
+              {s.works && s.works.ids.length > 0 && (
+                <div className="mt-3">
+                  <ul className="grid grid-cols-3 gap-2 sm:grid-cols-4 lg:grid-cols-5">
+                    {s.works.ids.map((id) => {
+                      const b = briefs[id];
+                      if (!b) return null;
+                      return (
+                        <li key={id}>
+                          <Link href={`/work/${id}`} className="group block">
+                            <span className="block aspect-[2/3] w-full overflow-hidden rounded-xl bg-black/5">
+                              {b.cover && (
+                                // eslint-disable-next-line @next/next/no-img-element
+                                <img
+                                  src={b.cover}
+                                  alt={b.title}
+                                  className="h-full w-full object-cover transition duration-200 group-hover:scale-105"
+                                />
+                              )}
+                            </span>
+                            <span className="mt-1 line-clamp-2 block text-[11px] font-bold leading-snug text-[#1C1C2E]">
+                              {b.title}
+                            </span>
+                          </Link>
+                        </li>
+                      );
+                    })}
+                  </ul>
+                  {s.works.note && (
+                    <p className="mt-2 text-[11px] text-[#6B7280]">{s.works.note}</p>
+                  )}
+                </div>
+              )}
+
+              {/* 補足・注意の囲み */}
+              {s.callout && (
+                <div
+                  className={`mt-3 rounded-2xl border-l-4 p-3.5 ${
+                    s.callout.tone === "warn"
+                      ? "border-[#DC2626] bg-[#FDEAEA]"
+                      : s.callout.tone === "tip"
+                        ? "border-[#3B6D11] bg-[#EAF3DE]"
+                        : "border-[#C2772A] bg-[#FBF3E6]"
+                  }`}
+                >
+                  {s.callout.title && (
+                    <p className="text-[13px] font-extrabold text-[#1C1C2E]">{s.callout.title}</p>
+                  )}
+                  <p className="mt-0.5 whitespace-pre-line text-[13px] leading-relaxed text-[#374151]">
+                    {s.callout.text}
+                  </p>
                 </div>
               )}
 

@@ -28,6 +28,17 @@ export type OsusumeSection = {
     items: { label: string; value: number; max?: number; suffix?: string; color?: string }[];
     note?: string;
   };
+  // セクション内に並べる作品カード（表紙画像つき）。解説記事に絵を入れるために使う
+  works?: {
+    ids: number[]; // AniList作品ID
+    note?: string;
+  };
+  // 補足・注意を目立たせる囲み
+  callout?: {
+    tone?: "info" | "warn" | "tip";
+    title?: string;
+    text: string;
+  };
 };
 
 // カード/ヒーローのサムネイル指定（画像が無い記事でも主題が伝わるようにする）
@@ -43,6 +54,15 @@ export type OsusumeThumbSpec = {
 export function thumbWorkIds(list: Osusume[]): number[] {
   const ids = new Set<number>();
   for (const o of list) for (const id of o.thumb?.workIds ?? []) ids.add(id);
+  return [...ids];
+}
+
+// 1記事の中で表紙画像が必要な作品ID（サムネ背景＋本文の作品カード＋ランキング）
+export function articleWorkIds(o: Osusume): number[] {
+  const ids = new Set<number>();
+  for (const id of o.thumb?.workIds ?? []) ids.add(id);
+  for (const s of o.body ?? []) for (const id of s.works?.ids ?? []) ids.add(id);
+  for (const e of o.entries) if (e.workId && !e.image) ids.add(e.workId);
   return [...ids];
 }
 

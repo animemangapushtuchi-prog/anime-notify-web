@@ -37,13 +37,6 @@ export default function ProfileMenu() {
     }
   }
 
-  const soon = (label: string) => (
-    <div className="flex items-center justify-between px-4 py-2 text-sm text-black/40">
-      <span>{label}</span>
-      <span className="text-[10px]">準備中</span>
-    </div>
-  );
-
   return (
     <div className="relative">
       <button
@@ -83,7 +76,6 @@ export default function ProfileMenu() {
                 ログイン
               </Link>
             )}
-            {soon("プロフィール編集")}
             <Link href="/settings" onClick={close} className="block px-4 py-2 text-sm text-[#1C1C2E]">
               設定
             </Link>
@@ -101,7 +93,6 @@ export default function ProfileMenu() {
             >
               アンケートに答える
             </Link>
-            {soon("アプリ版への案内")}
             <a
               href="mailto:animemangapushtuchi@gmail.com"
               onClick={close}
