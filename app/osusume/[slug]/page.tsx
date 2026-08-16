@@ -1,7 +1,8 @@
 import { notFound } from "next/navigation";
 import Link from "next/link";
 import type { Metadata } from "next";
-import { getOsusume, listOsusumeSlugs, listOsusume, articleWorkIds } from "@/lib/osusume";
+import { getOsusume, listOsusumeSlugs, listOsusume, articleWorkIds, tocOf } from "@/lib/osusume";
+import Mascot from "@/components/Mascot";
 import { fetchWorkBriefs } from "@/lib/anilist";
 import OsusumeThumb from "@/components/OsusumeThumb";
 
@@ -85,12 +86,37 @@ export default async function OsusumeDetail({
         </div>
       </section>
 
+      {/* 目次：どんな内容か一目で分かり、読みたい所へ飛べる */}
+      {o.body && o.body.length > 2 && (
+        <nav className="mt-5 rounded-2xl border border-[#ECECF2] bg-white p-4">
+          <p className="flex items-center gap-1.5 text-[13px] font-extrabold text-[#1C1C2E]">
+            <span className="inline-block h-4 w-1 rounded-full bg-[#C2772A]" />
+            この記事の内容
+          </p>
+          <ol className="mt-2.5 space-y-1.5">
+            {tocOf(o).map((t, i) => (
+              <li key={t.id} className="flex gap-2">
+                <span className="flex h-5 w-5 flex-none items-center justify-center rounded-full bg-[#F6E9D5] text-[10px] font-black text-[#8A5518]">
+                  {i + 1}
+                </span>
+                <a href={`#${t.id}`} className="text-[13px] leading-snug text-[#374151] hover:text-[#C2772A] hover:underline">
+                  {t.text}
+                </a>
+              </li>
+            ))}
+          </ol>
+        </nav>
+      )}
+
       {/* 解説本文（見出し＋段落）。読み物系の記事で使う */}
       {o.body && o.body.length > 0 && (
-        <article className="mt-5 space-y-6">
+        <article className="mt-6 space-y-7">
           {o.body.map((s, i) => (
-            <section key={i}>
-              <h2 className="border-l-4 border-[#C2772A] pl-2.5 text-base font-extrabold leading-snug text-[#1C1C2E]">
+            <section key={i} id={`sec-${i}`} className="scroll-mt-4">
+              <h2 className="flex items-start gap-2 rounded-xl bg-gradient-to-r from-[#F6E9D5] to-transparent py-2 pl-2.5 pr-3 text-base font-extrabold leading-snug text-[#1C1C2E]">
+                <span className="mt-0.5 flex h-5 w-5 flex-none items-center justify-center rounded-full bg-[#C2772A] text-[10px] font-black text-white">
+                  {i + 1}
+                </span>
                 {s.heading}
               </h2>
 
@@ -101,6 +127,73 @@ export default async function OsusumeDetail({
                       {p}
                     </p>
                   ))}
+                </div>
+              )}
+
+              {/* 数字カード：要点を数字で見せる */}
+              {s.stats && s.stats.items.length > 0 && (
+                <div className="mt-3 grid grid-cols-2 gap-2 sm:grid-cols-3">
+                  {s.stats.items.map((it, j) => (
+                    <div
+                      key={j}
+                      className="rounded-2xl border border-[#ECECF2] bg-white p-3 text-center"
+                      style={{ borderTopColor: it.color || "#C2772A", borderTopWidth: 3 }}
+                    >
+                      <p className="text-[20px] font-black leading-tight" style={{ color: it.color || "#C2772A" }}>
+                        {it.value}
+                      </p>
+                      <p className="mt-0.5 text-[11px] font-bold text-[#1C1C2E]">{it.label}</p>
+                      {it.note && <p className="mt-0.5 text-[10px] text-[#6B7280]">{it.note}</p>}
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              {/* 良い点・注意点の対比 */}
+              {s.pros && (
+                <div className="mt-3 grid gap-2 sm:grid-cols-2">
+                  <div className="rounded-2xl border border-[#C0DD97] bg-[#EAF3DE] p-3.5">
+                    <p className="text-[13px] font-extrabold text-[#3B6D11]">
+                      {s.pros.goodTitle ?? "こんな人に向いている"}
+                    </p>
+                    <ul className="mt-1.5 space-y-1">
+                      {s.pros.good.map((g, j) => (
+                        <li key={j} className="flex gap-1.5 text-[12px] leading-snug text-[#374151]">
+                          <span className="flex-none font-black text-[#3B6D11]">○</span>
+                          {g}
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                  <div className="rounded-2xl border border-[#F7C1C1] bg-[#FDEAEA] p-3.5">
+                    <p className="text-[13px] font-extrabold text-[#A32D2D]">
+                      {s.pros.badTitle ?? "向いていない場合"}
+                    </p>
+                    <ul className="mt-1.5 space-y-1">
+                      {s.pros.bad.map((b, j) => (
+                        <li key={j} className="flex gap-1.5 text-[12px] leading-snug text-[#374151]">
+                          <span className="flex-none font-black text-[#A32D2D]">×</span>
+                          {b}
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                </div>
+              )}
+
+              {/* マスコットの吹き出し：読みのリズムを作る */}
+              {s.balloon && (
+                <div className="mt-3 flex items-end gap-2">
+                  <Mascot pose={s.balloon.pose ?? "stand"} h={56} className="flex-none" />
+                  <div className="relative flex-1 rounded-2xl border border-[#E7C9A0] bg-[#FBF3E6] px-3.5 py-2.5">
+                    <span
+                      aria-hidden="true"
+                      className="absolute -left-1.5 bottom-4 h-3 w-3 rotate-45 border-b border-l border-[#E7C9A0] bg-[#FBF3E6]"
+                    />
+                    <p className="whitespace-pre-line text-[13px] leading-relaxed text-[#374151]">
+                      {s.balloon.text}
+                    </p>
+                  </div>
                 </div>
               )}
 

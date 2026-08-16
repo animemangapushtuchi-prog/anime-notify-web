@@ -39,7 +39,23 @@ export type OsusumeSection = {
     title?: string;
     text: string;
   };
+  // マスコットの吹き出し（会話調の一言。読みのリズムを作る）
+  balloon?: {
+    pose?: "stand" | "point" | "thumbsup" | "surprised" | "worried" | "cheer" | "search" | "sit";
+    text: string;
+  };
+  // 数字を大きく見せるカード（3つ並べると締まる）
+  stats?: {
+    items: { value: string; label: string; note?: string; color?: string }[];
+  };
+  // 良い点・注意点の対比
+  pros?: { good: string[]; bad: string[]; goodTitle?: string; badTitle?: string };
 };
+
+// 見出しから目次を作る（本文の先頭に置く）
+export function tocOf(o: Osusume): { id: string; text: string }[] {
+  return (o.body ?? []).map((s, i) => ({ id: `sec-${i}`, text: s.heading }));
+}
 
 // カード/ヒーローのサムネイル指定（画像が無い記事でも主題が伝わるようにする）
 export type OsusumeThumbSpec = {
