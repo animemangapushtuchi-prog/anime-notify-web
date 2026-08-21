@@ -1,14 +1,20 @@
-# 記事ストックから指定本数を公開する（既定3本）
+# Publish staged articles from content/osusume-stock to content/osusume
 #
-# 使い方（PowerShell）:
+# Usage (PowerShell):
 #   cd $env:USERPROFILE\dev\anime-notify-web
-#   .\scripts\publish-articles.ps1              # 3本公開してpush
-#   .\scripts\publish-articles.ps1 -Count 1     # 1本だけ
-#   .\scripts\publish-articles.ps1 -List        # ストック一覧を見るだけ
-#   .\scripts\publish-articles.ps1 -NoPush      # commitまで（pushしない）
+#   .\scripts\publish-articles.ps1              # publish 3 articles and push
+#   .\scripts\publish-articles.ps1 -Count 1     # publish only 1
+#   .\scripts\publish-articles.ps1 -List        # list the stock, publish nothing
+#   .\scripts\publish-articles.ps1 -NoPush      # commit but do not push
+#   .\scripts\publish-articles.ps1 -NoBuild     # skip npm run build
 #
-# 仕組み: content/osusume-stock/*.json を content/osusume/ へ移動し、
-#         公開日(updatedAt)を実行日に書き換えてから commit / push する。
+# What it does:
+#   moves content/osusume-stock/NN_name.json -> content/osusume/name.json,
+#   rewrites updatedAt to today, runs the build, then commits and pushes.
+#
+# NOTE: keep this file ASCII-only. Windows PowerShell 5.1 reads .ps1 as ANSI
+#       unless the file has a UTF-8 BOM, so non-ASCII source breaks parsing.
+#       Article titles are read from JSON at runtime and print fine.
 
 param(
   [int]$Count = 3,
@@ -18,25 +24,26 @@ param(
 )
 
 $ErrorActionPreference = "Stop"
+
 $root  = Split-Path -Parent $PSScriptRoot
 $stock = Join-Path $root "content\osusume-stock"
 $live  = Join-Path $root "content\osusume"
 
 if (-not (Test-Path $stock)) {
-  Write-Host "ストックフォルダがありません: $stock" -ForegroundColor Yellow
+  Write-Host "Stock folder not found: $stock" -ForegroundColor Yellow
   exit 1
 }
 
-# 公開順は数字プレフィックス（01_, 02_ ...）の昇順
-$files = Get-ChildItem -Path $stock -Filter *.json | Sort-Object Name
+$files = @(Get-ChildItem -Path $stock -Filter *.json | Sort-Object Name)
 
 if ($files.Count -eq 0) {
-  Write-Host "ストックが空です。公開できる記事はありません。" -ForegroundColor Yellow
+  Write-Host "Stock is empty. Nothing to publish." -ForegroundColor Yellow
   exit 0
 }
 
 if ($List) {
-  Write-Host "`n=== 公開待ちのストック ($($files.Count)本) ===" -ForegroundColor Cyan
+  Write-Host ""
+  Write-Host "=== Articles waiting in stock: $($files.Count) ===" -ForegroundColor Cyan
   $i = 1
   foreach ($f in $files) {
     $t = (Get-Content $f.FullName -Raw -Encoding UTF8 | ConvertFrom-Json).title
@@ -48,30 +55,32 @@ if ($List) {
   exit 0
 }
 
-$take = $files | Select-Object -First $Count
-Write-Host "`n=== 公開する記事 ($($take.Count)本 / 残り $($files.Count - $take.Count)本) ===" -ForegroundColor Cyan
+$take = @($files | Select-Object -First $Count)
+$rest = $files.Count - $take.Count
 
-$today = Get-Date -Format "yyyy-MM-dd"
+Write-Host ""
+Write-Host "=== Publishing $($take.Count) article(s), $rest left in stock ===" -ForegroundColor Cyan
+
+$today  = Get-Date -Format "yyyy-MM-dd"
 $titles = @()
 
 foreach ($f in $take) {
-  # 公開日を今日に更新
   $json = Get-Content $f.FullName -Raw -Encoding UTF8 | ConvertFrom-Json
   $json.updatedAt = $today
   $titles += $json.title
   Write-Host "  + $($json.title)"
 
-  # 数字プレフィックスを外してslugを整える
+  # strip the numeric prefix so the slug stays clean
   $name = $f.Name -replace '^\d+_', ''
   $dest = Join-Path $live $name
 
   if (Test-Path $dest) {
-    Write-Host "    ! 同名の記事が既にあります。スキップします: $name" -ForegroundColor Yellow
+    Write-Host "    ! Already exists, skipped: $name" -ForegroundColor Yellow
     continue
   }
 
-  # UTF-8(BOMなし)で書き出し
-  $out = $json | ConvertTo-Json -Depth 20
+  # write as UTF-8 without BOM (Next.js reads these JSON files)
+  $out = $json | ConvertTo-Json -Depth 30
   [System.IO.File]::WriteAllText($dest, $out, (New-Object System.Text.UTF8Encoding($false)))
   Remove-Item $f.FullName
 }
@@ -79,15 +88,16 @@ foreach ($f in $take) {
 Write-Host ""
 
 if (-not $NoBuild) {
-  Write-Host "ビルドを確認しています..." -ForegroundColor Cyan
+  Write-Host "Running build..." -ForegroundColor Cyan
   npm run build
   if ($LASTEXITCODE -ne 0) {
-    Write-Host "ビルドに失敗しました。公開を中止します（ファイルは移動済みなので、内容を直して再実行してください）" -ForegroundColor Red
+    Write-Host "Build failed. Stopping before commit." -ForegroundColor Red
+    Write-Host "The files were already moved, so fix the content and run again." -ForegroundColor Red
     exit 1
   }
 }
 
-$msg = "記事を追加: " + ($titles -join " / ")
+$msg = "Add articles: " + ($titles -join " / ")
 if ($msg.Length -gt 180) { $msg = $msg.Substring(0, 180) + "..." }
 
 git add -A
@@ -95,11 +105,14 @@ git commit -m $msg
 
 if (-not $NoPush) {
   git push
-  Write-Host "`n公開しました。Vercelのデプロイ完了後に反映されます。" -ForegroundColor Green
-  Write-Host "確認: https://www.animiru.com/osusume" -ForegroundColor Green
+  Write-Host ""
+  Write-Host "Published. Vercel will deploy shortly." -ForegroundColor Green
+  Write-Host "Check: https://www.animiru.com/osusume" -ForegroundColor Green
 } else {
-  Write-Host "`ncommitまで完了しました（pushしていません）。" -ForegroundColor Green
+  Write-Host ""
+  Write-Host "Committed (not pushed)." -ForegroundColor Green
 }
 
-$left = (Get-ChildItem -Path $stock -Filter *.json).Count
-Write-Host "残りストック: $left 本`n"
+$left = @(Get-ChildItem -Path $stock -Filter *.json).Count
+Write-Host "Stock remaining: $left"
+Write-Host ""
