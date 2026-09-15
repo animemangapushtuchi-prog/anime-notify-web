@@ -2,7 +2,7 @@ import Link from "next/link";
 
 // 使い方ガイド。プロフィールメニューから開く。
 export const metadata = {
-  title: "使い方ガイド｜アニメ・漫画 新着通知",
+  title: "使い方ガイド｜アニミル！",
 };
 
 function Section({ title, children }: { title: string; children: React.ReactNode }) {

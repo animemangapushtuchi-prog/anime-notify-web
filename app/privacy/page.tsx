@@ -3,7 +3,7 @@ import type { Metadata } from "next";
 export const metadata: Metadata = {
   title: "プライバシーポリシー | Animiru",
   description:
-    "Animiru（アニメ・漫画 新着通知サービス）における個人情報・Cookie・広告（Google AdSense）の取り扱いについて定めたプライバシーポリシーです。",
+    "アニミル！（Animiru／アニメの放送・配信の新着通知サービス）における個人情報・Cookie・広告（Google AdSense）の取り扱いについて定めたプライバシーポリシーです。",
 };
 
 const REVISED = "2026年7月15日";

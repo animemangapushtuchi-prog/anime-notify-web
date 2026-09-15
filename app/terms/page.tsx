@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 
 export const metadata: Metadata = {
   title: "利用規約 | Animiru",
-  description: "Animiru（アニメ・漫画 新着通知サービス）の利用規約です。",
+  description: "アニミル！（Animiru／アニメの放送・配信の新着通知サービス）の利用規約です。",
 };
 
 const REVISED = "2026年7月15日";
