@@ -3,6 +3,7 @@
 // ※ candidate・rejected・管理メモ等は seasonStreamingAdmin 側に置き、公開側へはコピーしない。
 import { collection, doc, getDoc, getDocs } from "firebase/firestore";
 import { db } from "@/lib/firebase";
+import { currentSeasonKey, adjacentSeasonKey } from "@/lib/season";
 
 export type Availability =
   | "included" // 見放題
@@ -58,6 +59,26 @@ export async function getSeasonMeta(seasonKey: string): Promise<SeasonMeta | nul
   } catch {
     return null;
   }
+}
+
+// 公開データが入っている最新シーズンのキーを返す。
+//
+// なぜ必要か: /streaming は以前「今日の日付から決まる今期」へ無条件に飛ばしていた。
+// そのため季節の変わり目（例: 10月1日）に、まだデータを入れていない新シーズンへ飛び、
+// 主力ページが空のまま検索結果に出てしまう状態だった。
+// 配信各社が新クールのラインナップを公開するのは開始の2〜3週間前なので、
+// 「シーズンが変わった瞬間にデータが揃っている」ことは構造的にありえない。
+// そこで、今期→1つ前→2つ前…と遡り、実際に公開データがある最新シーズンを選ぶ。
+export async function latestSeasonKeyWithData(maxBack = 4): Promise<string> {
+  const current = currentSeasonKey();
+  let key = current;
+  for (let i = 0; i <= maxBack; i++) {
+    const meta = await getSeasonMeta(key);
+    if (meta && meta.confirmedCount > 0) return key;
+    key = adjacentSeasonKey(key, -1);
+  }
+  // どこにもデータが無ければ今期を返す（空の案内文が出る）
+  return current;
 }
 
 // 公開エントリー（＝confirmed & published のみが書かれている想定）を全件取得
