@@ -16,13 +16,28 @@ const REMOVED_ARTICLES = [
   "sports-anime",
 ];
 
+// 同じ日に取り下げた、見ていない作品の感想・評価が中心だった記事。内容に近いページへ転送する。
+const REMOVED_REVIEW_ARTICLES: Record<string, string> = {
+  "2026-summer-anime-10": "/streaming/2026-summer",
+  "isekai-anime-2026": "/streaming/2026-summer",
+  "zokuhen-anime-2026": "/streaming/2026-summer",
+  "meisaku-anime-5": "/osusume/anime-beginner-guide",
+};
+
 const nextConfig: NextConfig = {
   async redirects() {
-    return REMOVED_ARTICLES.map((slug) => ({
-      source: `/osusume/${slug}`,
-      destination: "/osusume/2026-aki-anime-haishin",
-      permanent: true,
-    }));
+    return [
+      ...REMOVED_ARTICLES.map((slug) => ({
+        source: `/osusume/${slug}`,
+        destination: "/osusume/2026-aki-anime-haishin",
+        permanent: true,
+      })),
+      ...Object.entries(REMOVED_REVIEW_ARTICLES).map(([slug, destination]) => ({
+        source: `/osusume/${slug}`,
+        destination,
+        permanent: true,
+      })),
+    ];
   },
 };
 
