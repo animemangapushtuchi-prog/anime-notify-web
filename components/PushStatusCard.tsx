@@ -50,7 +50,7 @@ function Row({ label, mark, text }: { label: string; mark: "ok" | "warn" | "ng" 
   );
 }
 
-const BTN = "rounded-xl bg-[#C2772A] px-4 py-2.5 text-sm font-bold text-white disabled:opacity-60";
+const BTN = "rounded-xl bg-[#A8621F] px-4 py-2.5 text-sm font-bold text-white disabled:opacity-60";
 
 export default function PushStatusCard({ appEnabled }: { appEnabled: boolean | null }) {
   const { user } = useAuth();
@@ -207,7 +207,7 @@ export default function PushStatusCard({ appEnabled }: { appEnabled: boolean | n
           </p>
         )}
         {diag?.status === "ready" && appEnabled === false && (
-          <p className="text-[11px] leading-snug text-[#C2772A]">
+          <p className="text-[11px] leading-snug text-[#8A5518]">
             下の「🔔 通知」にある「通知を受け取る」をONにすると、通知が再開されます。
           </p>
         )}
@@ -216,7 +216,7 @@ export default function PushStatusCard({ appEnabled }: { appEnabled: boolean | n
       {/* 問題があるときだけ端末別の案内を出す */}
       {showGuide && (
         <details className="mt-3 rounded-xl bg-[#FBF3E6] px-3 py-2">
-          <summary className="cursor-pointer text-xs font-bold text-[#C2772A]">お使いの端末での対処方法</summary>
+          <summary className="cursor-pointer text-xs font-bold text-[#8A5518]">お使いの端末での対処方法</summary>
           <div className="mt-2 space-y-1 text-[11px] leading-relaxed text-black/70">
             {device === "ios" && (
               <>

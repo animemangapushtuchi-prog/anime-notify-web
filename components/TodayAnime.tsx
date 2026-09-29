@@ -76,7 +76,7 @@ export default function TodayAnime({
           <p className="text-[10px] text-[#6B7280]">登録作品のテレビ放送</p>
         </div>
         {todayEntries.length > 0 && (
-          <span className="rounded-full bg-[#C2772A] px-2.5 py-1 text-[10px] font-bold text-white">
+          <span className="rounded-full bg-[#A8621F] px-2.5 py-1 text-[10px] font-bold text-white">
             {todayEntries.length}作品
           </span>
         )}

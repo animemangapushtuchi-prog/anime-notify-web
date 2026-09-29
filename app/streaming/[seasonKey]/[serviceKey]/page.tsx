@@ -1,4 +1,6 @@
+import { cache } from "react";
 import type { Metadata } from "next";
+import { OG_IMAGE } from "@/lib/seo";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { parseSeasonKey } from "@/lib/season";
@@ -13,6 +15,9 @@ type Props = { params: Promise<{ seasonKey: string; serviceKey: string }> };
 
 const isKnownService = (k: string) => STREAM_SERVICES.some((s) => s.key === k);
 
+// generateMetadata と本体で二重に読まないようにまとめる
+const loadEntries = cache((key: string) => getPublishedEntries(key));
+
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { seasonKey, serviceKey } = await params;
   const info = parseSeasonKey(seasonKey);
@@ -20,11 +25,16 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const name = serviceNameOf(serviceKey);
   const title = `${info.label} ${name}で配信されるアニメ一覧｜アニミル！`;
   const description = `${info.label}に${name}で配信される（確認済み）アニメの一覧。開始日・更新曜日・見放題/無料などを掲載。`;
+  // そのサービスの確認済みデータが1件も無いときは、中身が空のページになるので
+  // 検索結果には出さない（データを公開すれば自動で戻る）。
+  const all = await loadEntries(info.key).catch(() => []);
+  const count = all.filter((e) => e.serviceKey === serviceKey).length;
   return {
     title,
     description,
     alternates: { canonical: `/streaming/${info.key}/${serviceKey}` },
-    openGraph: { title, description, url: `/streaming/${info.key}/${serviceKey}` },
+    openGraph: { title, description, url: `/streaming/${info.key}/${serviceKey}`, images: [OG_IMAGE] },
+    ...(count === 0 ? { robots: { index: false, follow: true } } : {}),
   };
 }
 
@@ -35,7 +45,7 @@ export default async function ServiceStreamingPage({ params }: Props) {
 
   const name = serviceNameOf(serviceKey);
   const [all, meta] = await Promise.all([
-    getPublishedEntries(info.key),
+    loadEntries(info.key),
     getSeasonMeta(info.key),
   ]);
   const entries = all.filter((e) => e.serviceKey === serviceKey);
@@ -58,7 +68,7 @@ export default async function ServiceStreamingPage({ params }: Props) {
       </p>
 
       <div className="mt-3">
-        <Link href={`/streaming/${info.key}`} className="text-xs font-bold text-[#C2772A] hover:underline">
+        <Link href={`/streaming/${info.key}`} className="text-xs font-bold text-[#8A5518] hover:underline">
           ← {info.label} の全サービス一覧へ
         </Link>
       </div>

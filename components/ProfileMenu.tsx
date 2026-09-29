@@ -63,7 +63,7 @@ export default function ProfileMenu() {
                   <Link
                     href="/login"
                     onClick={close}
-                    className="mx-3 mb-1 block rounded-xl bg-[#C2772A] px-3 py-2 text-center text-xs font-bold text-white"
+                    className="mx-3 mb-1 block rounded-xl bg-[#A8621F] px-3 py-2 text-center text-xs font-bold text-white"
                   >
                     📧 メール登録してデータを保護
                   </Link>

@@ -36,7 +36,7 @@ function AnimeRow({ id, label }: { id: number; label: string }) {
 // チェーン作品の状態バッジ（色だけに依存せず文言で区別）
 function ChainBadge({ mine, isCurrent }: { mine: Work | undefined; isCurrent: boolean }) {
   if (isCurrent) {
-    return <span className="flex-none rounded-full bg-[#F6E9D5] px-2 py-0.5 text-[10px] font-bold text-[#C2772A]">この作品</span>;
+    return <span className="flex-none rounded-full bg-[#F6E9D5] px-2 py-0.5 text-[10px] font-bold text-[#8A5518]">この作品</span>;
   }
   if (!mine) {
     return <span className="flex-none rounded-full border border-[#ECECF2] px-2 py-0.5 text-[10px] font-bold text-black/40">未登録</span>;
@@ -232,7 +232,7 @@ export default function RelatedWorks({
                       className={`mt-2 w-full rounded-xl py-2.5 text-sm font-bold ${
                         unregistered.length === 0
                           ? "bg-[#E6F7F1] text-[#047857]"
-                          : "bg-[#C2772A] text-white disabled:opacity-60"
+                          : "bg-[#A8621F] text-white disabled:opacity-60"
                       }`}
                     >
                       {busy
@@ -251,7 +251,7 @@ export default function RelatedWorks({
                     type="button"
                     onClick={guestBulkRegister}
                     disabled={busy}
-                    className="block w-full rounded-xl bg-[#C2772A] py-2.5 text-center text-sm font-bold text-white disabled:opacity-60"
+                    className="block w-full rounded-xl bg-[#A8621F] py-2.5 text-center text-sm font-bold text-white disabled:opacity-60"
                   >
                     {busy ? "登録中…" : "🔔 シリーズをまとめて登録（登録なしでOK）"}
                   </button>

@@ -372,7 +372,7 @@ export default function SearchPage() {
               setMode(m.key);
               setTarget(null);
             }}
-            className={`rounded-full px-3 py-1 text-xs font-bold transition ${mode === m.key ? "bg-[#C2772A] text-white" : "bg-[#F6E9D5] text-[#C2772A]"}`}
+            className={`rounded-full px-3 py-1 text-xs font-bold transition ${mode === m.key ? "bg-[#A8621F] text-white" : "bg-[#F6E9D5] text-[#8A5518]"}`}
           >
             {m.label}
           </button>
@@ -401,7 +401,7 @@ export default function SearchPage() {
       )}
 
       <div ref={listTopRef} className="mt-3 flex items-center justify-between scroll-mt-4">
-        <h2 className="text-xs font-bold text-[#C2772A]">{header}</h2>
+        <h2 className="text-xs font-bold text-[#8A5518]">{header}</h2>
         {!entity && (
           <select value={sortKey} onChange={(e) => setSortKey(e.target.value)} className="rounded-full border border-[#ECECF2] bg-white px-2 py-1 text-xs font-bold text-[#1C1C2E]">
             {SORTS.map((s) => (
@@ -424,7 +424,7 @@ export default function SearchPage() {
           <Mascot pose="worried" h={110} />
           <p>見つかりませんでした。条件を変えてみてください。</p>
           {page > 1 && (
-            <button type="button" onClick={() => goToPage(1)} className="mt-3 rounded-lg border border-[#ECECF2] bg-white px-3 py-1.5 text-xs font-bold text-[#C2772A]">
+            <button type="button" onClick={() => goToPage(1)} className="mt-3 rounded-lg border border-[#ECECF2] bg-white px-3 py-1.5 text-xs font-bold text-[#8A5518]">
               ← 最初のページに戻る
             </button>
           )}
@@ -450,7 +450,7 @@ export default function SearchPage() {
                             return next;
                           })
                         }
-                        className="mt-1 w-full rounded-lg bg-[#F6E9D5] px-2 py-1.5 text-[11px] font-bold text-[#C2772A]"
+                        className="mt-1 w-full rounded-lg bg-[#F6E9D5] px-2 py-1.5 text-[11px] font-bold text-[#8A5518]"
                       >
                         📚 シリーズ全{total}作品 {open ? "▴" : "▾"}
                       </button>
@@ -470,7 +470,7 @@ export default function SearchPage() {
           {(page > 1 || hasNext) && (
             <>
               <div className="mt-4 flex flex-wrap items-center justify-center gap-1.5">
-                <button type="button" onClick={() => goToPage(page - 1)} disabled={page <= 1 || paging} className="rounded-lg border border-[#ECECF2] bg-white px-3 py-1.5 text-xs font-bold text-[#C2772A] disabled:opacity-40">← 前へ</button>
+                <button type="button" onClick={() => goToPage(page - 1)} disabled={page <= 1 || paging} className="rounded-lg border border-[#ECECF2] bg-white px-3 py-1.5 text-xs font-bold text-[#8A5518] disabled:opacity-40">← 前へ</button>
                 {lo > 1 && (
                   <>
                     <button type="button" onClick={() => goToPage(1)} className="rounded-lg px-2.5 py-1.5 text-xs font-bold text-[#6B7280]">1</button>
@@ -478,9 +478,9 @@ export default function SearchPage() {
                   </>
                 )}
                 {windowNums.map((n) => (
-                  <button key={n} type="button" onClick={() => goToPage(n)} disabled={paging} className={`rounded-lg px-2.5 py-1.5 text-xs font-bold ${n === page ? "bg-[#C2772A] text-white" : "text-[#6B7280]"}`}>{n}</button>
+                  <button key={n} type="button" onClick={() => goToPage(n)} disabled={paging} className={`rounded-lg px-2.5 py-1.5 text-xs font-bold ${n === page ? "bg-[#A8621F] text-white" : "text-[#6B7280]"}`}>{n}</button>
                 ))}
-                <button type="button" onClick={() => goToPage(page + 1)} disabled={!hasNext || paging} className="rounded-lg border border-[#ECECF2] bg-white px-3 py-1.5 text-xs font-bold text-[#C2772A] disabled:opacity-40">次へ →</button>
+                <button type="button" onClick={() => goToPage(page + 1)} disabled={!hasNext || paging} className="rounded-lg border border-[#ECECF2] bg-white px-3 py-1.5 text-xs font-bold text-[#8A5518] disabled:opacity-40">次へ →</button>
               </div>
               <p className="mt-2 text-center text-[11px] text-black/40">
                 ページ {page}

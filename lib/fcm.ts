@@ -1,27 +1,32 @@
 // FCM Web Push。トークンを tokens/{token} に登録（旧Flutter版と同一スキーマ）し、
 // サーバーの絞り込み配信をそのまま受ける。前面（アプリを見ている最中）は onMessage で自前表示。
-import {
-  getMessaging,
-  getToken,
-  onMessage,
-  isSupported,
-  deleteToken as fbDeleteToken,
-  type Messaging,
-} from "firebase/messaging";
+// firebase/messaging は「通知を実際に使うとき」だけ読み込む（動的import）。
+// 静的importにすると全ページの初期JSに約100KB入ってしまい、
+// 記事や配信一覧のような読むだけのページまで重くなるため。
+// 型だけのimportはビルド時に消えるのでバンドルには影響しない。
+import type { Messaging } from "firebase/messaging";
 import { doc, setDoc, deleteDoc, serverTimestamp } from "firebase/firestore";
 import { app, db, VAPID_KEY } from "@/lib/firebase";
 
 let _messaging: Messaging | null = null;
 let _currentToken: string | null = null;
+let _api: Promise<typeof import("firebase/messaging")> | null = null;
+
+// 1回だけ読み込んで使い回す
+function messagingApi(): Promise<typeof import("firebase/messaging")> {
+  if (!_api) _api = import("firebase/messaging");
+  return _api;
+}
 
 async function getMessagingSafe(): Promise<Messaging | null> {
   if (typeof window === "undefined") return null;
   try {
+    const { isSupported, getMessaging } = await messagingApi();
     if (!(await isSupported())) return null;
+    if (!_messaging) _messaging = getMessaging(app);
   } catch {
     return null;
   }
-  if (!_messaging) _messaging = getMessaging(app);
   return _messaging;
 }
 
@@ -34,6 +39,7 @@ export async function registerPushToken(uid: string): Promise<PushStatus> {
   const messaging = await getMessagingSafe();
   if (!messaging) return "unsupported";
   try {
+    const { getToken } = await messagingApi();
     const token = await getToken(messaging, { vapidKey: VAPID_KEY });
     if (!token) return "error";
     _currentToken = token;
@@ -66,6 +72,7 @@ async function resolveCurrentToken(messaging: Messaging | null): Promise<string 
   if (!messaging) return null;
   if (typeof Notification === "undefined" || Notification.permission !== "granted") return null;
   try {
+    const { getToken } = await messagingApi();
     return (await getToken(messaging, { vapidKey: VAPID_KEY })) || null;
   } catch {
     return null;
@@ -80,7 +87,10 @@ export async function unregisterPush(): Promise<void> {
     if (token) {
       await deleteDoc(doc(db, "tokens", token)).catch(() => {});
     }
-    if (messaging) await fbDeleteToken(messaging).catch(() => {});
+    if (messaging) {
+      const { deleteToken } = await messagingApi();
+      await deleteToken(messaging).catch(() => {});
+    }
   } catch {
     /* noop */
   }
@@ -97,7 +107,8 @@ export async function resetPush(uid: string): Promise<PushStatus> {
   try {
     const token = await resolveCurrentToken(messaging);
     if (token) await deleteDoc(doc(db, "tokens", token)).catch(() => {});
-    await fbDeleteToken(messaging).catch(() => {});
+    const { deleteToken } = await messagingApi();
+    await deleteToken(messaging).catch(() => {});
     _currentToken = null;
     return await registerPushToken(uid);
   } catch {
@@ -200,6 +211,7 @@ export async function subscribeForeground(
 ): Promise<() => void> {
   const messaging = await getMessagingSafe();
   if (!messaging) return () => {};
+  const { onMessage } = await messagingApi();
   return onMessage(messaging, (payload) => {
     cb(payload.notification?.title ?? "アニメ新着情報", payload.notification?.body ?? "");
   });

@@ -3,7 +3,7 @@ import Link from "next/link";
 import type { Metadata } from "next";
 import { getOsusume, listOsusumeSlugs, listOsusume, articleWorkIds, tocOf } from "@/lib/osusume";
 import Mascot from "@/components/Mascot";
-import { fetchWorkBriefs } from "@/lib/anilist";
+import { fetchWorkBriefs, fetchCovers, type WorkBrief } from "@/lib/anilist";
 import OsusumeThumb from "@/components/OsusumeThumb";
 
 export const revalidate = 3600;
@@ -19,12 +19,41 @@ export async function generateMetadata({
 }): Promise<Metadata> {
   const { slug } = await params;
   const o = getOsusume(slug);
-  if (!o) return { title: "特集が見つかりません" };
+  if (!o) return { title: "特集が見つかりません｜アニミル！" };
   const desc = o.description ?? o.intro?.slice(0, 120) ?? "";
+  const url = `https://www.animiru.com/osusume/${slug}`;
+
+  // シェア用の画像。記事に heroImage が無い場合（＝現在の全記事）は
+  // 紹介している作品の表紙を使う。画像が無いとSNSでの見え方が弱くなるため。
+  let image = o.heroImage ?? "";
+  if (!image) {
+    const first = articleWorkIds(o)[0];
+    if (first) {
+      const covers = await fetchCovers([first]).catch(() => ({}) as Record<number, string>);
+      image = covers[first] ?? "";
+    }
+  }
+
   return {
-    title: `${o.title}｜Animiru`,
+    title: `${o.title}｜アニミル！`,
     description: desc,
-    openGraph: { title: o.title, description: desc, images: o.heroImage ? [o.heroImage] : [], type: "article" },
+    alternates: { canonical: url },
+    openGraph: {
+      title: o.title,
+      description: desc,
+      url,
+      images: image ? [image] : [],
+      type: "article",
+      ...(o.updatedAt ? { modifiedTime: `${o.updatedAt}T00:00:00+09:00` } : {}),
+    },
+    twitter: {
+      // 作品の表紙は縦長なので、横長カード(summary_large_image)だと上下が切れる。
+      // 小さめの正方形サムネで出す summary の方が見栄えがよい。
+      card: "summary",
+      title: o.title,
+      description: desc,
+      images: image ? [image] : [],
+    },
   };
 }
 
@@ -41,30 +70,81 @@ export default async function OsusumeDetail({
 
   // サムネ背景・本文の作品カード・ランキングで使う表紙をまとめて取得
   const need = articleWorkIds(o);
-  const briefs = need.length ? await fetchWorkBriefs(need) : {};
+  const briefs: Record<number, WorkBrief> = need.length ? await fetchWorkBriefs(need) : {};
   const covers: Record<number, string> = {};
   for (const [id, b] of Object.entries(briefs)) covers[Number(id)] = b.cover;
   const others = listOsusume().filter((x) => x.slug !== slug).slice(0, 4);
 
-  const jsonLd = {
+  // 構造化データ。
+  // 以前は o.entries だけを見ていたが、解説記事（本文形式）は entries が空なので
+  // itemListElement が [] のまま出力され、Googleには無効なデータになっていた。
+  // 本文の作品カードからも作品を拾い、それも無い記事は記事(BlogPosting)として出す。
+  // URLは canonical と同じ www 付きに揃える。
+  const SITE = "https://www.animiru.com";
+  const listItems =
+    o.entries.length > 0
+      ? o.entries.map((e) => ({
+          "@type": "ListItem" as const,
+          position: e.rank,
+          name: e.title,
+          ...(e.workId ? { url: `${SITE}/work/${e.workId}` } : {}),
+        }))
+      : (o.body ?? [])
+          .flatMap((s) => s.works?.ids ?? [])
+          .filter((id, i, arr) => arr.indexOf(id) === i)
+          .map((id, i) => ({
+            "@type": "ListItem" as const,
+            position: i + 1,
+            name: briefs[id]?.title ?? `作品 #${id}`,
+            url: `${SITE}/work/${id}`,
+          }));
+
+  const breadcrumb = {
     "@context": "https://schema.org",
-    "@type": "ItemList",
-    name: o.title,
-    description: o.description ?? "",
-    itemListElement: o.entries.map((e) => ({
-      "@type": "ListItem",
-      position: e.rank,
-      name: e.title,
-      ...(e.workId ? { url: `https://animiru.com/work/${e.workId}` } : {}),
-    })),
+    "@type": "BreadcrumbList",
+    itemListElement: [
+      { "@type": "ListItem", position: 1, name: "ホーム", item: SITE },
+      { "@type": "ListItem", position: 2, name: "おすすめ・特集", item: `${SITE}/osusume` },
+      { "@type": "ListItem", position: 3, name: o.title, item: `${SITE}/osusume/${slug}` },
+    ],
   };
+
+  const main =
+    listItems.length > 0
+      ? {
+          "@context": "https://schema.org",
+          "@type": "ItemList",
+          name: o.title,
+          description: o.description ?? "",
+          itemListElement: listItems,
+        }
+      : {
+          "@context": "https://schema.org",
+          "@type": "BlogPosting",
+          headline: o.title,
+          description: o.description ?? "",
+          mainEntityOfPage: `${SITE}/osusume/${slug}`,
+          ...(o.updatedAt
+            ? {
+                datePublished: `${o.updatedAt}T00:00:00+09:00`,
+                dateModified: `${o.updatedAt}T00:00:00+09:00`,
+              }
+            : {}),
+          publisher: { "@type": "Organization", name: "アニミル！", url: SITE },
+        };
+
+  const jsonLd = [breadcrumb, main];
 
   return (
     <main className="mx-auto max-w-2xl px-4 py-5">
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
 
       <nav className="text-[11px] text-[#6B7280]">
-        <Link href="/osusume" className="hover:underline">おすすめ・特集</Link> ›
+        <Link href="/" className="hover:underline">ホーム</Link>
+        <span className="mx-1">›</span>
+        <Link href="/osusume" className="hover:underline">おすすめ・特集</Link>
+        <span className="mx-1">›</span>
+        <span className="text-[#1C1C2E]">{o.title}</span>
       </nav>
 
       {/* ヒーロー */}
@@ -90,7 +170,7 @@ export default async function OsusumeDetail({
       {o.body && o.body.length > 2 && (
         <nav className="mt-5 rounded-2xl border border-[#ECECF2] bg-white p-4">
           <p className="flex items-center gap-1.5 text-[13px] font-extrabold text-[#1C1C2E]">
-            <span className="inline-block h-4 w-1 rounded-full bg-[#C2772A]" />
+            <span className="inline-block h-4 w-1 rounded-full bg-[#A8621F]" />
             この記事の内容
           </p>
           <ol className="mt-2.5 space-y-1.5">
@@ -114,7 +194,7 @@ export default async function OsusumeDetail({
           {o.body.map((s, i) => (
             <section key={i} id={`sec-${i}`} className="scroll-mt-4">
               <h2 className="flex items-start gap-2 rounded-xl bg-gradient-to-r from-[#F6E9D5] to-transparent py-2 pl-2.5 pr-3 text-base font-extrabold leading-snug text-[#1C1C2E]">
-                <span className="mt-0.5 flex h-5 w-5 flex-none items-center justify-center rounded-full bg-[#C2772A] text-[10px] font-black text-white">
+                <span className="mt-0.5 flex h-5 w-5 flex-none items-center justify-center rounded-full bg-[#A8621F] text-[10px] font-black text-white">
                   {i + 1}
                 </span>
                 {s.heading}
@@ -356,12 +436,12 @@ export default async function OsusumeDetail({
               {((e.streaming && e.streaming.length > 0) || e.workId) && (
                 <div className="flex flex-wrap items-center gap-2 border-t border-[#F1F1F5] px-3 py-2">
                   {e.streaming?.map((s) => (
-                    <a key={s.name} href={s.url} target="_blank" rel="noopener noreferrer" className="rounded-full bg-[#F6E9D5] px-3 py-1 text-[11px] font-bold text-[#C2772A]">
+                    <a key={s.name} href={s.url} target="_blank" rel="noopener noreferrer" className="rounded-full bg-[#F6E9D5] px-3 py-1 text-[11px] font-bold text-[#8A5518]">
                       {s.name}で見る ↗
                     </a>
                   ))}
                   {e.workId && (
-                    <Link href={`/work/${e.workId}`} className="ml-auto rounded-full bg-[#C2772A] px-3 py-1 text-[11px] font-bold text-white">
+                    <Link href={`/work/${e.workId}`} className="ml-auto rounded-full bg-[#A8621F] px-3 py-1 text-[11px] font-bold text-white">
                       詳細・＋通知登録 ›
                     </Link>
                   )}
@@ -376,7 +456,7 @@ export default async function OsusumeDetail({
       <section className="mt-6 rounded-2xl border border-[#F6E9D5] bg-[#FBF3E6] p-4 text-center">
         <p className="text-sm font-bold text-[#1C1C2E]">気になった作品は「＋登録」で新着通知！</p>
         <p className="mt-1 text-xs text-[#6B7280]">新話の放送・配信入りを自動でお知らせします。</p>
-        <Link href="/" className="mt-3 inline-block rounded-full bg-[#C2772A] px-5 py-2 text-sm font-bold text-white">
+        <Link href="/" className="mt-3 inline-block rounded-full bg-[#A8621F] px-5 py-2 text-sm font-bold text-white">
           アプリを使ってみる
         </Link>
       </section>

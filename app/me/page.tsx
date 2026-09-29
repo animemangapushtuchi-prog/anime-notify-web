@@ -37,7 +37,7 @@ export default function MePage() {
         </p>
         <Link
           href="/login"
-          className="mt-3 inline-block rounded-full bg-[#C2772A] px-4 py-2 text-sm font-bold text-white"
+          className="mt-3 inline-block rounded-full bg-[#A8621F] px-4 py-2 text-sm font-bold text-white"
         >
           ログイン
         </Link>

@@ -5,6 +5,7 @@ import { AuthProvider } from "@/lib/auth";
 import SiteHeader from "@/components/SiteHeader";
 import Sidebar from "@/components/Sidebar";
 import BottomTabs from "@/components/BottomTabs";
+import Footer from "@/components/Footer";
 import PushManager from "@/components/PushManager";
 import PageView from "@/components/PageView";
 import VerifyGate from "@/components/VerifyGate";
@@ -21,15 +22,35 @@ const geistMono = Geist_Mono({
   subsets: ["latin"],
 });
 
+const SITE_TITLE = "アニミル！（Animiru）｜アニメの放送・配信を自動で新着通知";
+const SITE_DESC =
+  "登録した作品の新話放送・配信入りを自動でお知らせ。放送カレンダー・今期アニメ・おすすめ特集も。アニメ好きのための新着通知サービス「アニミル！」。";
+
 export const metadata: Metadata = {
   metadataBase: new URL("https://www.animiru.com"),
-  title: "アニミル！（Animiru）｜アニメの放送・配信を自動で新着通知",
-  description:
-    "登録した作品の新話放送・配信入りを自動でお知らせ。放送カレンダー・今期アニメ・おすすめ特集も。アニメ好きのための新着通知サービス「アニミル！」。",
+  title: SITE_TITLE,
+  description: SITE_DESC,
   manifest: "/manifest.webmanifest",
   appleWebApp: { capable: true, title: "アニミル！", statusBarStyle: "default" },
   icons: { icon: "/icon-192.png", apple: "/apple-icon.png" },
   other: { "google-adsense-account": "ca-pub-6458901222804186" },
+  // SNS・LINEに貼られたときの見え方。各ページが openGraph を持つ場合はそちらで上書きされる。
+  // canonical はページごとに違うので、ここには書かない（ここに書くと全ページが同じURLになる）。
+  openGraph: {
+    type: "website",
+    siteName: "アニミル！",
+    locale: "ja_JP",
+    url: "https://www.animiru.com",
+    title: SITE_TITLE,
+    description: SITE_DESC,
+    images: ["/icon-512.png"],
+  },
+  twitter: {
+    card: "summary",
+    title: SITE_TITLE,
+    description: SITE_DESC,
+    images: ["/icon-512.png"],
+  },
 };
 
 export const viewport: Viewport = {
@@ -57,8 +78,11 @@ export default function RootLayout({
             <div className="flex min-h-screen min-w-0 flex-1 flex-col">
               <SiteHeader />
               <IosBanner />
-              <div className="flex-1 pb-24 lg:pb-10">
+              <div className="flex-1">
                 <VerifyGate>{children}</VerifyGate>
+              </div>
+              <div className="pb-24 lg:pb-10">
+                <Footer />
               </div>
             </div>
           </div>

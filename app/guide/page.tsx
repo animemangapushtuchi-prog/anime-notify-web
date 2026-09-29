@@ -1,8 +1,20 @@
 import Link from "next/link";
+import type { Metadata } from "next";
+import { OG_IMAGE } from "@/lib/seo";
 
-// 使い方ガイド。プロフィールメニューから開く。
-export const metadata = {
+// 使い方ガイド。プロフィールメニューとフッターから開く。
+export const metadata: Metadata = {
   title: "使い方ガイド｜アニミル！",
+  description:
+    "アニミル！の使い方。作品の探し方、通知の登録、放送カレンダー、配信サービスの設定までを画面の順に説明します。",
+  alternates: { canonical: "/guide" },
+  openGraph: {
+    title: "使い方ガイド｜アニミル！",
+    description:
+      "アニミル！の使い方。作品の探し方、通知の登録、放送カレンダー、配信サービスの設定までを画面の順に説明します。",
+    url: "/guide",
+    images: [OG_IMAGE],
+  },
 };
 
 function Section({ title, children }: { title: string; children: React.ReactNode }) {

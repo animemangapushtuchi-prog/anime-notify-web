@@ -158,12 +158,12 @@ export default function StreamingLinks({
                       )}
                   </span>
                   {isSub && (
-                    <span className="flex-none rounded-full border border-[#C2772A] bg-[#F6E9D5] px-2 py-0.5 text-[10px] font-bold text-[#C2772A]">
+                    <span className="flex-none rounded-full border border-[#C2772A] bg-[#F6E9D5] px-2 py-0.5 text-[10px] font-bold text-[#8A5518]">
                       ✓ 契約中
                     </span>
                   )}
                   {s.url ? (
-                    <span className="flex-none text-xs font-bold text-[#C2772A]">開く ›</span>
+                    <span className="flex-none text-xs font-bold text-[#8A5518]">開く ›</span>
                   ) : (
                     <span className="flex-none text-[10px] text-black/40">リンクなし</span>
                   )}

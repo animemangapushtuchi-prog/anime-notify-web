@@ -70,7 +70,7 @@ export default function EpisodeProgress({
           type="button"
           onClick={() => change(watched + 1)}
           disabled={busy || !canAdvance}
-          className="h-8 rounded-full bg-[#C2772A] px-3 text-[11px] font-bold text-white disabled:opacity-40"
+          className="h-8 rounded-full bg-[#A8621F] px-3 text-[11px] font-bold text-white disabled:opacity-40"
         >
           {busy ? "保存中…" : canAdvance ? `第${nextToWatch}話を見た` : "全話視聴済み"}
         </button>

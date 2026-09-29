@@ -93,7 +93,7 @@ export default function ScheduleCalendar({ entries }: { entries: AiringEntry[] }
             type="button"
             onClick={() => setMode(m)}
             className={`rounded-full px-3 py-1 text-xs font-bold transition ${
-              mode === m ? "bg-[#C2772A] text-white" : "bg-[#F6E9D5] text-[#C2772A]"
+              mode === m ? "bg-[#A8621F] text-white" : "bg-[#F6E9D5] text-[#C2772A]"
             }`}
           >
             {m === "week" ? "週" : "月"}

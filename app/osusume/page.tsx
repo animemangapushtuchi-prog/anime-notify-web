@@ -1,5 +1,6 @@
 import Link from "next/link";
 import type { Metadata } from "next";
+import { OG_IMAGE } from "@/lib/seo";
 import { listOsusume, thumbWorkIds } from "@/lib/osusume";
 import { fetchCovers } from "@/lib/anilist";
 import Mascot from "@/components/Mascot";
@@ -8,8 +9,17 @@ import OsusumeThumb from "@/components/OsusumeThumb";
 export const revalidate = 3600;
 
 export const metadata: Metadata = {
-  title: "おすすめ・特集｜Animiru",
-  description: "テーマ別のおすすめアニメをランキングで紹介する特集ページ。あらすじ・見どころ・配信先つき。",
+  title: "アニメおすすめ・特集記事一覧｜アニミル！",
+  description:
+    "テーマ別のおすすめアニメと、配信サービスの比較記事をまとめています。実際の配信データをもとに、どこで見られるかまで紹介。",
+  alternates: { canonical: "/osusume" },
+  openGraph: {
+    title: "アニメおすすめ・特集記事一覧｜アニミル！",
+    description:
+      "テーマ別のおすすめアニメと、配信サービスの比較記事をまとめています。実際の配信データをもとに、どこで見られるかまで紹介。",
+    url: "/osusume",
+    images: [OG_IMAGE],
+  },
 };
 
 export default async function OsusumeListPage() {
@@ -47,7 +57,7 @@ export default async function OsusumeListPage() {
                 <div className="p-3">
                   <p className="text-sm font-extrabold text-[#1C1C2E]">{o.title}</p>
                   {o.description && <p className="mt-1 line-clamp-2 text-xs text-[#6B7280]">{o.description}</p>}
-                  <p className="mt-1 text-[11px] font-bold text-[#C2772A]">
+                  <p className="mt-1 text-[11px] font-bold text-[#8A5518]">
                     {o.entries.length > 0 ? `${o.entries.length}作品を紹介` : "解説記事"} ›
                   </p>
                 </div>

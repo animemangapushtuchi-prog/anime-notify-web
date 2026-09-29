@@ -1,6 +1,6 @@
 import type { MetadataRoute } from "next";
-import { listOsusume } from "@/lib/osusume";
-import { fetchSeasonPopular } from "@/lib/anilist";
+import { listOsusume, articleWorkIds } from "@/lib/osusume";
+import { fetchPopularAroundNow } from "@/lib/anilist";
 import { getPublishedEntries, latestSeasonKeyWithData } from "@/lib/seasonStreaming";
 
 const BASE = "https://www.animiru.com";
@@ -26,31 +26,21 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
 
   // おすすめ特集ページ。記事の更新日を lastModified として渡す
   // （更新されたことがGoogleに伝わり、再クロールされやすくなる）
-  const osusume = listOsusume().map((o) => ({
+  const articles = listOsusume();
+  const osusume = articles.map((o) => ({
     url: `${BASE}/osusume/${o.slug}`,
     lastModified: o.updatedAt ? new Date(`${o.updatedAt}T00:00:00+09:00`) : undefined,
     changeFrequency: "weekly" as const,
     priority: 0.8,
   }));
 
-  // SEOの主役＝作品詳細。今期人気を最大60件だけ載せる（全作品は載せない）
-  let works: MetadataRoute.Sitemap = [];
-  try {
-    const list = await fetchSeasonPopular();
-    works = list.slice(0, 60).map((a) => ({
-      url: `${BASE}/work/${a.id}`,
-      changeFrequency: "weekly" as const,
-      priority: 0.7,
-    }));
-  } catch {
-    /* 取得失敗時は作品なしで返す（サイトマップ自体は必ず生成される） */
-  }
-
   // 配信ページ（確認済みデータがある時だけ載せる＝空ページを入れない）
   // 日付だけで今期を決めると、季節の変わり目にデータ未投入となり
   // 掲載中だった配信ページがサイトマップから丸ごと消えてしまう。
   // そのため「公開データがある最新シーズン」を使う。
   const streaming: MetadataRoute.Sitemap = [];
+  // 配信データに載っている作品も、確実な作品URLの供給源として使う
+  const workIds = new Set<number>();
   try {
     const sk = await latestSeasonKeyWithData();
     const entries = await getPublishedEntries(sk);
@@ -67,10 +57,32 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
           priority: 0.7,
         });
       }
+      for (const e of entries) workIds.add(e.anilistId);
     }
-  } catch {
-    /* 取得失敗時は今期配信URLなしで返す */
+  } catch (err) {
+    // 握りつぶすと「作品URLが0件のサイトマップ」が黙って出続けるため、必ずログに残す
+    console.error("[sitemap] 配信データの取得に失敗しました", err);
   }
+
+  // 記事が紹介している作品も載せる（ローカルJSON由来なので必ず取れる）
+  for (const o of articles) for (const id of articleWorkIds(o)) workIds.add(id);
+
+  // SEOの主役＝作品詳細。今期・来期・前期の人気作を足す。
+  // AniListが落ちていても、上の2つの供給源だけで作品URLは0件にならない。
+  try {
+    const list = await fetchPopularAroundNow();
+    for (const a of list) workIds.add(a.id);
+  } catch (err) {
+    console.error("[sitemap] AniListの人気作取得に失敗しました", err);
+  }
+
+  const works: MetadataRoute.Sitemap = [...workIds]
+    .filter((id) => Number.isFinite(id))
+    .map((id) => ({
+      url: `${BASE}/work/${id}`,
+      changeFrequency: "weekly" as const,
+      priority: 0.7,
+    }));
 
   return [...staticUrls, ...osusume, ...works, ...streaming];
 }

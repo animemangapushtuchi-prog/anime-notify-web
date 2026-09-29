@@ -240,7 +240,7 @@ export default async function WorkPage({
                   <span className="block text-sm font-bold text-[#1C1C2E]">公式X（旧Twitter）</span>
                   <span className="block text-[11px] text-[#6B7280]">最新ポストを見る</span>
                 </span>
-                <span className="text-xs font-bold text-[#C2772A]">開く ›</span>
+                <span className="text-xs font-bold text-[#8A5518]">開く ›</span>
               </a>
             </section>
           )}

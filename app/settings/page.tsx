@@ -39,7 +39,7 @@ function Toggle({
         type="button"
         aria-pressed={value}
         onClick={() => onChange(!value)}
-        className={`relative h-6 w-11 flex-none rounded-full transition ${value ? "bg-[#C2772A]" : "bg-black/20"}`}
+        className={`relative h-6 w-11 flex-none rounded-full transition ${value ? "bg-[#A8621F]" : "bg-black/20"}`}
       >
         <span className={`absolute top-0.5 h-5 w-5 rounded-full bg-white transition-all ${value ? "left-[22px]" : "left-0.5"}`} />
       </button>
@@ -98,7 +98,7 @@ export default function SettingsPage() {
     return (
       <main className="mx-auto max-w-md px-4 py-10">
         <p className="text-sm text-black/60">ログインすると設定を保存できます。</p>
-        <Link href="/login" className="mt-3 inline-block rounded-full bg-[#C2772A] px-4 py-2 text-sm font-bold text-white">
+        <Link href="/login" className="mt-3 inline-block rounded-full bg-[#A8621F] px-4 py-2 text-sm font-bold text-white">
           ログイン
         </Link>
       </main>
@@ -185,7 +185,7 @@ export default function SettingsPage() {
         {(isGuest || accountType === "pending") && (
           <Link
             href="/login"
-            className="flex-none rounded-xl bg-[#C2772A] px-3 py-1.5 text-xs font-bold text-white"
+            className="flex-none rounded-xl bg-[#A8621F] px-3 py-1.5 text-xs font-bold text-white"
           >
             {isGuest ? "メール登録" : "認証を確認"}
           </Link>
@@ -241,7 +241,7 @@ export default function SettingsPage() {
                           key={ch}
                           type="button"
                           onClick={() => toggleChannel(ch)}
-                          className={`rounded-full px-3 py-1 text-xs font-bold transition ${on ? "bg-[#C2772A] text-white" : "bg-[#F6E9D5] text-[#C2772A]"}`}
+                          className={`rounded-full px-3 py-1 text-xs font-bold transition ${on ? "bg-[#A8621F] text-white" : "bg-[#F6E9D5] text-[#8A5518]"}`}
                         >
                           {ch}
                         </button>

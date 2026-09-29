@@ -1,8 +1,11 @@
 import type { Metadata } from "next";
+import { OG_IMAGE } from "@/lib/seo";
 
 export const metadata: Metadata = {
-  title: "利用規約 | Animiru",
+  title: "利用規約｜アニミル！",
   description: "アニミル！（Animiru／アニメの放送・配信の新着通知サービス）の利用規約です。",
+  alternates: { canonical: "/terms" },
+  openGraph: { title: "利用規約｜アニミル！", url: "/terms", images: [OG_IMAGE] },
 };
 
 const REVISED = "2026年7月15日";

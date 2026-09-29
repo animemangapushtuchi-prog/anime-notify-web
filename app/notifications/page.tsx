@@ -129,7 +129,7 @@ export default function NotificationsPage() {
         <p className="text-sm text-black/60">ログインすると通知と履歴が使えます。</p>
         <Link
           href="/login"
-          className="mt-3 inline-block rounded-full bg-[#C2772A] px-4 py-2 text-sm font-bold text-white"
+          className="mt-3 inline-block rounded-full bg-[#A8621F] px-4 py-2 text-sm font-bold text-white"
         >
           ログイン
         </Link>
@@ -188,7 +188,7 @@ export default function NotificationsPage() {
           type="button"
           onClick={markAllRead}
           disabled={unreadCount === 0}
-          className="rounded-full bg-[#F6E9D5] px-3 py-1 text-xs font-bold text-[#C2772A] disabled:opacity-40"
+          className="rounded-full bg-[#F6E9D5] px-3 py-1 text-xs font-bold text-[#8A5518] disabled:opacity-40"
         >
           ✓✓ 全既読{unreadCount > 0 ? `（${unreadCount}）` : ""}
         </button>
@@ -212,7 +212,7 @@ export default function NotificationsPage() {
             type="button"
             onClick={() => setFilter(t.key)}
             className={`rounded-full px-3 py-1 text-xs font-bold transition ${
-              filter === t.key ? "bg-[#C2772A] text-white" : "bg-[#F6E9D5] text-[#C2772A]"
+              filter === t.key ? "bg-[#A8621F] text-white" : "bg-[#F6E9D5] text-[#C2772A]"
             }`}
           >
             {t.label}
@@ -286,7 +286,7 @@ export default function NotificationsPage() {
                           </span>
                         </span>
                         {!n.read && (
-                          <span className="mt-1.5 h-2 w-2 flex-none rounded-full bg-[#C2772A]" />
+                          <span className="mt-1.5 h-2 w-2 flex-none rounded-full bg-[#A8621F]" />
                         )}
                       </div>
 
@@ -299,7 +299,7 @@ export default function NotificationsPage() {
                           <Link
                             href={actionHref}
                             onClick={() => markRead(n)}
-                            className="rounded-full bg-[#C2772A] px-3 py-1.5 text-[11px] font-bold text-white"
+                            className="rounded-full bg-[#A8621F] px-3 py-1.5 text-[11px] font-bold text-white"
                           >
                             {actionLabel} ›
                           </Link>

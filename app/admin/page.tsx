@@ -1,12 +1,14 @@
 "use client";
 
-// 開発者ダッシュボード（合言葉つき）。Functionsが集計した cache/stats を表示。
-// URL: /admin?key=... 。cache/stats は集計値のみ（個人情報なし）。
+// 開発者ダッシュボード（管理者のみ）。Functionsが集計した cache/stats を表示。
+// 以前は URL の ?key=... で入れる方式だったが、合言葉はクライアントJSに
+// そのまま含まれて誰でも読めてしまうため、/admin/streaming と同じ
+// 「ログイン中UIDが NEXT_PUBLIC_ADMIN_UIDS に含まれるか」で判定する方式に変更した。
 import { useEffect, useState } from "react";
 import { doc, getDoc } from "firebase/firestore";
 import { db } from "@/lib/firebase";
-
-const ADMIN_KEY = "animiru-admin-2026";
+import { useAuth } from "@/lib/auth";
+import { isAdminUid, adminConfigured } from "@/lib/seasonAdmin";
 
 type Stats = {
   updatedAt?: { seconds: number };
@@ -40,7 +42,7 @@ function Bars({ data }: { data: { label: string; value: number }[] }) {
         <div key={i} className="flex items-center gap-2">
           <span className="w-40 flex-none truncate text-[12px] text-[#374151]">{d.label}</span>
           <div className="h-3 flex-1 overflow-hidden rounded-full bg-[#F1F1F5]">
-            <div className="h-full rounded-full bg-[#C2772A]" style={{ width: `${(d.value / max) * 100}%` }} />
+            <div className="h-full rounded-full bg-[#A8621F]" style={{ width: `${(d.value / max) * 100}%` }} />
           </div>
           <span className="w-8 flex-none text-right text-[11px] font-bold text-[#1C1C2E]">{d.value}</span>
         </div>
@@ -60,8 +62,11 @@ const last14 = (): string[] => {
 };
 
 export default function AdminPage() {
-  const [ok, setOk] = useState<boolean | null>(null);
+  const { user, loading } = useAuth();
   const [s, setS] = useState<Stats | null>(null);
+  const [copied, setCopied] = useState(false);
+
+  const admin = isAdminUid(user?.uid);
 
   const load = () =>
     getDoc(doc(db, "cache", "stats"))
@@ -69,21 +74,48 @@ export default function AdminPage() {
       .catch(() => setS({}));
 
   useEffect(() => {
-    const key = new URLSearchParams(window.location.search).get("key");
-    if (key !== ADMIN_KEY) {
-      setOk(false);
-      return;
-    }
-    setOk(true);
+    if (!admin) return;
     load();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [admin]);
 
-  if (ok === null) return <main className="mx-auto max-w-2xl px-4 py-10 text-sm text-black/50">読み込み中…</main>;
-  if (!ok)
+  if (loading) return <main className="mx-auto max-w-2xl px-4 py-10 text-sm text-black/50">読み込み中…</main>;
+
+  // 管理者UIDが未設定 / 権限なしのときは、設定に必要な「自分のUID」を画面に出す
+  if (!adminConfigured || !admin)
     return (
       <main className="mx-auto max-w-2xl px-4 py-10">
-        <p className="text-sm text-black/60">アクセスできません。URLに <code>?key=</code> が必要です。</p>
+        <h1 className="text-xl font-extrabold text-[#1C1C2E]">📊 ダッシュボード</h1>
+        {!user ? (
+          <p className="mt-3 text-sm text-black/60">
+            管理に使うアカウントで
+            <a href="/login" className="font-bold text-[#8A5518] underline">ログイン</a>
+            してください。
+          </p>
+        ) : (
+          <>
+            <p className="mt-3 text-sm text-black/60">
+              {adminConfigured
+                ? "このアカウントには権限がありません。"
+                : "管理者がまだ設定されていません。下のUIDを設定すると、このアカウントで管理できます。"}
+            </p>
+            <div className="mt-4 rounded-2xl border border-[#ECECF2] bg-white p-4">
+              <p className="text-[11px] font-bold text-[#6B7280]">あなたのUID</p>
+              <p className="mt-0.5 break-all font-mono text-sm text-[#1C1C2E]">{user.uid}</p>
+              <button
+                type="button"
+                onClick={() => {
+                  navigator.clipboard?.writeText(user.uid);
+                  setCopied(true);
+                }}
+                className="mt-3 rounded-full bg-[#A8621F] px-4 py-1.5 text-xs font-bold text-white"
+              >
+                UIDをコピー
+              </button>
+              {copied && <p className="mt-2 text-[11px] font-bold text-[#8A5518]">UIDをコピーしました</p>}
+            </div>
+          </>
+        )}
       </main>
     );
 
@@ -99,7 +131,7 @@ export default function AdminPage() {
     <main className="mx-auto max-w-2xl px-4 py-6">
       <div className="flex items-center justify-between">
         <h1 className="text-xl font-extrabold text-[#1C1C2E]">📊 ダッシュボード</h1>
-        <button type="button" onClick={load} className="rounded-full border border-[#ECECF2] bg-white px-3 py-1 text-xs font-bold text-[#C2772A]">再読み込み</button>
+        <button type="button" onClick={load} className="rounded-full border border-[#ECECF2] bg-white px-3 py-1 text-xs font-bold text-[#8A5518]">再読み込み</button>
       </div>
       <p className="mt-1 text-[11px] text-[#6B7280]">集計時刻：{updated}（自動更新：3時間ごと）</p>
 

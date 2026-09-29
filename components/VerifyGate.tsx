@@ -35,7 +35,7 @@ export default function VerifyGate({ children }: { children: ReactNode }) {
                   setBusy(false);
                 }
               }}
-              className="rounded-full bg-[#C2772A] px-3 py-1.5 text-[11px] font-bold text-white disabled:opacity-60"
+              className="rounded-full bg-[#A8621F] px-3 py-1.5 text-[11px] font-bold text-white disabled:opacity-60"
             >
               {busy ? "確認中…" : "認証を確認"}
             </button>
@@ -49,7 +49,7 @@ export default function VerifyGate({ children }: { children: ReactNode }) {
                   /* noop */
                 }
               }}
-              className="rounded-full border border-[#C2772A] bg-white px-3 py-1.5 text-[11px] font-bold text-[#C2772A]"
+              className="rounded-full border border-[#C2772A] bg-white px-3 py-1.5 text-[11px] font-bold text-[#8A5518]"
             >
               再送
             </button>

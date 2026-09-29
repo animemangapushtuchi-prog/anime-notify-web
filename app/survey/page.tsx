@@ -39,7 +39,7 @@ function RadioRow({
             type="button"
             onClick={() => onChange(o)}
             className={`rounded-full px-3 py-1.5 text-xs font-bold transition ${
-              value === o ? "bg-[#C2772A] text-white" : "bg-[#F6E9D5] text-[#C2772A]"
+              value === o ? "bg-[#A8621F] text-white" : "bg-[#F6E9D5] text-[#C2772A]"
             }`}
           >
             {o}
@@ -94,7 +94,7 @@ export default function SurveyPage() {
         <p className="text-2xl">🙏</p>
         <p className="mt-2 text-lg font-extrabold text-[#1C1C2E]">ご協力ありがとうございました！</p>
         <p className="mt-1 text-sm text-black/60">いただいた感想は次の改善に活かします。</p>
-        <Link href="/" className="mt-5 inline-block rounded-full bg-[#C2772A] px-5 py-2.5 text-sm font-bold text-white">
+        <Link href="/" className="mt-5 inline-block rounded-full bg-[#A8621F] px-5 py-2.5 text-sm font-bold text-white">
           ホームへ
         </Link>
       </main>
@@ -120,7 +120,7 @@ export default function SurveyPage() {
                 type="button"
                 onClick={() => toggleFeature(f)}
                 className={`rounded-full px-3 py-1.5 text-xs font-bold transition ${
-                  features.includes(f) ? "bg-[#C2772A] text-white" : "bg-[#F6E9D5] text-[#C2772A]"
+                  features.includes(f) ? "bg-[#A8621F] text-white" : "bg-[#F6E9D5] text-[#C2772A]"
                 }`}
               >
                 {f}
@@ -154,7 +154,7 @@ export default function SurveyPage() {
         <button
           type="submit"
           disabled={busy}
-          className="w-full rounded-xl bg-[#C2772A] py-3 text-sm font-bold text-white disabled:opacity-60"
+          className="w-full rounded-xl bg-[#A8621F] py-3 text-sm font-bold text-white disabled:opacity-60"
         >
           {busy ? "送信中…" : "回答を送信する"}
         </button>

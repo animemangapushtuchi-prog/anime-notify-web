@@ -41,16 +41,68 @@ export type AnimeDetail = {
   relations: RelatedWork[];
 };
 
+// AniListは短時間に多くのリクエストを送ると 429（レート制限）を返す。
+// ビルド時は多数のページが並行して取りにいくため、これで失敗すると
+// サイトマップの作品URLが丸ごと消えるなどの実害が出ていた。
+// 429/503 のときだけ Retry-After に従って少し待ち、数回だけやり直す。
+const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
+
+// 同時に投げる数の上限。ビルド時は多数のページが一斉に取りにいくため、
+// ここで絞らないと一気に制限へ当たる。
+const MAX_INFLIGHT = 2;
+let inflight = 0;
+const waiting: (() => void)[] = [];
+// 429を受けたら、この時刻まで全員が待つ（1回詰まっても全体が復帰できる）
+let cooldownUntil = 0;
+
+async function acquire(): Promise<void> {
+  if (inflight >= MAX_INFLIGHT) await new Promise<void>((r) => waiting.push(r));
+  inflight++;
+  const wait = cooldownUntil - Date.now();
+  if (wait > 0) await sleep(wait);
+}
+function release(): void {
+  inflight--;
+  waiting.shift()?.();
+}
+
+export async function anilistFetch(
+  body: string,
+  init: RequestInit & { next?: { revalidate: number } } = {},
+  retries = 4
+): Promise<Response> {
+  let wait = 2000;
+  for (let i = 0; ; i++) {
+    await acquire();
+    let res: Response;
+    try {
+      res = await fetch(ANILIST, {
+        method: "POST",
+        headers: { "Content-Type": "application/json", Accept: "application/json" },
+        body,
+        ...init,
+      });
+    } finally {
+      release();
+    }
+    if (res.status !== 429 && res.status !== 503) return res;
+    if (i >= retries) return res;
+    // Retry-After（秒）があればそれに従う。無ければ倍々で待つ。
+    const after = Number(res.headers.get("retry-after"));
+    const ms = Number.isFinite(after) && after > 0 ? Math.min(after * 1000 + 500, 65000) : wait;
+    cooldownUntil = Math.max(cooldownUntil, Date.now() + ms);
+    await sleep(ms);
+    wait = Math.min(wait * 2, 30000);
+  }
+}
+
 // ---- GraphQL 実行（ISR: revalidateで定期再取得） ----
 async function gql<T>(
   query: string,
   variables: Record<string, unknown>,
   revalidate = 3600
 ): Promise<T> {
-  const res = await fetch(ANILIST, {
-    method: "POST",
-    headers: { "Content-Type": "application/json", Accept: "application/json" },
-    body: JSON.stringify({ query, variables }),
+  const res = await anilistFetch(JSON.stringify({ query, variables }), {
     next: { revalidate },
   });
   if (!res.ok) throw new Error(`AniList ${res.status}`);
@@ -361,8 +413,7 @@ query ($season: MediaSeason, $seasonYear: Int) {
     }
   }
 }`;
-export async function fetchSeasonPopular(): Promise<SeasonAnime[]> {
-  const { season, seasonYear } = currentSeason();
+async function fetchPopularOf(season: string, seasonYear: number): Promise<SeasonAnime[]> {
   const data = await gql<{ Page: { media: any[] } }>(SEASON_QUERY, { season, seasonYear });
   return (data.Page.media ?? []).map((m) => ({
     id: m.id,
@@ -371,6 +422,45 @@ export async function fetchSeasonPopular(): Promise<SeasonAnime[]> {
     format: formatJa(String(m.format ?? "")),
     status: statusJa(String(m.status ?? "")),
   }));
+}
+
+export async function fetchSeasonPopular(): Promise<SeasonAnime[]> {
+  const { season, seasonYear } = currentSeason();
+  return fetchPopularOf(season, seasonYear);
+}
+
+// 今期・来期・前期の人気作をまとめて取得（サイトマップ用）。
+// 1シーズンでも取れれば結果を返し、全滅したときだけ throw する。
+export async function fetchPopularAroundNow(): Promise<SeasonAnime[]> {
+  const c = currentSeason();
+  const n = nextSeason();
+  const order = ["WINTER", "SPRING", "SUMMER", "FALL"];
+  const ci = order.indexOf(c.season);
+  const p =
+    ci === 0
+      ? { season: "FALL", seasonYear: c.seasonYear - 1 }
+      : { season: order[ci - 1], seasonYear: c.seasonYear };
+
+  const results = await Promise.allSettled([
+    fetchPopularOf(c.season, c.seasonYear),
+    fetchPopularOf(n.season, n.seasonYear),
+    fetchPopularOf(p.season, p.seasonYear),
+  ]);
+  const ok = results.filter((r) => r.status === "fulfilled");
+  if (ok.length === 0) {
+    const first = results[0];
+    throw first.status === "rejected" ? first.reason : new Error("AniList season fetch failed");
+  }
+  const seen = new Set<number>();
+  const out: SeasonAnime[] = [];
+  for (const r of ok) {
+    for (const a of (r as PromiseFulfilledResult<SeasonAnime[]>).value) {
+      if (seen.has(a.id)) continue;
+      seen.add(a.id);
+      out.push(a);
+    }
+  }
+  return out;
 }
 // ---- 検索（クライアントから呼ぶ・18禁除外） ----
 // typeがnull（すべて）のときは type 条件をクエリから外す（type:null だと0件になるため）
@@ -530,11 +620,7 @@ export async function fetchCovers(ids: number[]): Promise<Record<number, string>
   if (uniq.length === 0) return {};
   const query = `query ($ids: [Int]) { Page(perPage: 50) { media(id_in: $ids) { id coverImage { large } } } }`;
   try {
-    const res = await fetch(ANILIST, {
-      method: "POST",
-      headers: { "Content-Type": "application/json", Accept: "application/json" },
-      body: JSON.stringify({ query, variables: { ids: uniq } }),
-    });
+    const res = await anilistFetch(JSON.stringify({ query, variables: { ids: uniq } }));
     if (!res.ok) return {};
     const media = (await res.json())?.data?.Page?.media ?? [];
     const map: Record<number, string> = {};
@@ -555,11 +641,7 @@ export async function fetchWorkBriefs(ids: number[]): Promise<Record<number, Wor
     id title { native romaji } coverImage { large } format
   } } }`;
   try {
-    const res = await fetch(ANILIST, {
-      method: "POST",
-      headers: { "Content-Type": "application/json", Accept: "application/json" },
-      body: JSON.stringify({ query, variables: { ids: uniq } }),
-    });
+    const res = await anilistFetch(JSON.stringify({ query, variables: { ids: uniq } }));
     if (!res.ok) return {};
     /* eslint-disable @typescript-eslint/no-explicit-any */
     const media = (await res.json())?.data?.Page?.media ?? [];

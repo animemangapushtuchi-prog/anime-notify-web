@@ -1,9 +1,12 @@
 import type { Metadata } from "next";
+import { OG_IMAGE } from "@/lib/seo";
 
 export const metadata: Metadata = {
-  title: "プライバシーポリシー | Animiru",
+  title: "プライバシーポリシー｜アニミル！",
   description:
     "アニミル！（Animiru／アニメの放送・配信の新着通知サービス）における個人情報・Cookie・広告（Google AdSense）の取り扱いについて定めたプライバシーポリシーです。",
+  alternates: { canonical: "/privacy" },
+  openGraph: { title: "プライバシーポリシー｜アニミル！", url: "/privacy", images: [OG_IMAGE] },
 };
 
 const REVISED = "2026年7月15日";

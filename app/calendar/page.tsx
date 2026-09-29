@@ -96,7 +96,7 @@ export default function CalendarPage() {
           </p>
           <Link
             href="/login?next=%2Fcalendar"
-            className="mt-4 inline-block rounded-full bg-[#C2772A] px-5 py-2.5 text-sm font-bold text-white"
+            className="mt-4 inline-block rounded-full bg-[#A8621F] px-5 py-2.5 text-sm font-bold text-white"
           >
             ログイン
           </Link>

@@ -279,7 +279,7 @@ export default function LoginPage() {
     <>
       <div className="mt-4 flex items-center justify-between">
         <label className="block text-xs font-bold text-black/50">パスワード</label>
-        <button type="button" onClick={() => setShowPw((v) => !v)} className="text-[11px] font-bold text-[#C2772A]">
+        <button type="button" onClick={() => setShowPw((v) => !v)} className="text-[11px] font-bold text-[#8A5518]">
           {showPw ? "隠す" : "表示"}
         </button>
       </div>
@@ -311,7 +311,7 @@ export default function LoginPage() {
                 setPw(generatePw());
                 setShowPw(true);
               }}
-              className="rounded-full bg-[#F6E9D5] px-3 py-1 text-[11px] font-bold text-[#C2772A]"
+              className="rounded-full bg-[#F6E9D5] px-3 py-1 text-[11px] font-bold text-[#8A5518]"
             >
               🔒 強いパスワードを生成
             </button>
@@ -336,7 +336,7 @@ export default function LoginPage() {
         <h1 className="mt-3 text-xl font-extrabold text-[#1C1C2E]">ログイン済みです</h1>
         <p className="mt-2 text-sm text-black/60">このままアニミルをお楽しみください。</p>
         <div className="mt-5 flex justify-center gap-2">
-          <Link href="/" className="rounded-full bg-[#C2772A] px-4 py-2 text-sm font-bold text-white">マイリストへ</Link>
+          <Link href="/" className="rounded-full bg-[#A8621F] px-4 py-2 text-sm font-bold text-white">マイリストへ</Link>
           <Link href="/settings" className="rounded-full border border-[#C2772A] px-4 py-2 text-sm font-bold text-[#C2772A]">設定へ</Link>
         </div>
       </main>
@@ -369,7 +369,7 @@ export default function LoginPage() {
                 setBusy(false);
               }
             }}
-            className="mt-4 w-full rounded-xl bg-[#C2772A] py-3 text-sm font-bold text-white disabled:opacity-60"
+            className="mt-4 w-full rounded-xl bg-[#A8621F] py-3 text-sm font-bold text-white disabled:opacity-60"
           >
             {busy ? "確認中…" : "認証を確認する"}
           </button>
@@ -413,14 +413,14 @@ export default function LoginPage() {
           <button
             type="button"
             onClick={() => setGuestTab("link")}
-            className={`flex-1 rounded-full px-3 py-2 text-xs font-bold ${guestTab === "link" ? "bg-[#C2772A] text-white" : "bg-[#F6E9D5] text-[#C2772A]"}`}
+            className={`flex-1 rounded-full px-3 py-2 text-xs font-bold ${guestTab === "link" ? "bg-[#A8621F] text-white" : "bg-[#F6E9D5] text-[#8A5518]"}`}
           >
             メール登録（引き継ぎ）
           </button>
           <button
             type="button"
             onClick={() => setGuestTab("merge")}
-            className={`flex-1 rounded-full px-3 py-2 text-xs font-bold ${guestTab === "merge" ? "bg-[#C2772A] text-white" : "bg-[#F6E9D5] text-[#C2772A]"}`}
+            className={`flex-1 rounded-full px-3 py-2 text-xs font-bold ${guestTab === "merge" ? "bg-[#A8621F] text-white" : "bg-[#F6E9D5] text-[#8A5518]"}`}
           >
             既存アカウントへログイン
           </button>
@@ -470,7 +470,7 @@ export default function LoginPage() {
               type="button"
               onClick={submitMergeSelection}
               disabled={busy}
-              className="mt-3 w-full rounded-xl bg-[#C2772A] py-3 text-sm font-bold text-white disabled:opacity-60"
+              className="mt-3 w-full rounded-xl bg-[#A8621F] py-3 text-sm font-bold text-white disabled:opacity-60"
             >
               {busy ? "統合中…" : "この内容で統合する"}
             </button>
@@ -487,7 +487,7 @@ export default function LoginPage() {
             <button
               type="submit"
               disabled={busy}
-              className="mt-5 w-full rounded-xl bg-[#C2772A] py-3 text-sm font-bold text-white disabled:opacity-60"
+              className="mt-5 w-full rounded-xl bg-[#A8621F] py-3 text-sm font-bold text-white disabled:opacity-60"
             >
               {busy ? "処理中…" : "ゲストデータを引き継いでメール登録"}
             </button>
@@ -503,7 +503,7 @@ export default function LoginPage() {
             <button
               type="submit"
               disabled={busy}
-              className="mt-5 w-full rounded-xl bg-[#C2772A] py-3 text-sm font-bold text-white disabled:opacity-60"
+              className="mt-5 w-full rounded-xl bg-[#A8621F] py-3 text-sm font-bold text-white disabled:opacity-60"
             >
               {busy ? "処理中…" : "ログインして統合する"}
             </button>
@@ -533,19 +533,19 @@ export default function LoginPage() {
         <button
           type="submit"
           disabled={busy}
-          className="mt-5 w-full rounded-xl bg-[#C2772A] py-3 text-sm font-bold text-white disabled:opacity-60"
+          className="mt-5 w-full rounded-xl bg-[#A8621F] py-3 text-sm font-bold text-white disabled:opacity-60"
         >
           {busy ? "処理中…" : mode === "signup" ? "新規登録する" : mode === "reset" ? "再設定メールを送る" : "ログインする"}
         </button>
 
         {mode === "login" && (
-          <div className="mt-3 flex items-center justify-between text-xs font-semibold text-[#C2772A]">
+          <div className="mt-3 flex items-center justify-between text-xs font-semibold text-[#8A5518]">
             <button type="button" onClick={() => switchMode("signup")}>新規登録はこちら</button>
             <button type="button" onClick={() => switchMode("reset")}>パスワードをお忘れですか？</button>
           </div>
         )}
         {mode !== "login" && (
-          <button type="button" onClick={() => switchMode("login")} className="mt-3 w-full text-center text-xs font-semibold text-[#C2772A]">
+          <button type="button" onClick={() => switchMode("login")} className="mt-3 w-full text-center text-xs font-semibold text-[#8A5518]">
             ← ログインに戻る
           </button>
         )}

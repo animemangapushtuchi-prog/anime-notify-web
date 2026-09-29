@@ -296,7 +296,7 @@ export default function AdminStreamingPage() {
                   navigator.clipboard?.writeText(user.uid);
                   setMsg("UIDをコピーしました");
                 }}
-                className="mt-3 rounded-full bg-[#C2772A] px-4 py-1.5 text-xs font-bold text-white"
+                className="mt-3 rounded-full bg-[#A8621F] px-4 py-1.5 text-xs font-bold text-white"
               >
                 UIDをコピー
               </button>
@@ -327,7 +327,7 @@ export default function AdminStreamingPage() {
         <button type="button" onClick={() => load(seasonKey)} className="rounded-full border border-[#ECECF2] bg-white px-3 py-1 text-[#C2772A]">再読み込み</button>
         <button type="button" onClick={doBuild} disabled={busy} className="rounded-full border border-[#C2772A] bg-white px-3 py-1 text-[#C2772A] disabled:opacity-50">候補を更新</button>
         <button type="button" onClick={exportJson} className="rounded-full border border-[#ECECF2] bg-white px-3 py-1 text-[#C2772A]">JSONエクスポート</button>
-        <button type="button" onClick={publishAllConfirmed} disabled={busy} className="rounded-full bg-[#C2772A] px-3 py-1 text-white disabled:opacity-50">確認済みを公開</button>
+        <button type="button" onClick={publishAllConfirmed} disabled={busy} className="rounded-full bg-[#A8621F] px-3 py-1 text-white disabled:opacity-50">確認済みを公開</button>
         <button type="button" onClick={confirmAllWithSource} disabled={busy} className="rounded-full bg-[#3B6D11] px-3 py-1 text-white disabled:opacity-50">出典つき候補を一括で確認済み＋公開</button>
       </div>
 
@@ -349,7 +349,7 @@ export default function AdminStreamingPage() {
         />
         <div className="mt-2 flex flex-wrap items-center gap-2 text-xs font-bold">
           <button type="button" onClick={doPreview} className="rounded-full border border-[#ECECF2] px-3 py-1 text-[#C2772A]">検証（プレビュー）</button>
-          <button type="button" onClick={doImport} disabled={busy || !preview || preview.count === 0} className="rounded-full bg-[#C2772A] px-3 py-1 text-white disabled:opacity-50">取り込む</button>
+          <button type="button" onClick={doImport} disabled={busy || !preview || preview.count === 0} className="rounded-full bg-[#A8621F] px-3 py-1 text-white disabled:opacity-50">取り込む</button>
           {preview && (
             <span className="text-[11px] font-normal text-[#6B7280]">
               取り込み可能 {preview.count}件{preview.errors.length ? ` / エラー ${preview.errors.length}件：${preview.errors.slice(0, 2).join(" / ")}` : ""}
@@ -365,7 +365,7 @@ export default function AdminStreamingPage() {
             key={k}
             type="button"
             onClick={() => setFilter(k)}
-            className={`rounded-full px-3 py-1 ${filter === k ? "bg-[#C2772A] text-white" : "border border-[#ECECF2] bg-white text-[#6B7280]"}`}
+            className={`rounded-full px-3 py-1 ${filter === k ? "bg-[#A8621F] text-white" : "border border-[#ECECF2] bg-white text-[#6B7280]"}`}
           >
             {k === "all" ? `すべて ${rows?.length ?? 0}` : `${STATUS_JA[k]} ${counts[k] ?? 0}`}
           </button>
@@ -402,7 +402,7 @@ export default function AdminStreamingPage() {
                       href={serviceSearchUrl(e.serviceKey, e.title)!}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="ml-auto text-[11px] font-bold text-[#C2772A] underline-offset-2 hover:underline"
+                      className="ml-auto text-[11px] font-bold text-[#8A5518] underline-offset-2 hover:underline"
                     >
                       {e.serviceName}で検索 ↗
                     </a>
@@ -483,7 +483,7 @@ export default function AdminStreamingPage() {
                     placeholder="管理メモ（一般には出ません）"
                     className="w-full rounded border border-[#ECECF2] px-2 py-1 text-[11px]"
                   />
-                  <button type="button" onClick={() => save(e)} disabled={busy} className="flex-none rounded-full bg-[#C2772A] px-4 py-1.5 text-xs font-bold text-white disabled:opacity-50">
+                  <button type="button" onClick={() => save(e)} disabled={busy} className="flex-none rounded-full bg-[#A8621F] px-4 py-1.5 text-xs font-bold text-white disabled:opacity-50">
                     保存
                   </button>
                 </div>

@@ -139,7 +139,7 @@ export default function RegisterButton({ work }: { work: Work }) {
           type="button"
           onClick={guestRegister}
           disabled={busy}
-          className="block w-full rounded-xl bg-[#C2772A] py-3 text-center text-sm font-bold text-white disabled:opacity-60"
+          className="block w-full rounded-xl bg-[#A8621F] py-3 text-center text-sm font-bold text-white disabled:opacity-60"
         >
           {busy ? "登録中…" : "🔔 この作品を通知登録（登録なしでOK）"}
         </button>
@@ -212,7 +212,7 @@ export default function RegisterButton({ work }: { work: Work }) {
           type="button"
           onClick={toggle}
           disabled={busy || full}
-          className="w-full rounded-xl bg-[#C2772A] py-3 text-sm font-bold text-white transition disabled:opacity-60"
+          className="w-full rounded-xl bg-[#A8621F] py-3 text-sm font-bold text-white transition disabled:opacity-60"
         >
           {busy
             ? "通知登録中…"
@@ -223,7 +223,7 @@ export default function RegisterButton({ work }: { work: Work }) {
               : "🔔 この作品を通知登録"}
         </button>
         {full && isGuest && (
-          <p className="mt-1 text-[11px] text-[#C2772A]">
+          <p className="mt-1 text-[11px] text-[#8A5518]">
             <Link href="/login" className="font-bold underline-offset-2 hover:underline">
               メール登録
             </Link>
@@ -270,7 +270,7 @@ export default function RegisterButton({ work }: { work: Work }) {
           <div className="border-t border-[#ECECF2] bg-[#FAFAFC] px-4 py-3">
             <EnablePush />
             <div className="mt-3 flex items-center justify-between gap-3">
-              <Link href="/settings" className="text-xs font-bold text-[#C2772A]">
+              <Link href="/settings" className="text-xs font-bold text-[#8A5518]">
                 通知設定を変更 ›
               </Link>
               <button

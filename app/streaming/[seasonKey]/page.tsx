@@ -1,4 +1,6 @@
+import { cache } from "react";
 import type { Metadata } from "next";
+import { OG_IMAGE } from "@/lib/seo";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import {
@@ -13,17 +15,24 @@ export const revalidate = 3600;
 
 type Props = { params: Promise<{ seasonKey: string }> };
 
+// generateMetadata と本体で二重に読まないようにまとめる
+const loadEntries = cache((key: string) => getPublishedEntries(key));
+
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { seasonKey } = await params;
   const info = parseSeasonKey(seasonKey);
   if (!info) return { title: "今期アニメ配信一覧｜アニミル！" };
   const title = `${info.label}の配信一覧｜Prime Video・Netflix・ABEMA・dアニメ｜アニミル！`;
   const description = `${info.label}を配信サービス別に比較。Prime Video、Netflix、ABEMA、dアニメストアなどの確認済み配信作品、開始日、更新曜日を掲載。`;
+  // まだデータを入れていないシーズンは、中身が空のまま200を返してしまう。
+  // 薄いページとして扱われないよう検索結果には出さない（公開すれば自動で戻る）。
+  const entries = await loadEntries(info.key).catch(() => []);
   return {
     title,
     description,
     alternates: { canonical: `/streaming/${info.key}` },
-    openGraph: { title, description, url: `/streaming/${info.key}` },
+    openGraph: { title, description, url: `/streaming/${info.key}`, images: [OG_IMAGE] },
+    ...(entries.length === 0 ? { robots: { index: false, follow: true } } : {}),
   };
 }
 
@@ -38,7 +47,7 @@ export default async function SeasonStreamingPage({ params }: Props) {
   if (!info) notFound();
 
   const [entries, meta] = await Promise.all([
-    getPublishedEntries(info.key),
+    loadEntries(info.key),
     getSeasonMeta(info.key),
   ]);
   const prev = parseSeasonKey(adjacentSeasonKey(info.key, -1))!;
@@ -65,7 +74,7 @@ export default async function SeasonStreamingPage({ params }: Props) {
         {meta?.lastPublishedAt ? `（最終確認日 ${jstDate(meta.lastPublishedAt)}）` : ""}
       </p>
 
-      <div className="mt-3 flex items-center justify-between text-xs font-bold text-[#C2772A]">
+      <div className="mt-3 flex items-center justify-between text-xs font-bold text-[#8A5518]">
         <Link href={`/streaming/${prev.key}`} className="hover:underline">← {prev.label}</Link>
         <Link href={`/streaming/${next.key}`} className="hover:underline">{next.label} →</Link>
       </div>

@@ -125,7 +125,7 @@ export default function StreamingList({
 
   const chip = (on: boolean) =>
     `rounded-full px-3 py-1 text-xs font-bold transition ${
-      on ? "bg-[#C2772A] text-white" : "border border-[#ECECF2] bg-white text-[#6B7280]"
+      on ? "bg-[#A8621F] text-white" : "border border-[#ECECF2] bg-white text-[#6B7280]"
     }`;
 
   return (
