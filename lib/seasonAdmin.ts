@@ -28,7 +28,7 @@ export const isAdminUid = (uid: string | null | undefined): boolean =>
 export const adminConfigured = ADMIN_UIDS.length > 0;
 
 export type EntryStatus = "candidate" | "confirmed" | "rejected" | "unknown";
-export type SourceType = "official-lineup" | "anilist" | "syobocal" | "manual";
+export type SourceType = "official-lineup" | "official-site" | "anilist" | "syobocal" | "manual";
 
 export type AdminEntry = {
   id: string; // {anilistId}_{serviceKey}
@@ -349,6 +349,10 @@ export async function applyImport(seasonKey: string, rows: ImportRow[]): Promise
     if (cd.weeklyDay == null && r.weeklyDay != null) patch.weeklyDay = r.weeklyDay;
     if (!cd.weeklyTime && r.weeklyTime) patch.weeklyTime = r.weeklyTime;
     if (!cd.sourceUrl && r.sourceUrl) patch.sourceUrl = r.sourceUrl;
+    if (!cd.sourceLabel && r.sourceLabel) patch.sourceLabel = r.sourceLabel;
+    // 種別（見放題など）も「不明」のときだけ補完する
+    if ((!cd.availability || cd.availability === "unknown") && r.availability && r.availability !== "unknown")
+      patch.availability = r.availability;
     if (Object.keys(patch).length > 1) {
       await setDoc(ref, patch, { merge: true });
       res.updated++;

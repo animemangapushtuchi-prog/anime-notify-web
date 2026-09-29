@@ -13,6 +13,9 @@ const firebaseConfig = {
   appId: "1:60964475196:web:f6fe2150fae6b0339f4e39",
 };
 
+// サーバー側でログイン中ユーザーの確認（IDトークンの検証）に使う公開Web APIキー
+export const FIREBASE_WEB_API_KEY = firebaseConfig.apiKey;
+
 // FCMのWeb Push公開鍵（Phase 3で使用）
 export const VAPID_KEY =
   "BLhQHxERjsXw-JGxfSQZuE7WSAEr9QWVYEtzjYSTxpYobQFovi30hJ-5wG_VOJ4RsWX66NT37Sl4QGSohF3XCpg";

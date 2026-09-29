@@ -95,6 +95,16 @@ docs/HANDOFF.md            このファイル
    形式: `anilistId,title,serviceKey,availability,firstDate,weeklyDay,weeklyTime,sourceUrl`
 3. 「出典つき候補を一括で確認済み＋公開」（Prime/Netflix は除外され個別対応）
 
+**公式サイトからの自動収集（2026-09-29 追加）** — 管理画面の「公式サイトから候補を集める」
+- AniList の作品一覧から公式サイトURL（Official Site）を取り、1作品ずつ `/api/admin/official-candidates` に送る
+- サーバーが公式サイトのトップ＋放送/配信ページ（最大3ページ）を読み（`lib/officialSite.ts`、robots.txt 準拠・`AnimiruBot` を名乗る）、
+  Claude（`claude-opus-5-5`、`lib/extractStreaming.ts`）がサービス・開始日・曜日・時刻を抜き出す
+- **根拠の文がページに実在しない行は機械的に捨てる**（推測防止）。根拠は各行の sourceLabel に「公式サイト：「…」」として残り、管理画面に表示される
+- 入るのは「候補」のみ。確認済みの行は空欄だけ補完。Prime/Netflix は従来どおり一括公開の対象外
+- 必要な環境変数: `ANTHROPIC_API_KEY`（Vercel）。API は管理者のIDトークンを検証してから動く
+- 実測（2026-09-29、秋16作品で読み取りのみ試験）: 14作品読めた／Prime Video は12作品のページに記載。JSで描画するサイト（例: 薬屋のひとりごと）は読めず「手作業で確認」一覧に出る
+- 以前の調査: AniList の配信リンクには dアニメ・ABEMA・U-NEXT が載らない（夏の正解データ108行中0行）、しょぼカレのネット配信枠は ABEMA 中心
+
 **季節の切り替え**: `/streaming` とサイトマップは `latestSeasonKeyWithData()` で
 「公開データがある最新シーズン」を選ぶ。新シーズンのデータを公開すれば1時間以内に自動で切り替わる。
 

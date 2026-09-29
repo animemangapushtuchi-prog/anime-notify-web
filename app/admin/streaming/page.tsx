@@ -19,7 +19,8 @@ import {
   type EntryStatus,
 } from "@/lib/seasonAdmin";
 import type { Availability } from "@/lib/seasonStreaming";
-import { buildCandidates } from "@/lib/seasonImport";
+import { buildCandidates, fetchSeasonWorks } from "@/lib/seasonImport";
+import type { ImportRow } from "@/lib/seasonAdmin";
 import ServiceIcon from "@/components/ServiceIcon";
 
 const STATUS_JA: Record<EntryStatus, string> = {
@@ -52,6 +53,18 @@ export default function AdminStreamingPage() {
   const [msg, setMsg] = useState<string | null>(null);
   const [importText, setImportText] = useState("");
   const [preview, setPreview] = useState<{ count: number; errors: string[] } | null>(null);
+  // 公式サイトからの自動収集の進み具合と結果
+  const [collect, setCollect] = useState<{
+    running: boolean;
+    done: number;
+    total: number;
+    current: string;
+    added: number;
+    updated: number;
+    dropped: number;
+    costUsd: number;
+    failed: { title: string; url: string; reason: string }[];
+  } | null>(null);
 
   const admin = isAdminUid(user?.uid);
   const info = seasonInfo(seasonKey);
@@ -230,6 +243,105 @@ export default function AdminStreamingPage() {
     }
   };
 
+  // 公式サイトから候補を集める：AniListの作品一覧 → 1作品ずつサーバーで公式サイトを読んでAIで抽出
+  // → 返ってきた行を「候補」として取り込む（確認済みの内容は上書きせず、空欄だけ補完）
+  const doCollect = async () => {
+    if (busy || !user) return;
+    setBusy(true);
+    setMsg(null);
+    try {
+      const works = (await fetchSeasonWorks(seasonKey))
+        .map((w) => ({
+          ...w,
+          official: w.links.find((l) => /official\s*site/i.test(l.site))?.url ?? "",
+        }))
+        .filter((w) => w.official);
+      if (works.length === 0) {
+        setMsg("公式サイトのURLが分かる作品がありませんでした");
+        return;
+      }
+      if (
+        !window.confirm(
+          `${info.label}の ${works.length} 作品の公式サイトを読み、配信情報の候補を作ります。\n` +
+            "Claude API の利用料がかかります（終わったら実際の金額を表示します）。\n" +
+            "数分かかります。よろしいですか？"
+        )
+      )
+        return;
+
+      const state = {
+        running: true,
+        done: 0,
+        total: works.length,
+        current: "",
+        added: 0,
+        updated: 0,
+        dropped: 0,
+        costUsd: 0,
+        failed: [] as { title: string; url: string; reason: string }[],
+      };
+      setCollect({ ...state });
+
+      // 同時に2作品ずつ処理する（公式サイト・APIに負荷をかけすぎない）
+      let next = 0;
+      const worker = async () => {
+        while (next < works.length) {
+          const w = works[next++];
+          state.current = w.title;
+          setCollect({ ...state });
+          try {
+            const token = await user.getIdToken();
+            const res = await fetch("/api/admin/official-candidates", {
+              method: "POST",
+              headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+              body: JSON.stringify({ anilistId: w.id, title: w.title, officialUrl: w.official, seasonKey }),
+            });
+            const json = (await res.json()) as {
+              status?: string;
+              reason?: string;
+              error?: string;
+              rows?: ImportRow[];
+              dropped?: number;
+              usage?: { costUsd: number } | null;
+            };
+            if (!res.ok) throw new Error(json.error ?? `HTTP ${res.status}`);
+            state.costUsd += json.usage?.costUsd ?? 0;
+            state.dropped += json.dropped ?? 0;
+            if (json.status !== "ok") {
+              state.failed.push({ title: w.title, url: w.official, reason: json.reason ?? json.status ?? "" });
+            } else if ((json.rows ?? []).length === 0) {
+              state.failed.push({ title: w.title, url: w.official, reason: "配信情報が見つかりませんでした" });
+            } else {
+              const r = await applyImport(
+                seasonKey,
+                (json.rows ?? []).map((row) => ({ ...row, coverImage: row.coverImage || w.cover }))
+              );
+              state.added += r.added;
+              state.updated += r.updated;
+            }
+          } catch (err) {
+            state.failed.push({ title: w.title, url: w.official, reason: (err as Error).message });
+          }
+          state.done++;
+          setCollect({ ...state });
+        }
+      };
+      await Promise.all([worker(), worker()]);
+      state.running = false;
+      state.current = "";
+      setCollect({ ...state });
+      setMsg(
+        `公式サイトからの収集が完了：新規${state.added}件／補完${state.updated}件` +
+          `（読めなかった作品 ${state.failed.length}件・利用料 約$${state.costUsd.toFixed(2)}）`
+      );
+      await load(seasonKey);
+    } catch (err) {
+      setMsg(`収集に失敗：${(err as Error).message}`);
+    } finally {
+      setBusy(false);
+    }
+  };
+
   const doPreview = () => {
     const { rows: parsed, errors } = parseImport(importText);
     setPreview({ count: parsed.length, errors });
@@ -326,12 +438,54 @@ export default function AdminStreamingPage() {
         <button type="button" onClick={() => setSeasonKey(adjacentSeasonKey(seasonKey, 1))} className="rounded-full border border-[#ECECF2] bg-white px-3 py-1 text-[#C2772A]">次 →</button>
         <button type="button" onClick={() => load(seasonKey)} className="rounded-full border border-[#ECECF2] bg-white px-3 py-1 text-[#C2772A]">再読み込み</button>
         <button type="button" onClick={doBuild} disabled={busy} className="rounded-full border border-[#C2772A] bg-white px-3 py-1 text-[#C2772A] disabled:opacity-50">候補を更新</button>
+        <button type="button" onClick={doCollect} disabled={busy} className="rounded-full border border-[#C2772A] bg-[#FBF3E6] px-3 py-1 text-[#8A5518] disabled:opacity-50">公式サイトから候補を集める</button>
         <button type="button" onClick={exportJson} className="rounded-full border border-[#ECECF2] bg-white px-3 py-1 text-[#C2772A]">JSONエクスポート</button>
         <button type="button" onClick={publishAllConfirmed} disabled={busy} className="rounded-full bg-[#A8621F] px-3 py-1 text-white disabled:opacity-50">確認済みを公開</button>
         <button type="button" onClick={confirmAllWithSource} disabled={busy} className="rounded-full bg-[#3B6D11] px-3 py-1 text-white disabled:opacity-50">出典つき候補を一括で確認済み＋公開</button>
       </div>
 
       {msg && <p className="mt-3 rounded-xl bg-[#F6E9D5] px-3 py-2 text-xs font-bold text-[#8A5518]">{msg}</p>}
+
+      {/* 公式サイトからの収集：進み具合と、手作業に回す作品 */}
+      {collect && (
+        <section className="mt-3 rounded-2xl border border-[#ECECF2] bg-white p-4 text-xs">
+          <p className="font-bold text-[#1C1C2E]">
+            公式サイトから収集 {collect.running ? "中" : "完了"}：{collect.done} / {collect.total} 作品
+            {collect.running && collect.current ? `（${collect.current}）` : ""}
+          </p>
+          <div className="mt-2 h-2 overflow-hidden rounded-full bg-[#F1F1F5]">
+            <div
+              className="h-full rounded-full bg-[#A8621F]"
+              style={{ width: `${collect.total ? (collect.done / collect.total) * 100 : 0}%` }}
+            />
+          </div>
+          <p className="mt-2 text-[#6B7280]">
+            新規 {collect.added} 件／補完 {collect.updated} 件／根拠が確認できず除外 {collect.dropped} 件／利用料 約$
+            {collect.costUsd.toFixed(2)}
+          </p>
+          <p className="mt-1 text-[11px] text-[#6B7280]">
+            入った行はすべて「候補」です。出典（公式サイトのページと根拠の文）を確認してから公開してください。
+            Prime Video・Netflix は一括公開の対象外です。
+          </p>
+          {collect.failed.length > 0 && (
+            <details className="mt-2">
+              <summary className="cursor-pointer font-bold text-[#8A5518]">
+                読めなかった・情報が無かった作品 {collect.failed.length} 件（手作業で確認）
+              </summary>
+              <ul className="mt-1 space-y-1">
+                {collect.failed.map((f, i) => (
+                  <li key={i}>
+                    <a href={f.url} target="_blank" rel="noreferrer" className="font-bold text-[#8A5518] underline">
+                      {f.title}
+                    </a>
+                    <span className="ml-1 text-[#6B7280]">— {f.reason}</span>
+                  </li>
+                ))}
+              </ul>
+            </details>
+          )}
+        </section>
+      )}
 
       {/* 取り込み */}
       <details className="mt-4 rounded-2xl border border-[#ECECF2] bg-white p-4">
@@ -468,6 +622,18 @@ export default function AdminStreamingPage() {
                   </label>
                 </div>
 
+                {e.sourceLabel && e.sourceLabel !== "手動追加" && (
+                  <p className="mt-2 text-[11px] text-[#6B7280]">
+                    根拠：
+                    {e.sourceUrl ? (
+                      <a href={e.sourceUrl} target="_blank" rel="noreferrer" className="text-[#8A5518] underline">
+                        {e.sourceLabel}
+                      </a>
+                    ) : (
+                      e.sourceLabel
+                    )}
+                  </p>
+                )}
                 <div className="mt-2 flex flex-col gap-2 md:flex-row">
                   <input
                     type="url"

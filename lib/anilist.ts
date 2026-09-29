@@ -87,12 +87,12 @@ export async function anilistFetch(
     }
     if (res.status !== 429 && res.status !== 503) return res;
     if (i >= retries) return res;
-    // Retry-After（秒）があればそれに従う。無ければ倍々で待つ。
+    // Retry-After（秒）があればそれに従う（ページ生成の60秒制限に収まるよう最大25秒）。無ければ倍々で待つ。
     const after = Number(res.headers.get("retry-after"));
-    const ms = Number.isFinite(after) && after > 0 ? Math.min(after * 1000 + 500, 65000) : wait;
+    const ms = Number.isFinite(after) && after > 0 ? Math.min(after * 1000 + 500, 25000) : wait;
     cooldownUntil = Math.max(cooldownUntil, Date.now() + ms);
     await sleep(ms);
-    wait = Math.min(wait * 2, 30000);
+    wait = Math.min(wait * 2, 20000);
   }
 }
 

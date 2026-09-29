@@ -1,12 +1,21 @@
+import { cache } from "react";
 import { notFound } from "next/navigation";
 import Link from "next/link";
 import type { Metadata } from "next";
 import { getOsusume, listOsusumeSlugs, listOsusume, articleWorkIds, tocOf } from "@/lib/osusume";
 import Mascot from "@/components/Mascot";
-import { fetchWorkBriefs, fetchCovers, type WorkBrief } from "@/lib/anilist";
+import { fetchWorkBriefs, type WorkBrief } from "@/lib/anilist";
 import OsusumeThumb from "@/components/OsusumeThumb";
 
 export const revalidate = 3600;
+
+// 記事で使う作品の表紙・タイトル。generateMetadata（OGP画像）と本文で同じ結果を使い回し、
+// AniList への問い合わせを1記事1回に抑える（ビルド時のレート制限対策）
+const loadBriefs = cache(async (slug: string): Promise<Record<number, WorkBrief>> => {
+  const o = getOsusume(slug);
+  const need = o ? articleWorkIds(o) : [];
+  return need.length ? fetchWorkBriefs(need) : {};
+});
 
 export function generateStaticParams() {
   return listOsusumeSlugs().map((slug) => ({ slug }));
@@ -28,10 +37,7 @@ export async function generateMetadata({
   let image = o.heroImage ?? "";
   if (!image) {
     const first = articleWorkIds(o)[0];
-    if (first) {
-      const covers = await fetchCovers([first]).catch(() => ({}) as Record<number, string>);
-      image = covers[first] ?? "";
-    }
+    if (first) image = (await loadBriefs(slug))[first]?.cover ?? "";
   }
 
   return {
@@ -69,8 +75,7 @@ export default async function OsusumeDetail({
   if (!o) notFound();
 
   // サムネ背景・本文の作品カード・ランキングで使う表紙をまとめて取得
-  const need = articleWorkIds(o);
-  const briefs: Record<number, WorkBrief> = need.length ? await fetchWorkBriefs(need) : {};
+  const briefs = await loadBriefs(slug);
   const covers: Record<number, string> = {};
   for (const [id, b] of Object.entries(briefs)) covers[Number(id)] = b.cover;
   const others = listOsusume().filter((x) => x.slug !== slug).slice(0, 4);
