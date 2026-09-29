@@ -209,6 +209,40 @@ cd $env:USERPROFILE\dev\anime-notify-web
 - **`firestore.rules` は未デプロイ**。`cd ../anime_notify_app; firebase deploy --only firestore:rules`
   （このリポジトリでは `git add -A` 禁止。変更したファイルだけ stage）
 
+## 12-B. 2026-fall の配信データ収集（2026-09-29 時点の調査結果）
+
+**重要：dアニメストアの季節ページは、この時点では秋の新作ラインナップではない。**
+
+`animestore.docomo.ne.jp/animestore/CF/fall` は「2026 AUTUMN」と表示されるが、
+中身の73作品をAniListと突き合わせると：
+
+| dアニメ「2026秋」73作品 | 件数 |
+|---|---|
+| AniListで FALL 2026 | 1件 |
+| AniListで SUMMER 2026（7月開始） | 32件 |
+| 未一致 | 40件 |
+
+無職転生Ⅲ(7/4開始)・ヤニねこ(7/3)・株式会社マジルミエ 第2期(7/5)など、
+**7月開始の夏作品が並んでいる**（2クール作品が秋にまたがる分と思われる）。
+薬屋のひとりごと 第3期・ブラッククローバー 第2期・アオのハコ Season2 といった
+AniListが秋と判定する作品は**1本も無い**。ここを 2026-fall として取り込んではいけない。
+
+**U-NEXT には秋の新作が入っている。** `video.unext.jp/genre/anime` を
+スクロールしながら `a[href*="/title/SID"]` を集めると230件取れ、そのうち
+**SID03164xx 台が秋の新作**（薬屋3期=SID0316422 など）。
+AniList FALL 2026 と完全一致したのは13件で、CSVを `~/dev/2026-fall_u-next.csv` に出した。
+
+**ABEMA は未取得。** `/video/genre/animation` は31件しか返さずタイトルもバッジ文字列、
+`/video/genre/newarrival` は0件だった。番組表の slot ページ経由（§6のノウハウ）を試すか、
+ラインナップ公開後にやり直す。
+
+**再開のしかた**
+1. AniListの秋一覧は `Page(season: FALL, seasonYear: 2026, perPage:50)` を2ページ取れば94作品
+2. タイトル照合は表記ゆれ（ⅡとⅢ、第二期と第2期、2nd season、全角空白、記号）を正規化して
+   **完全一致だけ採用**する。部分一致で作品を決めない
+3. availability・開始日・更新曜日は**ページで確認できたものだけ**書く。
+   確認できなければ `unknown` と空欄のままにして、管理画面で手当てする
+
 ## 13. 作業上のコツ・過去の失敗
 
 - ビルド確認はユーザーの PC で `npm run build`。デプロイは
