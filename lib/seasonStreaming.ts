@@ -69,8 +69,28 @@ export async function getSeasonMeta(seasonKey: string): Promise<SeasonMeta | nul
 // 配信各社が新クールのラインナップを公開するのは開始の2〜3週間前なので、
 // 「シーズンが変わった瞬間にデータが揃っている」ことは構造的にありえない。
 // そこで、今期→1つ前→2つ前…と遡り、実際に公開データがある最新シーズンを選ぶ。
+//
+// 追加（2026-09-29）：来期の開始 LOOKAHEAD_DAYS 日前からは、来期に公開データがあれば来期を優先する。
+// 「◯年秋アニメ どこで見れる」が検索されるのは開始前の2〜3週間なので、
+// データを先に公開しても10月1日まで夏のままだった問題を解消する。
+const LOOKAHEAD_DAYS = 21;
+const SEASON_START_MONTH: Record<string, number> = { winter: 1, spring: 4, summer: 7, fall: 10 };
+
+function seasonStartMs(key: string): number | null {
+  const m = /^(\d{4})-(winter|spring|summer|fall)$/.exec(key);
+  if (!m) return null;
+  const mm = String(SEASON_START_MONTH[m[2]]).padStart(2, "0");
+  return new Date(`${m[1]}-${mm}-01T00:00:00+09:00`).getTime();
+}
+
 export async function latestSeasonKeyWithData(maxBack = 4): Promise<string> {
   const current = currentSeasonKey();
+  const next = adjacentSeasonKey(current, 1);
+  const nextStart = seasonStartMs(next);
+  if (nextStart !== null && Date.now() >= nextStart - LOOKAHEAD_DAYS * 86400000) {
+    const meta = await getSeasonMeta(next);
+    if (meta && meta.confirmedCount > 0) return next;
+  }
   let key = current;
   for (let i = 0; i <= maxBack; i++) {
     const meta = await getSeasonMeta(key);

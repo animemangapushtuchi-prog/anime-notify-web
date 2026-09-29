@@ -2,6 +2,7 @@ import type { MetadataRoute } from "next";
 import { listOsusume, articleWorkIds } from "@/lib/osusume";
 import { fetchPopularAroundNow } from "@/lib/anilist";
 import { getPublishedEntries, latestSeasonKeyWithData } from "@/lib/seasonStreaming";
+import { adjacentSeasonKey } from "@/lib/season";
 
 const BASE = "https://www.animiru.com";
 
@@ -43,18 +44,24 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const workIds = new Set<number>();
   try {
     const sk = await latestSeasonKeyWithData();
-    const entries = await getPublishedEntries(sk);
-    if (entries.length > 0) {
+    // 1つ前のシーズンも残す（季節が変わっても、前期アニメは1か月ほど検索され続けるため）
+    const seasons = [
+      { key: sk, main: true },
+      { key: adjacentSeasonKey(sk, -1), main: false },
+    ];
+    for (const { key: season, main } of seasons) {
+      const entries = await getPublishedEntries(season);
+      if (entries.length === 0) continue;
       streaming.push({
-        url: `${BASE}/streaming/${sk}`,
-        changeFrequency: "daily" as const,
-        priority: 0.9,
+        url: `${BASE}/streaming/${season}`,
+        changeFrequency: main ? ("daily" as const) : ("weekly" as const),
+        priority: main ? 0.9 : 0.6,
       });
       for (const key of [...new Set(entries.map((e) => e.serviceKey))]) {
         streaming.push({
-          url: `${BASE}/streaming/${sk}/${key}`,
+          url: `${BASE}/streaming/${season}/${key}`,
           changeFrequency: "weekly" as const,
-          priority: 0.7,
+          priority: main ? 0.7 : 0.5,
         });
       }
       for (const e of entries) workIds.add(e.anilistId);
