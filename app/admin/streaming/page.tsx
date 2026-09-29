@@ -137,7 +137,7 @@ export default function AdminStreamingPage() {
   };
 
   // 出典URLがある候補を、まとめて「確認済み＋公開」にする。
-  // Prime Video・Netflix は方針どおり対象外（必ず個別に人が確認する）。
+  // MANUAL_ONLY_SERVICES に入っているサービスは対象外（2026-09-29 以降は空＝全サービス対象）。
   const confirmAllWithSource = async () => {
     if (busy || !rows) return;
     const target = rows.filter(
@@ -159,7 +159,7 @@ export default function AdminStreamingPage() {
     if (
       !window.confirm(
         `出典URLがある候補 ${target.length} 件を「確認済み＋公開」にします。\n` +
-          (skipped ? `※Prime Video・Netflix の ${skipped} 件は対象外（個別に確認してください）\n` : "") +
+          (skipped ? `※個別確認が必要なサービスの ${skipped} 件は対象外です\n` : "") +
           "よろしいですか？"
       )
     )
@@ -176,7 +176,7 @@ export default function AdminStreamingPage() {
       await saveEntries(seasonKey, next);
       setMsg(
         `${target.length}件を確認済み＋公開にしました` +
-          (skipped ? `（Prime/Netflix ${skipped}件は個別対応）` : "")
+          (skipped ? `（個別確認のサービス ${skipped}件は対象外）` : "")
       );
       await load(seasonKey);
     } catch (err) {
@@ -424,7 +424,7 @@ export default function AdminStreamingPage() {
     <main className="mx-auto max-w-2xl px-4 py-6 lg:max-w-6xl lg:px-8">
       <h1 className="text-xl font-extrabold text-[#1C1C2E]">今期配信データ管理</h1>
       <p className="mt-1 text-[11px] text-[#6B7280]">
-        確認済み＋公開のものだけが一般ページに出ます。Prime Video・Netflix は必ず出典を見て手動で確認済みにしてください。
+        確認済み＋公開のものだけが一般ページに出ます。一括で公開する前に、各行の「根拠」を確認してください。
       </p>
 
       {/* シーズン切替 */}
@@ -460,7 +460,6 @@ export default function AdminStreamingPage() {
           </p>
           <p className="mt-1 text-[11px] text-[#6B7280]">
             入った行はすべて「候補」です。出典（公式サイトのページと根拠の文）を確認してから公開してください。
-            Prime Video・Netflix は一括公開の対象外です。
           </p>
           {collect.failed.length > 0 && (
             <details className="mt-2">

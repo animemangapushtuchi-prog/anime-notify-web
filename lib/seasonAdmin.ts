@@ -57,8 +57,10 @@ export type AdminEntry = {
 
 export const entryId = (anilistId: number, serviceKey: string) => `${anilistId}_${serviceKey}`;
 
-// 自動で confirmed にしてはいけないサービス（公式一覧が前提にできないため必ず人の確認を挟む）
-export const MANUAL_ONLY_SERVICES = ["prime-video", "netflix"];
+// 一括の「確認済み＋公開」から外すサービス。
+// 以前は Prime Video・Netflix を入れて必ず個別確認にしていたが、件数が多く手間なので
+// 2026-09-29 に運営者（シン）の判断で撤廃した。戻す場合は ["prime-video", "netflix"] に戻す。
+export const MANUAL_ONLY_SERVICES: string[] = [];
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 function toSec(v: any): number | null {

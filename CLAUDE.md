@@ -11,6 +11,7 @@
 - `git reset --hard` / `git checkout --` / ユーザー変更の巻き戻しは禁止
 - 別リポジトリ `../anime_notify_app`（Functions・firestore.rules）では `git add -A` 禁止
 - シークレット・管理者UID・キーをコミットしない
-- 配信情報を推測で書かない。Prime Video / Netflix は自動確定しない
+- 配信情報を推測で書かない（Prime Video / Netflix の一括公開除外は 2026-09-29 に運営者判断で撤廃）
+- お金がかかる仕組み（有料API・課金・新規アカウント）は、作る前に金額と理由を説明して了承を取る
 - ナビを追加するときは `components/Sidebar.tsx` と `components/BottomTabs.tsx` の両方
 - `scripts/*.ps1` は ASCII のみ

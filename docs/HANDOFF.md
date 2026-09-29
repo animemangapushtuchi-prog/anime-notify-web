@@ -38,7 +38,9 @@
 - `lib/login.ts`, `lib/works.ts` などはユーザー側でも編集されている。**差分があっても勝手に戻さない**
 - シークレット・管理者UID・APIキー・トークンをコミットしない（管理者UIDは Vercel の環境変数 `NEXT_PUBLIC_ADMIN_UIDS`）
 - 配信情報は**推測で書かない**（タイトルからサービスや日付を推測しない、偽リンクを作らない）
-- Prime Video / Netflix は候補から**一括で自動確定しない**（`MANUAL_ONLY_SERVICES`）
+- ~~Prime Video / Netflix は候補から一括で自動確定しない~~ → **2026-09-29 に運営者の判断で撤廃**（個別確認の件数が多く手間なため）。
+  `MANUAL_ONLY_SERVICES` は空配列。戻す場合は `["prime-video", "netflix"]` に戻す
+- お金がかかる仕組み（有料API・課金・新規アカウント）は、作る前に金額・理由・無料の代替案を説明して了承を取る
 - ログイン必須ページのスクレイピング、CAPTCHA回避、大量クロール、非公式APIの利用は禁止
 - 公式の説明文・画像を転載しない（表紙は AniList の画像を表示するのみ）
 
@@ -93,7 +95,7 @@ docs/HANDOFF.md            このファイル
 1. 「候補を更新」＝AniList＋しょぼカレから候補生成（全部 candidate）
 2. 出典URLを集めて CSV で「貼り付けて取り込む」
    形式: `anilistId,title,serviceKey,availability,firstDate,weeklyDay,weeklyTime,sourceUrl`
-3. 「出典つき候補を一括で確認済み＋公開」（Prime/Netflix は除外され個別対応）
+3. 「出典つき候補を一括で確認済み＋公開」（全サービス対象。各行の「根拠」をざっと確認してから押す）
 
 **公式サイトからの自動収集（2026-09-29 追加・無料）** — 管理画面の「公式サイトから候補を集める」
 - AniList の作品一覧から公式サイトURL（Official Site）を取り、1作品ずつ `/api/admin/official-candidates` に送る（管理者のIDトークンを検証してから動く）
@@ -106,7 +108,7 @@ docs/HANDOFF.md            このファイル
   - 除外：前シーズンの案内、特番・PV・一挙・YouTube などの行、シーズン期間外の日付の行、お知らせ欄の掲載日
   - 「dアニメストア for Prime Video」等の Prime Video チャンネルは Prime Video 本体として数えない
 - 根拠の文は各行の sourceLabel に「公式サイト：「…」」として残り、管理画面に表示される
-- 入るのは「候補」のみ。確認済みの行は空欄だけ補完。Prime/Netflix は従来どおり一括公開の対象外
+- 入るのは「候補」のみ。確認済みの行は空欄だけ補完
 - 実測（2026-09-29、秋76作品）: 69作品読めた／候補579行（61作品）／Prime Video 53作品／開始日付き78行。
   人が確認済みの U-NEXT 13作品のうち11作品で一致（外れ2件は、JSで描画するサイトと記載なし）
 - 以前の調査: AniList の配信リンクには dアニメ・ABEMA・U-NEXT が載らない（夏の正解データ108行中0行）、しょぼカレのネット配信枠は ABEMA 中心
