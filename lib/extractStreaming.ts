@@ -103,8 +103,16 @@ type Parsed = {
   time: string | null;
 };
 
+// 「12月31日(木)23時59分まで」のような終了日は、配信開始日ではないので読む前に消す
+const END_DATE =
+  /(20\d{2}\s*[年./]\s*)?\d{1,2}\s*[月./]\s*\d{1,2}\s*日?\s*([(（][日月火水木金土][)）])?\s*(\d{1,2}\s*[:時]\s*\d{0,2}\s*分?)?\s*まで/g;
+// 「…配信が決定! 2026.09.18」のように、お知らせ文の末尾にある日付は掲載日なので消す
+const ANNOUNCE = /決定|解禁|公開|発表|お知らせ|更新|告知/;
+const TRAILING_POST_DATE = /[\s!！。]\s*20\d{2}\s*[./]\s*\d{1,2}\s*[./]\s*\d{1,2}\s*$/;
+
 function parseSchedule(line: string): Parsed {
-  const t = line.normalize("NFKC");
+  let t = line.normalize("NFKC").replace(END_DATE, " ");
+  if (ANNOUNCE.test(t)) t = t.replace(TRAILING_POST_DATE, " ");
   let date: Parsed["date"] = null;
   const ymd = /(20\d{2})\s*[年./]\s*(\d{1,2})\s*[月./]\s*(\d{1,2})\s*日?/.exec(t);
   const md =
@@ -206,7 +214,8 @@ export function extractStreaming(opts: {
         sched = parseSchedule(line);
         const next = lines[i + 1];
         if (!sched.date && sched.weeklyDay === null && next && !SERVICES.some((s) => hasService(s, next))) {
-          const n = parseSchedule(next);
+          // 2行をつなげて読む（「…配信が決定!」の次の行が掲載日だけ、というお知らせ欄を見分けるため）
+          const n = parseSchedule(`${line} ${next}`);
           if (n.date || n.weeklyDay !== null) {
             sched = n;
             evidenceLine = `${line} ${next}`;
