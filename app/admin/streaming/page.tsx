@@ -61,8 +61,7 @@ export default function AdminStreamingPage() {
     current: string;
     added: number;
     updated: number;
-    dropped: number;
-    costUsd: number;
+    excluded: number;
     failed: { title: string; url: string; reason: string }[];
   } | null>(null);
 
@@ -263,7 +262,7 @@ export default function AdminStreamingPage() {
       if (
         !window.confirm(
           `${info.label}の ${works.length} 作品の公式サイトを読み、配信情報の候補を作ります。\n` +
-            "Claude API の利用料がかかります（終わったら実際の金額を表示します）。\n" +
+            "（料金はかかりません。入るのは「候補」だけで、公開はされません）\n" +
             "数分かかります。よろしいですか？"
         )
       )
@@ -276,13 +275,12 @@ export default function AdminStreamingPage() {
         current: "",
         added: 0,
         updated: 0,
-        dropped: 0,
-        costUsd: 0,
+        excluded: 0,
         failed: [] as { title: string; url: string; reason: string }[],
       };
       setCollect({ ...state });
 
-      // 同時に2作品ずつ処理する（公式サイト・APIに負荷をかけすぎない）
+      // 同時に2作品ずつ処理する（公式サイトに負荷をかけすぎない）
       let next = 0;
       const worker = async () => {
         while (next < works.length) {
@@ -300,13 +298,11 @@ export default function AdminStreamingPage() {
               status?: string;
               reason?: string;
               error?: string;
-              rows?: ImportRow[];
-              dropped?: number;
-              usage?: { costUsd: number } | null;
+              rows?: Omit<ImportRow, "coverImage">[];
+              excluded?: number;
             };
             if (!res.ok) throw new Error(json.error ?? `HTTP ${res.status}`);
-            state.costUsd += json.usage?.costUsd ?? 0;
-            state.dropped += json.dropped ?? 0;
+            state.excluded += json.excluded ?? 0;
             if (json.status !== "ok") {
               state.failed.push({ title: w.title, url: w.official, reason: json.reason ?? json.status ?? "" });
             } else if ((json.rows ?? []).length === 0) {
@@ -314,7 +310,7 @@ export default function AdminStreamingPage() {
             } else {
               const r = await applyImport(
                 seasonKey,
-                (json.rows ?? []).map((row) => ({ ...row, coverImage: row.coverImage || w.cover }))
+                (json.rows ?? []).map((row) => ({ ...row, coverImage: w.cover }))
               );
               state.added += r.added;
               state.updated += r.updated;
@@ -332,7 +328,7 @@ export default function AdminStreamingPage() {
       setCollect({ ...state });
       setMsg(
         `公式サイトからの収集が完了：新規${state.added}件／補完${state.updated}件` +
-          `（読めなかった作品 ${state.failed.length}件・利用料 約$${state.costUsd.toFixed(2)}）`
+          `（読めなかった・情報が無かった作品 ${state.failed.length}件）`
       );
       await load(seasonKey);
     } catch (err) {
@@ -460,8 +456,7 @@ export default function AdminStreamingPage() {
             />
           </div>
           <p className="mt-2 text-[#6B7280]">
-            新規 {collect.added} 件／補完 {collect.updated} 件／根拠が確認できず除外 {collect.dropped} 件／利用料 約$
-            {collect.costUsd.toFixed(2)}
+            新規 {collect.added} 件／補完 {collect.updated} 件／特番・前シーズンなどで除外 {collect.excluded} 件
           </p>
           <p className="mt-1 text-[11px] text-[#6B7280]">
             入った行はすべて「候補」です。出典（公式サイトのページと根拠の文）を確認してから公開してください。

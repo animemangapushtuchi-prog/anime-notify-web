@@ -95,14 +95,20 @@ docs/HANDOFF.md            このファイル
    形式: `anilistId,title,serviceKey,availability,firstDate,weeklyDay,weeklyTime,sourceUrl`
 3. 「出典つき候補を一括で確認済み＋公開」（Prime/Netflix は除外され個別対応）
 
-**公式サイトからの自動収集（2026-09-29 追加）** — 管理画面の「公式サイトから候補を集める」
-- AniList の作品一覧から公式サイトURL（Official Site）を取り、1作品ずつ `/api/admin/official-candidates` に送る
-- サーバーが公式サイトのトップ＋放送/配信ページ（最大3ページ）を読み（`lib/officialSite.ts`、robots.txt 準拠・`AnimiruBot` を名乗る）、
-  Claude（`claude-opus-5-5`、`lib/extractStreaming.ts`）がサービス・開始日・曜日・時刻を抜き出す
-- **根拠の文がページに実在しない行は機械的に捨てる**（推測防止）。根拠は各行の sourceLabel に「公式サイト：「…」」として残り、管理画面に表示される
+**公式サイトからの自動収集（2026-09-29 追加・無料）** — 管理画面の「公式サイトから候補を集める」
+- AniList の作品一覧から公式サイトURL（Official Site）を取り、1作品ずつ `/api/admin/official-candidates` に送る（管理者のIDトークンを検証してから動く）
+- サーバーが公式サイトのトップ＋放送/配信ページ（最大3ページ）を読む（`lib/officialSite.ts`、robots.txt 準拠・`AnimiruBot` を名乗る）
+- **AI・有料APIは使わない**（ユーザー方針：お金がかかる仕組みは事前に説明と了承が必要。無断で有料サービスを前提にしない）。
+  `lib/extractStreaming.ts` が決まったパターンで読む：
+  - サービスはページに名前がある行だけ。1行に複数サービスが並ぶ行は日付を付けない（どれの日付か断定できないため）
+  - 日付・曜日・時刻は、サービスが1つだけの行（または直後の行）に書かれているときだけ。曜日は「毎週」と明記時のみ
+  - 「木曜深夜0時30分」→ 曜日=木・時刻=24:30（放送の慣習）
+  - 除外：前シーズンの案内、特番・PV・一挙・YouTube などの行、シーズン期間外の日付の行、お知らせ欄の掲載日
+  - 「dアニメストア for Prime Video」等の Prime Video チャンネルは Prime Video 本体として数えない
+- 根拠の文は各行の sourceLabel に「公式サイト：「…」」として残り、管理画面に表示される
 - 入るのは「候補」のみ。確認済みの行は空欄だけ補完。Prime/Netflix は従来どおり一括公開の対象外
-- 必要な環境変数: `ANTHROPIC_API_KEY`（Vercel）。API は管理者のIDトークンを検証してから動く
-- 実測（2026-09-29、秋16作品で読み取りのみ試験）: 14作品読めた／Prime Video は12作品のページに記載。JSで描画するサイト（例: 薬屋のひとりごと）は読めず「手作業で確認」一覧に出る
+- 実測（2026-09-29、秋76作品）: 69作品読めた／候補579行（61作品）／Prime Video 53作品／開始日付き78行。
+  人が確認済みの U-NEXT 13作品のうち11作品で一致（外れ2件は、JSで描画するサイトと記載なし）
 - 以前の調査: AniList の配信リンクには dアニメ・ABEMA・U-NEXT が載らない（夏の正解データ108行中0行）、しょぼカレのネット配信枠は ABEMA 中心
 
 **季節の切り替え**: `/streaming` とサイトマップは `latestSeasonKeyWithData()` で
