@@ -4,6 +4,7 @@
 import {
   collection,
   deleteDoc,
+  deleteField,
   doc,
   getDoc,
   getDocs,
@@ -198,10 +199,39 @@ export async function saveEntries(seasonKey: string, list: AdminEntry[]): Promis
   await refreshSeasonMeta(seasonKey);
 }
 
-// 公開件数などの親メタを更新（公開ページの「最終確認日」に使う）
-export async function refreshSeasonMeta(seasonKey: string): Promise<void> {
+// Firestore の1文書は最大1MB。まとめがこれを超えそうなら、まとめは作らず従来の全件読みに任せる
+const PACK_LIMIT_BYTES = 900_000;
+
+// 公開件数などの親メタを更新（公開ページの「最終確認日」に使う）。
+// あわせて、公開エントリー全件を親文書の entries 配列にまとめて書く。
+// 表示側（作品ページ・配信一覧・トップ）はこの1文書を読むだけで済む（読み取り回数の節約）。
+// この関数は公開・保存のたびに呼ばれるので、まとめは常に公開データと一致する。
+export async function refreshSeasonMeta(
+  seasonKey: string,
+  opts: { touchPublishedAt?: boolean } = {}
+): Promise<void> {
   const info = seasonInfo(seasonKey);
   const pub = await getDocs(collection(db, "seasonStreamingPublic", seasonKey, "entries"));
+  const entries = pub.docs.map((s) => {
+    const d = s.data();
+    return {
+      id: s.id,
+      anilistId: d.anilistId,
+      title: d.title ?? "",
+      coverImage: d.coverImage ?? "",
+      serviceKey: d.serviceKey,
+      serviceName: d.serviceName ?? "",
+      availability: d.availability ?? "unknown",
+      firstAvailableAt: toSec(d.firstAvailableAt),
+      weeklyDay: typeof d.weeklyDay === "number" ? d.weeklyDay : null,
+      weeklyTime: typeof d.weeklyTime === "string" ? d.weeklyTime : null,
+      isExclusive: d.isExclusive === true,
+      isFastest: d.isFastest === true,
+      sourceUrl: d.sourceUrl ?? "",
+      sourceCheckedAt: toSec(d.sourceCheckedAt),
+    };
+  });
+  const fits = JSON.stringify(entries).length < PACK_LIMIT_BYTES;
   await setDoc(
     doc(db, "seasonStreamingPublic", seasonKey),
     {
@@ -210,11 +240,24 @@ export async function refreshSeasonMeta(seasonKey: string): Promise<void> {
       season: info.season,
       label: info.label,
       confirmedCount: pub.size,
-      lastPublishedAt: serverTimestamp(),
+      entries: fits ? entries : deleteField(),
+      entriesPackedAt: serverTimestamp(),
+      // まとめを作り直すだけのときは「最終確認日」を動かさない
+      ...(opts.touchPublishedAt === false ? {} : { lastPublishedAt: serverTimestamp() }),
       updatedAt: serverTimestamp(),
     },
     { merge: true }
   );
+}
+
+// まとめがまだ無いシーズン（この仕組みより前に公開したデータ）について、まとめだけを作る。
+// 管理画面を開いたときに呼ぶ。公開内容と「最終確認日」は変えない。
+export async function ensureSeasonSummary(seasonKey: string): Promise<boolean> {
+  const meta = await getDoc(doc(db, "seasonStreamingPublic", seasonKey));
+  if (!meta.exists()) return false;
+  if (Array.isArray(meta.data()?.entries)) return false;
+  await refreshSeasonMeta(seasonKey, { touchPublishedAt: false });
+  return true;
 }
 
 // 取り込み（貼り付け）。既存の confirmed / rejected / メモ / 公開設定は壊さない。

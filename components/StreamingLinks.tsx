@@ -4,6 +4,10 @@
 // AniListの配信リンクと、しょぼいカレンダー由来のネット配信枠(cache/streamSchedule)を
 // 正規化サービスキーで統合して表示する。配信日時は番組表に根拠がある場合のみ表示（推測しない）。
 // 契約中サービスは先頭＋バッジ。未ログイン・未設定・取得失敗時は従来どおりの一覧。
+//
+// 管理画面で確認済みの配信情報（confirmed）は、作品ページ（サーバー側）で読んで props で受け取る。
+// 以前はここ（ブラウザ側）で今期の全件を読んでいたため、Googleに届くHTMLに配信情報が入らず、
+// しかも1回の表示で数百回の Firestore 読み取りが発生していた。
 import { useEffect, useState } from "react";
 import { useAuth } from "@/lib/auth";
 import { getUserPrefs } from "@/lib/subscriptions";
@@ -17,7 +21,7 @@ import {
 import ServiceIcon from "@/components/ServiceIcon";
 import Link from "next/link";
 import { currentSeasonKey, seasonInfo } from "@/lib/season";
-import { getPublishedEntries, AVAILABILITY_JA, weeklyLabel, type PublicEntry } from "@/lib/seasonStreaming";
+import { AVAILABILITY_JA, weeklyLabel, type PublicEntry } from "@/lib/seasonStreaming";
 
 type Item = { name: string; url: string };
 const CONTACT = "animemangapushtuchi@gmail.com";
@@ -34,30 +38,20 @@ export default function StreamingLinks({
   items,
   title,
   workId,
+  confirmed,
+  seasonKey,
 }: {
   items: Item[];
   title: string;
   workId: number;
+  confirmed: PublicEntry[]; // 管理画面で確認済みの配信情報（この作品ぶん。サーバーで取得済み）
+  seasonKey?: string; // 「配信サービス別一覧」リンク先のシーズン（無ければ今期）
 }) {
   const { user } = useAuth();
   const [subKeys, setSubKeys] = useState<string[]>([]);
   const [merged, setMerged] = useState<MergedStream[] | null>(null);
   const [updatedAt, setUpdatedAt] = useState<Date | null>(null);
-  // 管理画面で確認済みになった今期配信データ（この作品ぶんだけ）
-  const [confirmed, setConfirmed] = useState<PublicEntry[]>([]);
-  const season = seasonInfo(currentSeasonKey());
-
-  useEffect(() => {
-    let alive = true;
-    getPublishedEntries(season.key)
-      .then((all) => {
-        if (alive) setConfirmed(all.filter((e) => e.anilistId === workId));
-      })
-      .catch(() => {});
-    return () => {
-      alive = false;
-    };
-  }, [season.key, workId]);
+  const season = seasonInfo(seasonKey ?? currentSeasonKey());
 
   useEffect(() => {
     let alive = true;
@@ -190,7 +184,7 @@ export default function StreamingLinks({
         </>
       )}
       <p className="mt-2 text-[10px] text-[#6B7280]">
-        出典：AniList／しょぼいカレンダー
+        出典：{confirmed.length > 0 ? "作品公式サイト・各配信サービス（確認済み）／" : ""}AniList／しょぼいカレンダー
         {updatedAt
           ? `　配信情報の最終更新：${updatedAt.getMonth() + 1}/${updatedAt.getDate()} ${String(updatedAt.getHours()).padStart(2, "0")}:${String(updatedAt.getMinutes()).padStart(2, "0")}`
           : ""}

@@ -2,6 +2,8 @@ import { cache } from "react";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import type { Metadata } from "next";
+import { getWorkEntries, seasonKeyFromLabel, type PublicEntry } from "@/lib/seasonStreaming";
+import { currentSeasonKey, adjacentSeasonKey } from "@/lib/season";
 import { fetchAnimeDetail, genreJa, type AnimeDetail } from "@/lib/anilist";
 import { fetchWikipediaJa } from "@/lib/wikipedia";
 import Trailer from "@/components/Trailer";
@@ -32,16 +34,32 @@ const load = cache(
   }
 );
 
+// 管理画面で確認済みの配信情報（この作品ぶん）。サーバー側で読んでHTMLに含める。
+// 作品自身のシーズン＋今期の前後を見るので、公開直後の来期作品や、季節が変わった後の前期作品も表示される。
+// 各シーズンの公開データは1文書にまとまっているので、読み取りはシーズンごとに1回（最大4回）。
+const loadConfirmed = cache(async (id: number, seasonLabelJa: string): Promise<PublicEntry[]> => {
+  const now = currentSeasonKey();
+  return getWorkEntries(id, [
+    seasonKeyFromLabel(seasonLabelJa) ?? "",
+    now,
+    adjacentSeasonKey(now, -1),
+    adjacentSeasonKey(now, 1),
+  ]).catch(() => []);
+});
+
 // 検索結果に出る説明文を作る。
 // Wikipediaの導入部は「その作品の記事だと確認できたときだけ」使う（lib/wikipedia.ts で照合済み）。
 // 取れなかった場合でも空にせず、サイトが持っている情報から説明文を組み立てる。
-function buildDescription(d: AnimeDetail, wikiExtract?: string): string {
+function buildDescription(d: AnimeDetail, wikiExtract?: string, confirmedNames: string[] = []): string {
   const facts: string[] = [];
   if (d.seasonLabel) facts.push(d.seasonLabel);
   if (d.type) facts.push(d.type);
   if (d.studios?.length) facts.push(`${d.studios.slice(0, 2).join("・")}制作`);
 
-  const services = (d.streaming ?? []).map((s) => s.name).filter(Boolean);
+  // 管理画面で確認済みの国内配信サービスを優先（AniListは海外配信が中心のため）
+  const services = [
+    ...new Set([...confirmedNames, ...(d.streaming ?? []).map((s) => s.name)].filter(Boolean)),
+  ];
   const head = `「${d.title}」の配信・放送情報。`;
   const factLine = facts.length ? `${facts.join("／")}。` : "";
   const svcLine = services.length
@@ -66,8 +84,13 @@ export async function generateMetadata({
   const r = await load(id);
   if (!r) return { title: "作品が見つかりません｜アニミル！" };
   const { d, wiki } = r;
+  const confirmed = await loadConfirmed(d.id, d.seasonLabel);
   // 照合できたWikipedia本文だけを足す。AniListのsynopsisは英語やHTMLが混ざるので使わない。
-  const desc = buildDescription(d, wiki?.extract || "");
+  const desc = buildDescription(
+    d,
+    wiki?.extract || "",
+    confirmed.map((c) => c.serviceName)
+  );
   // 「作品名 配信」「作品名 どこで見れる」で探している人に届く形にする
   const pageTitle = `${d.title}はどこで見れる？配信・放送情報｜アニミル！`;
   return {
@@ -93,6 +116,7 @@ export default async function WorkPage({
   const r = await load(id);
   if (!r) notFound();
   const { d, wiki } = r;
+  const confirmed = await loadConfirmed(d.id, d.seasonLabel);
 
   const meta = [
     d.seasonLabel,
@@ -199,13 +223,21 @@ export default async function WorkPage({
         fallbackEp={d.nextEpisode ?? null}
       />
 
-      {/* ネット配信はテレビ放送と混ぜない。AniListと番組表(配信枠)の統合はクライアント側で行う */}
+      {/* ネット配信はテレビ放送と混ぜない。
+          確認済みデータはサーバーで読んで渡す（HTMLに入る）。番組表(配信枠)の統合だけクライアント側で行う */}
       <section className={`${CARD} mt-4 border-[#F3D9A9] bg-[#FBF3E6]`}>
         <h2 className={CARD_TITLE}>▶ ネット配信</h2>
+        {confirmed.length > 0 && (
+          <p className="mt-1 text-sm leading-relaxed text-[#1C1C2E]">
+            「{d.title}」は、{confirmed.map((c) => c.serviceName).join("・")}で配信されています。
+          </p>
+        )}
         <StreamingLinks
           items={d.streaming.map((s) => ({ name: s.name, url: s.url }))}
           title={d.title}
           workId={d.id}
+          confirmed={confirmed}
+          seasonKey={seasonKeyFromLabel(d.seasonLabel) ?? undefined}
         />
       </section>
 

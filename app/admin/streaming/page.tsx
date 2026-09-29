@@ -15,6 +15,7 @@ import {
   isAdminUid,
   adminConfigured,
   MANUAL_ONLY_SERVICES,
+  ensureSeasonSummary,
   type AdminEntry,
   type EntryStatus,
 } from "@/lib/seasonAdmin";
@@ -72,6 +73,10 @@ export default function AdminStreamingPage() {
     setRows(null);
     try {
       setRows(await listAdminEntries(key));
+      // 公開データのまとめ（表示側の読み取り1回化）がまだ無いシーズンなら作っておく
+      ensureSeasonSummary(key)
+        .then((made) => made && setMsg(`${seasonInfo(key).label}の公開データをまとめました（表示の高速化）`))
+        .catch(() => {});
     } catch {
       setRows([]);
       setMsg("読み込みに失敗しました（権限またはネットワークをご確認ください）");

@@ -81,38 +81,80 @@ export async function latestSeasonKeyWithData(maxBack = 4): Promise<string> {
   return current;
 }
 
-// 公開エントリー（＝confirmed & published のみが書かれている想定）を全件取得
+function toEntry(id: string, d: any): PublicEntry | null {
+  if (!d || typeof d.anilistId !== "number" || !d.serviceKey) return null;
+  return {
+    id,
+    anilistId: d.anilistId,
+    title: String(d.title ?? ""),
+    coverImage: String(d.coverImage ?? ""),
+    serviceKey: String(d.serviceKey),
+    serviceName: String(d.serviceName ?? ""),
+    availability: (d.availability ?? "unknown") as Availability,
+    firstAvailableAt: toSec(d.firstAvailableAt),
+    weeklyDay: typeof d.weeklyDay === "number" ? d.weeklyDay : null,
+    weeklyTime: typeof d.weeklyTime === "string" ? d.weeklyTime : null,
+    isExclusive: d.isExclusive === true,
+    isFastest: d.isFastest === true,
+    sourceUrl: String(d.sourceUrl ?? ""),
+    sourceCheckedAt: toSec(d.sourceCheckedAt),
+  };
+}
+
+// 公開エントリー（＝confirmed & published のみ）を全件取得。
+//
+// 読み取り回数の節約：以前は entries コレクションを毎回全件読んでいた（秋は581件＝1回の表示で581回の読み取り。
+// Firestore の無料枠は1日5万回なので、アクセスが増えると課金が始まる作りだった）。
+// 今は公開時に親文書 seasonStreamingPublic/{seasonKey} の entries 配列へ全件をまとめて書いているので、
+// それを1回読むだけで済む。まとめが無い古いデータのときだけ、従来どおりコレクションを読む。
 export async function getPublishedEntries(seasonKey: string): Promise<PublicEntry[]> {
   try {
-    const col = collection(db, "seasonStreamingPublic", seasonKey, "entries");
-    const snap = await getDocs(col);
-    const out: PublicEntry[] = [];
-    for (const s of snap.docs) {
-      const d = s.data() as any;
-      if (!d || typeof d.anilistId !== "number" || !d.serviceKey) continue;
-      out.push({
-        id: s.id,
-        anilistId: d.anilistId,
-        title: String(d.title ?? ""),
-        coverImage: String(d.coverImage ?? ""),
-        serviceKey: String(d.serviceKey),
-        serviceName: String(d.serviceName ?? ""),
-        availability: (d.availability ?? "unknown") as Availability,
-        firstAvailableAt: toSec(d.firstAvailableAt),
-        weeklyDay: typeof d.weeklyDay === "number" ? d.weeklyDay : null,
-        weeklyTime: typeof d.weeklyTime === "string" ? d.weeklyTime : null,
-        isExclusive: d.isExclusive === true,
-        isFastest: d.isFastest === true,
-        sourceUrl: String(d.sourceUrl ?? ""),
-        sourceCheckedAt: toSec(d.sourceCheckedAt),
-      });
+    const meta = await getDoc(doc(db, "seasonStreamingPublic", seasonKey));
+    const packed = meta.exists() ? (meta.data() as any)?.entries : undefined;
+    if (Array.isArray(packed)) {
+      return packed
+        .map((e: any) => toEntry(String(e?.id ?? ""), e))
+        .filter((e): e is PublicEntry => e !== null);
     }
-    return out;
+    const snap = await getDocs(collection(db, "seasonStreamingPublic", seasonKey, "entries"));
+    return snap.docs
+      .map((s) => toEntry(s.id, s.data()))
+      .filter((e): e is PublicEntry => e !== null);
   } catch {
     return [];
   }
 }
 /* eslint-enable @typescript-eslint/no-explicit-any */
+
+// 「2026年秋」→ "2026-fall"（AniList の seasonLabel から作品のシーズンを割り出す）
+export function seasonKeyFromLabel(label: string): string | null {
+  const m = /(\d{4})年(春|夏|秋|冬)/.exec(label || "");
+  if (!m) return null;
+  const s: Record<string, string> = { 春: "spring", 夏: "summer", 秋: "fall", 冬: "winter" };
+  return `${m[1]}-${s[m[2]]}`;
+}
+
+// 1作品ぶんの確認済み配信情報。
+// 作品ページは「今期」だけでなく、作品自身のシーズンと前後のシーズンも見る
+// （公開直後の来期作品や、季節が変わった後の前期作品も表示できるように）。
+// 同じサービスが複数シーズンにある場合（2クール作品など）は新しいシーズンを優先する。
+export async function getWorkEntries(anilistId: number, seasonKeys: string[]): Promise<PublicEntry[]> {
+  const keys = [...new Set(seasonKeys.filter(Boolean))];
+  const lists = await Promise.all(keys.map((k) => getPublishedEntries(k).then((l) => ({ k, l }))));
+  const order = ["winter", "spring", "summer", "fall"];
+  const rank = (k: string) => {
+    const [y, s] = k.split("-");
+    return Number(y) * 10 + order.indexOf(s);
+  };
+  lists.sort((a, b) => rank(b.k) - rank(a.k));
+  const out = new Map<string, PublicEntry>();
+  for (const { l } of lists) {
+    for (const e of l) {
+      if (e.anilistId === anilistId && !out.has(e.serviceKey)) out.set(e.serviceKey, e);
+    }
+  }
+  return [...out.values()];
+}
 
 export const AVAILABILITY_JA: Record<Availability, string> = {
   included: "見放題",

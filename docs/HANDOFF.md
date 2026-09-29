@@ -90,6 +90,13 @@ docs/HANDOFF.md            このファイル
 - 公開: `seasonStreamingPublic/{seasonKey}`（メタ）＋ `/entries/{anilistId}_{serviceKey}`
   → `confirmed` かつ `published` のものだけが書かれる。誰でも read 可
 - 管理: `seasonStreamingAdmin/{seasonKey}/entries/...`（candidate / rejected / メモ含む）。管理者のみ
+- **まとめ文書（2026-09-29〜）**: 公開・保存のたびに `refreshSeasonMeta()` が公開エントリー全件を
+  親文書 `seasonStreamingPublic/{seasonKey}` の `entries` 配列にまとめて書く。表示側（`getPublishedEntries`）はこれを1回読むだけ。
+  以前は表示のたびにコレクションを全件読み、秋は1回の表示で581回の読み取りになっていた（Firestore 無料枠は1日5万回）。
+  まとめが無いシーズンは管理画面を開くと自動で作られる（`ensureSeasonSummary`、公開内容と最終確認日は変えない）。
+  1MB 制限に近づいたらまとめを作らず従来の全件読みに戻る
+- **作品ページ**: 確認済み配信情報はサーバー側で読んでHTMLに入れる（`getWorkEntries`：作品自身のシーズン＋今期の前後）。
+  以前はブラウザ側で「今期」だけ読んでいたため、Googleに配信情報が見えず、来期・前期の作品では表示されなかった
 
 **運用フロー**（管理画面 `/admin/streaming`）
 1. 「候補を更新」＝AniList＋しょぼカレから候補生成（全部 candidate）
