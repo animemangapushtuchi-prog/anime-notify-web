@@ -719,6 +719,8 @@ function studioTerm(q: string): string {
   return t;
 }
 
+// ここから下は AniList の生の応答（形が決まっていないJSON）を扱うので any を許可する
+/* eslint-disable @typescript-eslint/no-explicit-any */
 async function anilistData(
   query: string,
   variables: Record<string, unknown>,

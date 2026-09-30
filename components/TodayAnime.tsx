@@ -1,6 +1,7 @@
 "use client";
 
 // 登録作品のうち、今日放送される作品をカレンダー上部にまとめて表示する。
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import type { AiringEntry } from "@/components/ScheduleCalendar";
 
@@ -62,7 +63,12 @@ export default function TodayAnime({
   entries: AiringEntry[];
   loading: boolean;
 }) {
-  const now = Math.floor(Date.now() / 1000);
+  // 現在時刻は1分ごとに更新する（「あと◯分」の表示を、開いたままでも進めるため）
+  const [now, setNow] = useState(() => Math.floor(Date.now() / 1000));
+  useEffect(() => {
+    const t = setInterval(() => setNow(Math.floor(Date.now() / 1000)), 60_000);
+    return () => clearInterval(t);
+  }, []);
   const today = dateKey(now);
   const future = entries.filter((entry) => entry.at >= now).sort((a, b) => a.at - b.at);
   const todayEntries = future.filter((entry) => dateKey(entry.at) === today);

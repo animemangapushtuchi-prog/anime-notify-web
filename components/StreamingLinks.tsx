@@ -181,6 +181,11 @@ export default function StreamingLinks({
               );
             })}
           </ul>
+          {confirmedOf("prime-video")?.availability === "unknown" && (
+            <p className="mt-2 text-[10px] leading-relaxed text-[#6B7280]">
+              Prime Videoは、見放題か、1話ごとに料金がかかるレンタルかを確認できていません。見る前にPrime Videoでご確認ください。
+            </p>
+          )}
         </>
       )}
       <p className="mt-2 text-[10px] text-[#6B7280]">

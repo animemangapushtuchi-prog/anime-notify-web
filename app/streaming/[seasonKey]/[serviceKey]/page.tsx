@@ -66,6 +66,13 @@ export default async function ServiceStreamingPage({ params }: Props) {
       <p className="mt-1 text-[11px] text-black/40">
         確認済みの情報を掲載しています。配信状況は変更される場合があります。
       </p>
+      {serviceKey === "prime-video" && entries.length > 0 && (
+        <p className="mt-3 rounded-xl border border-[#F6E9D5] bg-[#FBF3E6] px-3 py-2 text-xs leading-relaxed text-[#1C1C2E]">
+          Prime Videoには、会員なら追加料金なしで見られる「見放題」と、1話ごとに料金がかかる「レンタル・購入」があります。
+          「見放題」「レンタル」の表示が無い作品は、公式サイトにどちらか書かれていなかったものです。
+          見る前にPrime Videoで作品名を検索して確認してください。
+        </p>
+      )}
 
       <div className="mt-3">
         <Link href={`/streaming/${info.key}`} className="text-xs font-bold text-[#8A5518] hover:underline">
@@ -82,7 +89,7 @@ export default async function ServiceStreamingPage({ params }: Props) {
         <StreamingList entries={entries} lockedServiceKey={serviceKey} />
       )}
 
-      <p className="mt-8 text-[10px] text-black/40">出典：{name}公式・AniList</p>
+      <p className="mt-8 text-[10px] text-black/40">出典：各作品の公式サイト・{name}公式・AniList</p>
       {meta?.lastPublishedAt ? null : null}
     </main>
   );
