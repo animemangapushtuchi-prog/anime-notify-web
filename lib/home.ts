@@ -1,6 +1,6 @@
 // ホーム用データ：監視キャッシュ(cache/watchedWorks)＋番組表(cache/tvSchedule)を読み、
 // 登録作品の「次の予定」「放送局」「配信サービス」を補完する（旧Flutter版のHomeData相当）。
-import { doc, getDoc } from "firebase/firestore";
+import { doc, getDoc } from "firebase/firestore/lite";
 import { db } from "@/lib/firebase";
 import { isHiddenService, svcRank } from "@/lib/anilist";
 import { getUserPrefs } from "@/lib/subscriptions";

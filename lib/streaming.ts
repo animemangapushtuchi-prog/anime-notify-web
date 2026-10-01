@@ -1,6 +1,6 @@
 // 配信サービスの正規化と、しょぼいカレンダー由来のネット配信キャッシュ(cache/streamSchedule)の利用。
 // Functions側の functions/lib/streaming.js と同じ正規化ルールを使う。
-import { doc, getDoc } from "firebase/firestore";
+import { doc, getDoc } from "firebase/firestore/lite";
 import { db } from "@/lib/firebase";
 import { isHiddenService } from "@/lib/anilist";
 import { normTitle } from "@/lib/home";

@@ -1,7 +1,7 @@
 // 今期配信一覧の「公開用」共有データを読む。書き込みは管理者（認証済みサーバー処理）側のみ。
 // 公開データ: seasonStreamingPublic/{seasonKey}（親メタ） / .../entries/{entryId}
 // ※ candidate・rejected・管理メモ等は seasonStreamingAdmin 側に置き、公開側へはコピーしない。
-import { collection, doc, getDoc, getDocs } from "firebase/firestore";
+import { collection, doc, getDoc, getDocs } from "firebase/firestore/lite";
 import { db } from "@/lib/firebase";
 import { currentSeasonKey, adjacentSeasonKey } from "@/lib/season";
 

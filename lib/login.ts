@@ -1,7 +1,7 @@
 // ログインボーナス：累計ログイン日数(JST)を users/{uid}.login に記録し、登録枠の上限を算出する。
 // 途切れてもリセットしない（優しい方式）。初日=+0、2日目以降1日ごとに+1、最大 MAX_BONUS_SLOTS(5)。
 // メール認証済み（member/legacy）だけが対象。ゲスト・メール確認待ちでは呼ばないこと。
-import { doc, runTransaction, serverTimestamp } from "firebase/firestore";
+import { doc, runTransaction, serverTimestamp } from "firebase/firestore/lite";
 import { db } from "@/lib/firebase";
 import { slotCap, slotBonus, MAX_BONUS_SLOTS, MEMBER_BASE_SLOTS } from "@/lib/works";
 

@@ -4,7 +4,7 @@
 // 回答済みフラグは端末のlocalStorageのみ。
 import { useState, type FormEvent } from "react";
 import Link from "next/link";
-import { addDoc, collection, serverTimestamp } from "firebase/firestore";
+import { addDoc, collection, serverTimestamp } from "firebase/firestore/lite";
 import { db } from "@/lib/firebase";
 
 const RADIOS = {
@@ -30,8 +30,8 @@ function RadioRow({
   onChange: (v: string) => void;
 }) {
   return (
-    <div className="rounded-2xl border border-[#ECECF2] bg-white p-4">
-      <p className="text-sm font-bold text-[#1C1C2E]">{q}</p>
+    <div className="rounded-2xl border border-[#ECE5DA] bg-white p-4">
+      <p className="text-sm font-bold text-[#1A1523]">{q}</p>
       <div className="mt-2 flex flex-wrap gap-2">
         {opts.map((o) => (
           <button
@@ -92,7 +92,7 @@ export default function SurveyPage() {
     return (
       <main className="mx-auto max-w-md px-4 py-16 text-center">
         <p className="text-2xl">🙏</p>
-        <p className="mt-2 text-lg font-extrabold text-[#1C1C2E]">ご協力ありがとうございました！</p>
+        <p className="mt-2 text-lg font-extrabold text-[#1A1523]">ご協力ありがとうございました！</p>
         <p className="mt-1 text-sm text-black/60">いただいた感想は次の改善に活かします。</p>
         <Link href="/" className="mt-5 inline-block rounded-full bg-[#A8621F] px-5 py-2.5 text-sm font-bold text-white">
           ホームへ
@@ -103,7 +103,7 @@ export default function SurveyPage() {
 
   return (
     <main className="mx-auto max-w-md px-4 py-6">
-      <h1 className="text-2xl font-extrabold text-[#1C1C2E]">📝 ベータ版アンケート</h1>
+      <h1 className="text-[28px] font-black leading-tight text-ink lg:text-[34px]">ベータ版アンケート</h1>
       <p className="mt-1 text-sm text-black/60">匿名・1分で終わります。感想が次のアップデートに直結します。</p>
 
       <form onSubmit={submit} className="mt-4 space-y-3">
@@ -111,8 +111,8 @@ export default function SurveyPage() {
           <RadioRow key={k} name={k} q={v.q} opts={[...v.opts]} value={ans[k] ?? ""} onChange={(x) => set(k, x)} />
         ))}
 
-        <div className="rounded-2xl border border-[#ECECF2] bg-white p-4">
-          <p className="text-sm font-bold text-[#1C1C2E]">よく使う機能は？（複数可）</p>
+        <div className="rounded-2xl border border-[#ECE5DA] bg-white p-4">
+          <p className="text-sm font-bold text-[#1A1523]">よく使う機能は？（複数可）</p>
           <div className="mt-2 flex flex-wrap gap-2">
             {FEATURES.map((f) => (
               <button
@@ -129,24 +129,24 @@ export default function SurveyPage() {
           </div>
         </div>
 
-        <div className="rounded-2xl border border-[#ECECF2] bg-white p-4">
-          <p className="text-sm font-bold text-[#1C1C2E]">困ったこと・不具合があれば</p>
+        <div className="rounded-2xl border border-[#ECE5DA] bg-white p-4">
+          <p className="text-sm font-bold text-[#1A1523]">困ったこと・不具合があれば</p>
           <textarea
             value={trouble}
             onChange={(e) => setTrouble(e.target.value)}
             rows={3}
-            className="mt-2 w-full rounded-xl border border-[#ECECF2] p-2 text-sm outline-none focus:border-[#C2772A]"
+            className="mt-2 w-full rounded-xl border border-[#ECE5DA] p-2 text-sm outline-none focus:border-[#C2772A]"
             placeholder="自由記述（任意）"
           />
         </div>
 
-        <div className="rounded-2xl border border-[#ECECF2] bg-white p-4">
-          <p className="text-sm font-bold text-[#1C1C2E]">ほしい機能・要望</p>
+        <div className="rounded-2xl border border-[#ECE5DA] bg-white p-4">
+          <p className="text-sm font-bold text-[#1A1523]">ほしい機能・要望</p>
           <textarea
             value={wish}
             onChange={(e) => setWish(e.target.value)}
             rows={3}
-            className="mt-2 w-full rounded-xl border border-[#ECECF2] p-2 text-sm outline-none focus:border-[#C2772A]"
+            className="mt-2 w-full rounded-xl border border-[#ECE5DA] p-2 text-sm outline-none focus:border-[#C2772A]"
             placeholder="自由記述（任意）"
           />
         </div>

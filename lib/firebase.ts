@@ -2,7 +2,8 @@
 // これらは公開Web設定（旧Flutter版のバンドルにも同梱されていた値）。秘密情報ではない。
 import { initializeApp, getApps, getApp } from "firebase/app";
 import { getAuth } from "firebase/auth";
-import { getFirestore } from "firebase/firestore";
+// 軽量版の Firestore（リアルタイム更新なし）。リアルタイム更新が要る画面は lib/firebaseLive.ts を使う
+import { getFirestore } from "firebase/firestore/lite";
 
 const firebaseConfig = {
   apiKey: "AIzaSyBG0jHsv1_JH2sbkwZSHOMDt7zoWPu6_iQ",

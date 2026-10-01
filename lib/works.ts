@@ -1,6 +1,6 @@
 // 登録作品の読み書き。旧Flutter版と同じ users/{uid}.works 配列に保存する。
 // サーバー（Cloud Functions）はこの works[].id を見て「登録者だけ」に通知を配る。
-import { doc, getDoc, setDoc, serverTimestamp } from "firebase/firestore";
+import { doc, getDoc, setDoc, serverTimestamp } from "firebase/firestore/lite";
 import { db } from "@/lib/firebase";
 
 // 登録枠：ゲスト5件／メール認証済み10件＋ログインボーナス最大+5＝最大15件

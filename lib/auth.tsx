@@ -24,7 +24,7 @@ import {
   signOut,
   type User,
 } from "firebase/auth";
-import { doc, setDoc, serverTimestamp } from "firebase/firestore";
+import { doc, setDoc, serverTimestamp } from "firebase/firestore/lite";
 import { auth, db } from "@/lib/firebase";
 import { unregisterPush } from "@/lib/fcm";
 import { recordLogin } from "@/lib/login";

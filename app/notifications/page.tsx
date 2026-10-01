@@ -15,7 +15,7 @@ import {
   updateDoc,
   type Timestamp,
 } from "firebase/firestore";
-import { db } from "@/lib/firebase";
+import { liveDb as db } from "@/lib/firebaseLive"; // 通知一覧はリアルタイム更新のため通常版
 import { useAuth } from "@/lib/auth";
 import {
   getWorks,
@@ -181,8 +181,8 @@ export default function NotificationsPage() {
     <main className="mx-auto max-w-2xl px-4 py-6 lg:max-w-3xl lg:px-8">
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
-          <Mascot pose="device" h={44} />
-          <h1 className="text-2xl font-extrabold text-[#1C1C2E]">通知</h1>
+          <Mascot pose="device" h={60} />
+          <h1 className="text-[28px] font-black leading-tight text-ink lg:text-[34px]">通知</h1>
         </div>
         <button
           type="button"
@@ -200,8 +200,8 @@ export default function NotificationsPage() {
           onClick={() => setUnreadOnly((value) => !value)}
           className={`rounded-full px-3 py-1 text-xs font-bold transition ${
             unreadOnly
-              ? "bg-[#1C1C2E] text-white"
-              : "border border-[#ECECF2] bg-white text-[#6B7280]"
+              ? "bg-[#1A1523] text-white"
+              : "border border-[#ECE5DA] bg-white text-[#625B6E]"
           }`}
         >
           未読のみ {unreadCount}
@@ -223,7 +223,7 @@ export default function NotificationsPage() {
       {notifs === null ? (
         <p className="mt-6 text-sm text-black/50">読み込み中…</p>
       ) : shown.length === 0 ? (
-        <div className="mt-6 flex flex-col items-center gap-3 rounded-2xl border border-[#ECECF2] bg-white p-6 text-center text-sm text-black/50">
+        <div className="mt-6 flex flex-col items-center gap-3 rounded-2xl border border-[#ECE5DA] bg-white p-6 text-center text-sm text-black/50">
           {notifs.length === 0 ? (
             <>
               <Mascot pose="sleep" h={120} />
@@ -267,7 +267,7 @@ export default function NotificationsPage() {
                       key={n.id}
                       className={`rounded-2xl border p-3 ${
                         n.read
-                          ? "border-[#ECECF2] bg-white"
+                          ? "border-[#ECE5DA] bg-white"
                           : "border-[#C2772A]/30 bg-[#FBF3E6]"
                       }`}
                     >
@@ -278,7 +278,7 @@ export default function NotificationsPage() {
                           {k.label}
                         </span>
                         <span className="min-w-0 flex-1">
-                          <span className="block whitespace-pre-line text-sm text-[#1C1C2E]">
+                          <span className="block whitespace-pre-line text-sm text-[#1A1523]">
                             {n.text}
                           </span>
                           <span className="mt-0.5 block text-[10px] text-black/40">
@@ -292,7 +292,7 @@ export default function NotificationsPage() {
 
                       <div
                         className={`mt-3 flex flex-wrap items-center gap-2 border-t pt-2.5 ${
-                          n.read ? "border-[#ECECF2]" : "border-[#C2772A]/15"
+                          n.read ? "border-[#ECE5DA]" : "border-[#C2772A]/15"
                         }`}
                       >
                         {actionHref && (
@@ -315,7 +315,7 @@ export default function NotificationsPage() {
                           <button
                             type="button"
                             onClick={() => markRead(n)}
-                            className="ml-auto px-2 py-1 text-[11px] font-bold text-[#6B7280]"
+                            className="ml-auto px-2 py-1 text-[11px] font-bold text-[#625B6E]"
                           >
                             既読にする
                           </button>

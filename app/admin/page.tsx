@@ -5,7 +5,7 @@
 // そのまま含まれて誰でも読めてしまうため、/admin/streaming と同じ
 // 「ログイン中UIDが NEXT_PUBLIC_ADMIN_UIDS に含まれるか」で判定する方式に変更した。
 import { useEffect, useState } from "react";
-import { doc, getDoc } from "firebase/firestore";
+import { doc, getDoc } from "firebase/firestore/lite";
 import { db } from "@/lib/firebase";
 import { useAuth } from "@/lib/auth";
 import { isAdminUid, adminConfigured } from "@/lib/seasonAdmin";
@@ -26,10 +26,10 @@ type Stats = {
 
 function Card({ label, value, sub }: { label: string; value: string | number; sub?: string }) {
   return (
-    <div className="rounded-2xl border border-[#ECECF2] bg-white p-4">
-      <p className="text-[11px] font-bold text-[#6B7280]">{label}</p>
-      <p className="mt-1 text-2xl font-extrabold text-[#1C1C2E]">{value}</p>
-      {sub && <p className="mt-0.5 text-[11px] text-[#6B7280]">{sub}</p>}
+    <div className="rounded-2xl border border-[#ECE5DA] bg-white p-4">
+      <p className="text-[11px] font-bold text-[#625B6E]">{label}</p>
+      <p className="mt-1 text-2xl font-extrabold text-[#1A1523]">{value}</p>
+      {sub && <p className="mt-0.5 text-[11px] text-[#625B6E]">{sub}</p>}
     </div>
   );
 }
@@ -40,11 +40,11 @@ function Bars({ data }: { data: { label: string; value: number }[] }) {
     <div className="space-y-1.5">
       {data.map((d, i) => (
         <div key={i} className="flex items-center gap-2">
-          <span className="w-40 flex-none truncate text-[12px] text-[#374151]">{d.label}</span>
-          <div className="h-3 flex-1 overflow-hidden rounded-full bg-[#F1F1F5]">
+          <span className="w-40 flex-none truncate text-[12px] text-[#3A3342]">{d.label}</span>
+          <div className="h-3 flex-1 overflow-hidden rounded-full bg-[#F2ECE3]">
             <div className="h-full rounded-full bg-[#A8621F]" style={{ width: `${(d.value / max) * 100}%` }} />
           </div>
-          <span className="w-8 flex-none text-right text-[11px] font-bold text-[#1C1C2E]">{d.value}</span>
+          <span className="w-8 flex-none text-right text-[11px] font-bold text-[#1A1523]">{d.value}</span>
         </div>
       ))}
     </div>
@@ -85,7 +85,7 @@ export default function AdminPage() {
   if (!adminConfigured || !admin)
     return (
       <main className="mx-auto max-w-2xl px-4 py-10">
-        <h1 className="text-xl font-extrabold text-[#1C1C2E]">📊 ダッシュボード</h1>
+        <h1 className="text-[28px] font-black leading-tight text-ink lg:text-[34px]">ダッシュボード</h1>
         {!user ? (
           <p className="mt-3 text-sm text-black/60">
             管理に使うアカウントで
@@ -99,9 +99,9 @@ export default function AdminPage() {
                 ? "このアカウントには権限がありません。"
                 : "管理者がまだ設定されていません。下のUIDを設定すると、このアカウントで管理できます。"}
             </p>
-            <div className="mt-4 rounded-2xl border border-[#ECECF2] bg-white p-4">
-              <p className="text-[11px] font-bold text-[#6B7280]">あなたのUID</p>
-              <p className="mt-0.5 break-all font-mono text-sm text-[#1C1C2E]">{user.uid}</p>
+            <div className="mt-4 rounded-2xl border border-[#ECE5DA] bg-white p-4">
+              <p className="text-[11px] font-bold text-[#625B6E]">あなたのUID</p>
+              <p className="mt-0.5 break-all font-mono text-sm text-[#1A1523]">{user.uid}</p>
               <button
                 type="button"
                 onClick={() => {
@@ -130,10 +130,10 @@ export default function AdminPage() {
   return (
     <main className="mx-auto max-w-2xl px-4 py-6">
       <div className="flex items-center justify-between">
-        <h1 className="text-xl font-extrabold text-[#1C1C2E]">📊 ダッシュボード</h1>
-        <button type="button" onClick={load} className="rounded-full border border-[#ECECF2] bg-white px-3 py-1 text-xs font-bold text-[#8A5518]">再読み込み</button>
+        <h1 className="text-[28px] font-black leading-tight text-ink lg:text-[34px]">ダッシュボード</h1>
+        <button type="button" onClick={load} className="rounded-full border border-[#ECE5DA] bg-white px-3 py-1 text-xs font-bold text-[#8A5518]">再読み込み</button>
       </div>
-      <p className="mt-1 text-[11px] text-[#6B7280]">集計時刻：{updated}（自動更新：3時間ごと）</p>
+      <p className="mt-1 text-[11px] text-[#625B6E]">集計時刻：{updated}（自動更新：3時間ごと）</p>
 
       {s === null ? (
         <p className="mt-6 text-sm text-black/50">読み込み中…</p>
@@ -149,20 +149,20 @@ export default function AdminPage() {
           </div>
 
           {/* アクセス数（PV/UV 過去14日） */}
-          <section className="mt-6 rounded-2xl border border-[#ECECF2] bg-white p-4">
-            <h2 className="text-xs font-bold text-[#6B7280]">アクセス数（PV・過去14日）</h2>
+          <section className="mt-6 rounded-2xl border border-[#ECE5DA] bg-white p-4">
+            <h2 className="text-xs font-bold text-[#625B6E]">アクセス数（PV・過去14日）</h2>
             <div className="mt-2">
               <Bars data={pvBars} />
             </div>
-            <h2 className="mt-4 text-xs font-bold text-[#6B7280]">ユニーク訪問者（UV・過去14日）</h2>
+            <h2 className="mt-4 text-xs font-bold text-[#625B6E]">ユニーク訪問者（UV・過去14日）</h2>
             <div className="mt-2">
               <Bars data={uvBars} />
             </div>
           </section>
 
           {/* 登録作品ランキング */}
-          <section className="mt-6 rounded-2xl border border-[#ECECF2] bg-white p-4">
-            <h2 className="text-xs font-bold text-[#6B7280]">登録作品ランキング（人気順・上位20）</h2>
+          <section className="mt-6 rounded-2xl border border-[#ECE5DA] bg-white p-4">
+            <h2 className="text-xs font-bold text-[#625B6E]">登録作品ランキング（人気順・上位20）</h2>
             {works.length === 0 ? (
               <p className="mt-2 text-xs text-black/40">まだデータがありません。</p>
             ) : (
@@ -173,8 +173,8 @@ export default function AdminPage() {
           </section>
 
           {/* 端末プラットフォーム比率 */}
-          <section className="mt-6 rounded-2xl border border-[#ECECF2] bg-white p-4">
-            <h2 className="text-xs font-bold text-[#6B7280]">端末プラットフォーム</h2>
+          <section className="mt-6 rounded-2xl border border-[#ECE5DA] bg-white p-4">
+            <h2 className="text-xs font-bold text-[#625B6E]">端末プラットフォーム</h2>
             {platforms.length === 0 ? (
               <p className="mt-2 text-xs text-black/40">まだデータがありません。</p>
             ) : (
@@ -186,8 +186,8 @@ export default function AdminPage() {
 
           {/* 視聴ステータス内訳 */}
           {st.statusCount && (
-            <section className="mt-6 rounded-2xl border border-[#ECECF2] bg-white p-4">
-              <h2 className="text-xs font-bold text-[#6B7280]">視聴ステータス内訳（登録作品）</h2>
+            <section className="mt-6 rounded-2xl border border-[#ECE5DA] bg-white p-4">
+              <h2 className="text-xs font-bold text-[#625B6E]">視聴ステータス内訳（登録作品）</h2>
               <div className="mt-2">
                 <Bars
                   data={[

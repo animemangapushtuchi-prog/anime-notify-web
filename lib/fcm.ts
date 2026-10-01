@@ -5,7 +5,7 @@
 // 記事や配信一覧のような読むだけのページまで重くなるため。
 // 型だけのimportはビルド時に消えるのでバンドルには影響しない。
 import type { Messaging } from "firebase/messaging";
-import { doc, setDoc, deleteDoc, serverTimestamp } from "firebase/firestore";
+import { doc, setDoc, deleteDoc, serverTimestamp } from "firebase/firestore/lite";
 import { app, db, VAPID_KEY } from "@/lib/firebase";
 
 let _messaging: Messaging | null = null;

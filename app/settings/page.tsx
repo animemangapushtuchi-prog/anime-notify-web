@@ -3,7 +3,7 @@
 // 設定。プロフィール＋ブラウザ通知＋通知トグル＋視聴できるテレビ放送＋放送リマインド＋契約配信サービス。
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { doc, getDoc, setDoc, serverTimestamp } from "firebase/firestore";
+import { doc, getDoc, setDoc, serverTimestamp } from "firebase/firestore/lite";
 import { db } from "@/lib/firebase";
 import { useAuth } from "@/lib/auth";
 import { getWorks } from "@/lib/works";
@@ -32,7 +32,7 @@ function Toggle({
   return (
     <div className={`flex items-center justify-between gap-4 py-3 ${divider ? "border-b border-black/5" : ""}`}>
       <div className="min-w-0">
-        <p className="text-sm font-semibold text-[#1C1C2E]">{label}</p>
+        <p className="text-sm font-semibold text-[#1A1523]">{label}</p>
         {note && <p className="mt-0.5 text-[11px] leading-snug text-black/50">{note}</p>}
       </div>
       <button
@@ -156,12 +156,12 @@ export default function SettingsPage() {
   return (
     <main className="mx-auto max-w-md px-4 py-6 lg:max-w-xl lg:px-8">
       <div className="flex items-center gap-2">
-        <Mascot pose="stand" h={44} />
-        <h1 className="text-2xl font-extrabold text-[#1C1C2E]">設定</h1>
+        <Mascot pose="stand" h={60} />
+        <h1 className="text-[28px] font-black leading-tight text-ink lg:text-[34px]">設定</h1>
       </div>
 
       {/* プロフィールカード */}
-      <div className="mt-5 flex items-center gap-3 rounded-2xl border border-[#ECECF2] bg-white p-4">
+      <div className="mt-5 flex items-center gap-3 rounded-2xl border border-[#ECE5DA] bg-white p-4">
         <div className="flex h-11 w-11 flex-none items-center justify-center rounded-full bg-[#F6E9D5]">
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#C2772A" strokeWidth="2">
             <circle cx="12" cy="8" r="4" />
@@ -169,8 +169,8 @@ export default function SettingsPage() {
           </svg>
         </div>
         <div className="min-w-0 flex-1">
-          <p className="truncate text-sm font-extrabold text-[#1C1C2E]">{idLabel}</p>
-          <p className="text-[11px] text-[#6B7280]">
+          <p className="truncate text-sm font-extrabold text-[#1A1523]">{idLabel}</p>
+          <p className="text-[11px] text-[#625B6E]">
             {accountType === "guest"
               ? "ゲスト利用"
               : accountType === "pending"
@@ -194,7 +194,7 @@ export default function SettingsPage() {
 
       {/* ゲストデータの注意（ゲスト時のみ） */}
       {isGuest && (
-        <p className="mt-2 rounded-2xl bg-[#FBF3E6] px-4 py-3 text-[11px] leading-relaxed text-[#6B7280]">
+        <p className="mt-2 rounded-2xl bg-[#FBF3E6] px-4 py-3 text-[11px] leading-relaxed text-[#625B6E]">
           ゲストデータはこのブラウザに保存された匿名IDと結び付いています。ブラウザデータの削除、端末変更、ゲスト状態でのログアウト後は利用できなくなる場合があります。
           <Link href="/login" className="font-bold text-[#C2772A] underline-offset-2 hover:underline">メール登録</Link>
           するとデータを引き継いで保護できます。
@@ -206,7 +206,7 @@ export default function SettingsPage() {
 
       {/* 通知トグル */}
       {s && (
-        <div className="mt-4 rounded-2xl border border-[#ECECF2] bg-white p-4">
+        <div className="mt-4 rounded-2xl border border-[#ECE5DA] bg-white p-4">
           <h2 className="mb-1 text-xs font-bold text-black/50">🔔 通知</h2>
           <Toggle label="通知を受け取る" note="OFFにするとすべての通知が停止します（サーバー側で尊重）" value={s.enabled} onChange={(v) => save({ ...s, enabled: v })} />
           {s.enabled && (
@@ -220,7 +220,7 @@ export default function SettingsPage() {
       )}
 
       {/* 視聴できるテレビ放送＋放送リマインド */}
-      <div className="mt-4 rounded-2xl border border-[#ECECF2] bg-white p-4">
+      <div className="mt-4 rounded-2xl border border-[#ECE5DA] bg-white p-4">
         <h2 className="mb-1 text-xs font-bold text-black/50">📺 視聴できるテレビ放送（複数選択可）</h2>
         <p className="mb-2 text-[11px] leading-snug text-black/50">
           選んだ放送局を「次回の放送」に優先表示し、下のリマインド通知にも使います。
@@ -232,7 +232,7 @@ export default function SettingsPage() {
             {GROUPS.map((g) =>
               grouped[g].length === 0 ? null : (
                 <div key={g}>
-                  <p className="text-[11px] font-bold text-[#6B7280]">{g}</p>
+                  <p className="text-[11px] font-bold text-[#625B6E]">{g}</p>
                   <div className="mt-1 flex flex-wrap gap-1.5">
                     {grouped[g].map((ch) => {
                       const on = channels.includes(ch);
@@ -253,10 +253,10 @@ export default function SettingsPage() {
             )}
           </div>
         )}
-        {channels.length > 0 && <p className="mt-2 text-[11px] text-[#6B7280]">選択中：{channels.length}局</p>}
+        {channels.length > 0 && <p className="mt-2 text-[11px] text-[#625B6E]">選択中：{channels.length}局</p>}
 
         <div className="mt-3 border-t border-black/5 pt-1">
-          <p className="pt-2 text-[11px] font-bold text-[#6B7280]">⏰ 放送リマインド（登録作品が上の局で放送されるとき）</p>
+          <p className="pt-2 text-[11px] font-bold text-[#625B6E]">⏰ 放送リマインド（登録作品が上の局で放送されるとき）</p>
           <Toggle label="放送30分前に通知" value={bn.before30} onChange={(v) => saveBn({ ...bn, before30: v })} />
           <Toggle label="前日にまとめて通知（前夜）" value={bn.dayBefore} onChange={(v) => saveBn({ ...bn, dayBefore: v })} divider={false} />
           {channels.length === 0 && (
@@ -266,7 +266,7 @@ export default function SettingsPage() {
       </div>
 
       {/* 契約中の配信サービス */}
-      <div className="mt-4 rounded-2xl border border-[#ECECF2] bg-white p-4">
+      <div className="mt-4 rounded-2xl border border-[#ECE5DA] bg-white p-4">
         <h2 className="mb-1 text-xs font-bold text-black/50">📡 契約中の配信サービス</h2>
         <p className="mb-2 text-[11px] leading-snug text-black/50">
           選んだサービスを作品詳細とマイリストで優先表示します。未選択の場合はすべての配信先を同じ順序で表示します。
@@ -275,7 +275,7 @@ export default function SettingsPage() {
           <Toggle key={key} label={key} value={services[key] ?? false} onChange={() => toggleService(key)} divider={i !== SERVICE_KEYS.length - 1} />
         ))}
         {Object.values(services).filter(Boolean).length > 0 && (
-          <p className="mt-2 text-[11px] text-[#6B7280]">
+          <p className="mt-2 text-[11px] text-[#625B6E]">
             選択中：{Object.values(services).filter(Boolean).length}件
           </p>
         )}

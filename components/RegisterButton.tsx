@@ -3,7 +3,7 @@
 // 作品詳細ページの通知登録導線。ログイン復帰後の自動登録と通知状態の案内を含む。
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
-import { doc, getDoc } from "firebase/firestore";
+import { doc, getDoc } from "firebase/firestore/lite";
 import { useAuth, ensureGuestSession, authErrorJa } from "@/lib/auth";
 import { db } from "@/lib/firebase";
 import {
@@ -139,7 +139,7 @@ export default function RegisterButton({ work }: { work: Work }) {
           type="button"
           onClick={guestRegister}
           disabled={busy}
-          className="block w-full rounded-xl bg-[#A8621F] py-3 text-center text-sm font-bold text-white disabled:opacity-60"
+          className="block w-full rounded-2xl bg-[#A8621F] py-3.5 shadow-[0_12px_30px_-16px_rgba(168,98,31,0.9)] transition hover:bg-[#8A5518] text-center text-sm font-bold text-white disabled:opacity-60"
         >
           {busy ? "登録中…" : "🔔 この作品を通知登録（登録なしでOK）"}
         </button>
@@ -156,7 +156,7 @@ export default function RegisterButton({ work }: { work: Work }) {
 
   if (works === null) {
     return (
-      <div className="w-full rounded-xl border border-[#ECECF2] py-3 text-center text-sm text-black/40">
+      <div className="w-full rounded-xl border border-[#ECE5DA] py-3 text-center text-sm text-black/40">
         …
       </div>
     );
@@ -212,7 +212,7 @@ export default function RegisterButton({ work }: { work: Work }) {
           type="button"
           onClick={toggle}
           disabled={busy || full}
-          className="w-full rounded-xl bg-[#A8621F] py-3 text-sm font-bold text-white transition disabled:opacity-60"
+          className="w-full rounded-2xl bg-[#A8621F] py-3.5 shadow-[0_12px_30px_-16px_rgba(168,98,31,0.9)] transition hover:bg-[#8A5518] text-sm font-bold text-white transition disabled:opacity-60"
         >
           {busy
             ? "通知登録中…"
@@ -242,7 +242,7 @@ export default function RegisterButton({ work }: { work: Work }) {
             </p>
           </div>
 
-          <div className="divide-y divide-[#ECECF2] px-4">
+          <div className="divide-y divide-[#ECE5DA] px-4">
             <NoticeRow
               icon="📺"
               title="テレビ放送"
@@ -267,7 +267,7 @@ export default function RegisterButton({ work }: { work: Work }) {
             />
           </div>
 
-          <div className="border-t border-[#ECECF2] bg-[#FAFAFC] px-4 py-3">
+          <div className="border-t border-[#ECE5DA] bg-[#FBF8F3] px-4 py-3">
             <EnablePush />
             <div className="mt-3 flex items-center justify-between gap-3">
               <Link href="/settings" className="text-xs font-bold text-[#8A5518]">
@@ -277,7 +277,7 @@ export default function RegisterButton({ work }: { work: Work }) {
                 type="button"
                 onClick={toggle}
                 disabled={busy}
-                className="text-[11px] font-semibold text-[#6B7280] underline underline-offset-2 disabled:opacity-60"
+                className="text-[11px] font-semibold text-[#625B6E] underline underline-offset-2 disabled:opacity-60"
               >
                 {busy ? "解除中…" : "登録を解除する"}
               </button>
@@ -287,7 +287,7 @@ export default function RegisterButton({ work }: { work: Work }) {
       )}
 
       {registered && isGuest && (
-        <p className="mt-2 rounded-xl bg-[#FBF3E6] px-3 py-2 text-[11px] leading-snug text-[#6B7280]">
+        <p className="mt-2 rounded-xl bg-[#FBF3E6] px-3 py-2 text-[11px] leading-snug text-[#625B6E]">
           ✓ この端末へ保存しました（{works.length}/{slotCap}）。ゲストデータはこのブラウザの匿名IDと結び付いています。
           <Link href="/login" className="font-bold text-[#C2772A]">メール登録</Link>
           するとデータを引き継いで保護できます。
@@ -295,9 +295,9 @@ export default function RegisterButton({ work }: { work: Work }) {
       )}
 
       {registered && (
-        <div className="mt-3 rounded-xl border border-[#ECECF2] bg-white p-3">
+        <div className="mt-3 rounded-xl border border-[#ECE5DA] bg-white p-3">
           <div className="flex items-center justify-between">
-            <span className="text-[13px] font-bold text-[#1C1C2E]">視聴ステータス</span>
+            <span className="text-[13px] font-bold text-[#1A1523]">視聴ステータス</span>
             <StatusPicker current={me?.watchStatus} onChange={changeStatus} size="md" />
           </div>
           <EpisodeProgress
@@ -335,12 +335,12 @@ function NoticeRow({
     <div className="flex items-center gap-3 py-3">
       <span className="text-lg" aria-hidden="true">{icon}</span>
       <div className="min-w-0 flex-1">
-        <p className="text-[13px] font-bold text-[#1C1C2E]">{title}</p>
-        <p className="truncate text-[11px] text-[#6B7280]">{detail}</p>
+        <p className="text-[13px] font-bold text-[#1A1523]">{title}</p>
+        <p className="truncate text-[11px] text-[#625B6E]">{detail}</p>
       </div>
       <span
         className={`rounded-full px-2 py-0.5 text-[10px] font-extrabold ${
-          enabled ? "bg-[#E6F7F1] text-[#047857]" : "bg-[#F1F1F5] text-[#6B7280]"
+          enabled ? "bg-[#E6F7F1] text-[#047857]" : "bg-[#F2ECE3] text-[#625B6E]"
         }`}
       >
         {enabled ? "ON" : "OFF"}

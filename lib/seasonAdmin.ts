@@ -11,7 +11,7 @@ import {
   serverTimestamp,
   setDoc,
   writeBatch,
-} from "firebase/firestore";
+} from "firebase/firestore/lite";
 import { db } from "@/lib/firebase";
 import { serviceNameOf, STREAM_SERVICES } from "@/lib/streaming";
 import { seasonInfo } from "@/lib/season";

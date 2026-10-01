@@ -1,6 +1,6 @@
 // 契約中の配信サービス：設定の読み込み共有キャッシュと、AniListサービス名との対応判定。
 // users/{uid} をページ内で何度も読まないよう、1回の読み込みを各コンポーネントで共有する。
-import { doc, getDoc } from "firebase/firestore";
+import { doc, getDoc } from "firebase/firestore/lite";
 import { db } from "@/lib/firebase";
 
 // 設定画面で選べるサービス（settings.services のキー）
