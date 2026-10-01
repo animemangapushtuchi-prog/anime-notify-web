@@ -13,8 +13,8 @@ const REVISED = "2026年7月15日";
 function Article({ title, children }: { title: string; children: React.ReactNode }) {
   return (
     <section>
-      <h2 className="text-[15px] font-bold text-[#1C1C2E]">{title}</h2>
-      <div className="mt-1.5 space-y-2 text-[13px] leading-relaxed text-[#374151]">{children}</div>
+      <h2 className="text-[15px] font-bold text-[#1A1523]">{title}</h2>
+      <div className="mt-1.5 space-y-2 text-[13px] leading-relaxed text-[#3A3342]">{children}</div>
     </section>
   );
 }
@@ -22,11 +22,11 @@ function Article({ title, children }: { title: string; children: React.ReactNode
 export default function TermsPage() {
   return (
     <main className="mx-auto max-w-2xl px-4 py-8">
-      <h1 className="text-2xl font-extrabold text-[#1C1C2E]">利用規約</h1>
-      <p className="mt-1 text-xs text-[#6B7280]">最終改定日：{REVISED}</p>
+      <h1 className="text-[28px] font-black leading-tight text-ink lg:text-[34px]">利用規約</h1>
+      <p className="mt-1 text-xs text-[#625B6E]">最終改定日：{REVISED}</p>
 
       <div className="mt-6 space-y-6">
-        <p className="text-[13px] leading-relaxed text-[#374151]">
+        <p className="text-[13px] leading-relaxed text-[#3A3342]">
           この利用規約（以下「本規約」）は、Animiru運営（以下「当運営者」）が提供するウェブサービス「Animiru」（
           <span className="whitespace-nowrap">animiru.com</span>
           。以下「本サービス」）の利用条件を定めるものです。利用者（以下「ユーザー」）は、本サービスを利用することで本規約に同意したものとみなされます。

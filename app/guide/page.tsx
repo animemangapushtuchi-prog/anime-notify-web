@@ -19,8 +19,8 @@ export const metadata: Metadata = {
 
 function Section({ title, children }: { title: string; children: React.ReactNode }) {
   return (
-    <section className="rounded-2xl border border-[#ECECF2] bg-white p-4">
-      <h2 className="text-sm font-extrabold text-[#1C1C2E]">{title}</h2>
+    <section className="rounded-2xl border border-[#ECE5DA] bg-white p-4">
+      <h2 className="text-sm font-extrabold text-[#1A1523]">{title}</h2>
       <div className="mt-2 space-y-1.5 text-[13px] leading-relaxed text-black/70">
         {children}
       </div>
@@ -31,7 +31,7 @@ function Section({ title, children }: { title: string; children: React.ReactNode
 export default function GuidePage() {
   return (
     <main className="mx-auto max-w-2xl px-4 py-6">
-      <h1 className="text-2xl font-extrabold text-[#1C1C2E]">🔰 使い方ガイド</h1>
+      <h1 className="text-[28px] font-black leading-tight text-ink lg:text-[34px]">使い方ガイド</h1>
       <p className="mt-1 text-sm text-black/60">
         登録した作品の「新話の放送」「配信入り」を自動で通知するアプリです。
       </p>

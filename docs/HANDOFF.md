@@ -51,7 +51,25 @@
     WCAG AA（4.5:1）に届かないため。`#A8621F` で 4.7:1。ロゴ・見出しの文字色は `#C2772A` のまま
   - **11〜12px の小さい文字に `#C2772A` は使わない**（白背景で 3.5:1）。`#8A5518` を使う（6.2:1）
 - ロゴ: `components/Logo.tsx`（マスコット顔＋「アニミル」＋赤い「！」`#C0392B`）
-- マスコット: `public/mascot/*.png`、`components/Mascot.tsx`（pose: stand / point / thumbsup / surprised / worried / cheer / search / sit / device / sleep / face 等）
+- マスコット: `components/Mascot.tsx`（pose: stand / point / thumbsup / surprised / worried / cheer / search / sit / device / sleep / face 等）。
+  **表示は軽量版 `public/mascot/w/{pose}.webp`**（1枚 9〜41KB。元の PNG は最大1.3MB あり、ロゴにも使われていた）。
+  ポーズを足すときは PNG を置いてから sharp で WebP（高さ560px・quality 84、face は192px）を作る
+
+### 2026-10 デザイン刷新（コンセプト「夜のアニメを見張るミーアキャット」）
+- 深夜アニメが多いこと／ミーアキャットは群れの見張り番／首の鈴＝通知、をサイトの物語にしている。
+  トップの見出し・作品ページの上部・記事の見出し・フッター・404 は夜空（`bg-night`＋`.starfield`）、それ以外は紙の背景
+- **色は `app/globals.css` の `@theme` にトークンがある**：`paper`（背景）`paper-2` `line`（罫線）`ink`（文字）`ink-2`（補足の文字）
+  `amber` `amber-deep`（塗り）`amber-ink`（小さい文字）`amber-soft` `amber-wash` `bell`（夜の上の金色）`night` `night-2` `night-3` `collar`。
+  新しく書くときは `text-[#...]` ではなく `text-ink` などを使う（古い部品はまだ16進のまま。灰色は温かい色に置換済み）
+- **フォント**：本文は端末の日本語フォント（通信量ゼロ）。**h1・h2 と `.font-display` だけ Zen Kaku Gothic New の 900**（`app/layout.tsx`）。
+  本文まで web フォントにしたら太さ4種類で約4.4MB（381ファイル）になったため、見出し専用・1種類に絞った（約160KB）。
+  数字は `.num`（Geist・等幅数字）。見出しは `palt`（字詰め）
+- 共通部品：`components/SectionHead.tsx`（節の見出し）、`components/PageHeader.tsx`（ページ上部）、`components/home/Hero.tsx`
+- スクロールで出る演出は `class="reveal"`＋`components/Reveal.tsx`。**JS が無いと何もしない＝中身は必ず見える**
+  （CSS だけの scroll-driven animation にしたら、画面外の節が検索エンジン・撮影で空白になったため変更）。動きを減らす設定の人には出さない
+- トップの「今夜の放送」は `lib/tonight.ts`（`cache/tvSchedule` から翌朝5時まで。AniList の今期作品と題名が一致したものだけ表紙とリンクを付ける）
+- SNS 共有画像は `public/og.png`（1200×630。`lib/seo.ts` の `OG_IMAGE`）。作り直すときは夜空＋ミーアキャット＋コピーの構成で
+- 見た目の確認は、ローカルの本番ビルドをヘッドレス Chrome で縦長に撮影して行った（1440px と 390px）
 - PC は左 `Sidebar.tsx`、モバイルは `BottomTabs.tsx`（6タブ: マイリスト/カレンダー/検索/今期配信/おすすめ/通知）
   → **ナビを増やすときは両方に追加すること**（過去に片方だけ追加して事故った）
 
@@ -59,7 +77,7 @@
 
 ```
 app/
-  page.tsx                 マイリスト（ホーム）
+  page.tsx                 トップ（夜空の見出し＋今夜の放送＋今期の注目など。マイリストは components/MyListHome.tsx）
   work/[id]/page.tsx       作品詳細（SSR, revalidate 3600）
   streaming/               今期配信一覧（/streaming → データがある最新シーズンへredirect）
     [seasonKey]/page.tsx
@@ -207,8 +225,8 @@ cd $env:USERPROFILE\dev\anime-notify-web
    - 提案済みの案: A. 1枚のときは画像左・説明右の横組み、B. 枚数に応じて列数を変える、C. 画像を小さくしてバッジ（独占・無料など）を重ねる、D. 横スクロール帯
    - ユーザーの返答待ち。**勝手に実装しない**
 3. 片田舎のおっさん、剣聖になるII の U-NEXT リンク（`SID0305425`）は**1期のページ**（2026-10-01 に確認：2025年・全12話。
-   U-NEXT を検索しても「II」のページは見つからない）→ 夏の U-NEXT 行を取り下げるかはシンさんの判断待ち。
-   取り下げると夏の記事の U-NEXT の作品数が1つ減る
+   U-NEXT を検索しても「II」のページは見つからない）→ **2026-10-01 にシンさんの判断で現状維持（取り下げない）**。
+   夏の記事の U-NEXT 35作品もそのまま
 4. 新しいストック記事の作成（秋アニメ向けなど）
 5. AdSense 再審査（インデックス状況を見てから）
 
@@ -246,10 +264,18 @@ cd $env:USERPROFILE\dev\anime-notify-web
 
 ### まだ残っている課題
 
-- **初期JSの大半（約390KB）は `firebase/auth` + `firestore`**。ルートレイアウトの
-  `AuthProvider`・`ProfileMenu`・`VerifyGate`・`PushManager` が全ページで読み込むため。
-  ここを減らすには認証の読み込み方を作り替える必要があり、`lib/auth.tsx`・`lib/login.ts` を
-  触ることになるので未着手（ユーザー編集ファイル）
+- ~~初期JSの大半（約390KB）は `firebase/auth` + `firestore`~~ → **2026-10-01 に Firestore を軽量版に差し替えて解消**。
+  - `lib/firebase.ts` の `db` は **`firebase/firestore/lite`**（リアルタイム更新が無いだけで、読み書きの書き方は同じ）。
+    サイト内の `from "firebase/firestore"` はすべて `"firebase/firestore/lite"` に変更
+  - **通知ページ（`app/notifications/page.tsx`）だけは通常版**：`onSnapshot`（リアルタイム更新）を使うため、
+    `lib/firebaseLive.ts` の `liveDb` と `"firebase/firestore"` の関数を組み合わせている
+  - **軽量版の `db` と通常版の関数を混ぜると実行時エラーになる**（型チェックでも弾かれる）。
+    新しく Firestore を使うときは `firebase/firestore/lite` から import する。リアルタイム更新が要る画面だけ `liveDb`
+  - 実測（gzip、`<script src>` の合計）：/guide 389KB → 254KB、トップ 402KB → 268KB。
+    このうち39KBは古いブラウザ用（`noModule`）で、今のブラウザは読み込まない。Firebase 部分は 52KB
+  - ログインの処理（`lib/auth.tsx` の中身）は変えていない。Auth をさらに削る（`initializeAuth`）のは効果が10KB程度で見送り
+- 配信一覧のカードは、`<a>` の中に `<a>` を入れ子にしない（以前は入れ子でハイドレーションエラー #418 が出ていた）。
+  カード全体のリンクは、タイトルのリンクを `after:absolute after:inset-0` で引き伸ばして実現している
 - **白文字＋`bg-[#C2772A]` のボタン**は 3.5:1 で AA 未達。濃くする（例 `#A8621F` で4.7:1）と
   ブランドの見た目が変わるため、判断待ち
 - **`firestore.rules` は未デプロイ**。`cd ../anime_notify_app; firebase deploy --only firestore:rules`

@@ -79,8 +79,8 @@ export default function StatusPicker({
           <div className="fixed inset-x-0 bottom-0 z-50 rounded-t-3xl bg-white p-4 pb-8 shadow-2xl">
             <div className="mx-auto max-w-md">
               <div className="mx-auto mb-3 h-1 w-10 rounded-full bg-[#E5E5EC]" />
-              <p className="text-sm font-extrabold text-[#1C1C2E]">視聴ステータスを選ぶ</p>
-              <p className="mt-0.5 text-[11px] text-[#6B7280]">
+              <p className="text-sm font-extrabold text-[#1A1523]">視聴ステータスを選ぶ</p>
+              <p className="mt-0.5 text-[11px] text-[#625B6E]">
                 状態によって、届く通知の内容が変わります。
               </p>
               <div className="mt-3 space-y-1.5">
@@ -93,7 +93,7 @@ export default function StatusPicker({
                       type="button"
                       onClick={() => pick(s)}
                       className={`flex w-full items-center gap-3 rounded-2xl border p-3 text-left transition ${
-                        on ? "border-[#C2772A] bg-[#FBF3E6]" : "border-[#ECECF2] bg-white"
+                        on ? "border-[#C2772A] bg-[#FBF3E6]" : "border-[#ECE5DA] bg-white"
                       }`}
                     >
                       <span
@@ -101,12 +101,12 @@ export default function StatusPicker({
                         style={
                           meta
                             ? { color: meta.color, background: meta.bg }
-                            : { color: "#6B7280", background: "#F1F1F5" }
+                            : { color: "#625B6E", background: "#F2ECE3" }
                         }
                       >
                         {labelFor(s)}
                       </span>
-                      <span className="min-w-0 flex-1 text-[12px] leading-snug text-[#374151]">
+                      <span className="min-w-0 flex-1 text-[12px] leading-snug text-[#3A3342]">
                         {noteFor(s)}
                       </span>
                       {on && <span className="flex-none text-sm font-bold text-[#C2772A]">✓</span>}
@@ -121,7 +121,7 @@ export default function StatusPicker({
 
       {toast && (
         <div className="pointer-events-none fixed inset-x-0 bottom-24 z-50 flex justify-center px-4">
-          <div className="max-w-[90%] rounded-full bg-[#1C1C2E] px-4 py-2 text-center text-xs font-bold text-white shadow-lg">
+          <div className="max-w-[90%] rounded-full bg-[#1A1523] px-4 py-2 text-center text-xs font-bold text-white shadow-lg">
             {toast}
           </div>
         </div>

@@ -385,7 +385,7 @@ export default function AdminStreamingPage() {
   if (!adminConfigured || !admin)
     return (
       <main className="mx-auto max-w-2xl px-4 py-10">
-        <h1 className="text-xl font-extrabold text-[#1C1C2E]">今期配信データ管理</h1>
+        <h1 className="text-xl font-extrabold text-[#1A1523]">今期配信データ管理</h1>
         {!user ? (
           <p className="mt-3 text-sm text-black/60">
             管理に使うアカウントで<a href="/login" className="font-bold text-[#C2772A] underline">ログイン</a>してください。
@@ -398,11 +398,11 @@ export default function AdminStreamingPage() {
                 ? "このアカウントには権限がありません。管理者にするには、下のUIDを設定してください。"
                 : "管理者がまだ設定されていません。下のUIDを設定すると、このアカウントで管理できます。"}
             </p>
-            <div className="mt-4 rounded-2xl border border-[#ECECF2] bg-white p-4">
-              <p className="text-[11px] font-bold text-[#6B7280]">ログイン中のアカウント</p>
-              <p className="mt-0.5 text-sm text-[#1C1C2E]">{user.email ?? "（メール未設定）"}</p>
-              <p className="mt-3 text-[11px] font-bold text-[#6B7280]">あなたのUID</p>
-              <p className="mt-0.5 break-all font-mono text-sm text-[#1C1C2E]">{user.uid}</p>
+            <div className="mt-4 rounded-2xl border border-[#ECE5DA] bg-white p-4">
+              <p className="text-[11px] font-bold text-[#625B6E]">ログイン中のアカウント</p>
+              <p className="mt-0.5 text-sm text-[#1A1523]">{user.email ?? "（メール未設定）"}</p>
+              <p className="mt-3 text-[11px] font-bold text-[#625B6E]">あなたのUID</p>
+              <p className="mt-0.5 break-all font-mono text-sm text-[#1A1523]">{user.uid}</p>
               <button
                 type="button"
                 onClick={() => {
@@ -415,7 +415,7 @@ export default function AdminStreamingPage() {
               </button>
               {msg && <p className="mt-2 text-[11px] font-bold text-[#8A5518]">{msg}</p>}
             </div>
-            <ol className="mt-4 space-y-1 text-[11px] text-[#6B7280]">
+            <ol className="mt-4 space-y-1 text-[11px] text-[#625B6E]">
               <li>① このUIDをコピー</li>
               <li>② Vercel → Settings → Environment Variables に <code>NEXT_PUBLIC_ADMIN_UIDS</code> として登録</li>
               <li>③ 再デプロイ後、firestore.rules のUIDも同じ値に差し替えてデプロイ</li>
@@ -427,20 +427,20 @@ export default function AdminStreamingPage() {
 
   return (
     <main className="mx-auto max-w-2xl px-4 py-6 lg:max-w-6xl lg:px-8">
-      <h1 className="text-xl font-extrabold text-[#1C1C2E]">今期配信データ管理</h1>
-      <p className="mt-1 text-[11px] text-[#6B7280]">
+      <h1 className="text-xl font-extrabold text-[#1A1523]">今期配信データ管理</h1>
+      <p className="mt-1 text-[11px] text-[#625B6E]">
         確認済み＋公開のものだけが一般ページに出ます。一括で公開する前に、各行の「根拠」を確認してください。
       </p>
 
       {/* シーズン切替 */}
       <div className="mt-4 flex flex-wrap items-center gap-2 text-xs font-bold">
-        <button type="button" onClick={() => setSeasonKey(adjacentSeasonKey(seasonKey, -1))} className="rounded-full border border-[#ECECF2] bg-white px-3 py-1 text-[#C2772A]">← 前</button>
+        <button type="button" onClick={() => setSeasonKey(adjacentSeasonKey(seasonKey, -1))} className="rounded-full border border-[#ECE5DA] bg-white px-3 py-1 text-[#C2772A]">← 前</button>
         <span className="rounded-full bg-[#F6E9D5] px-3 py-1 text-[#8A5518]">{info.label}（{seasonKey}）</span>
-        <button type="button" onClick={() => setSeasonKey(adjacentSeasonKey(seasonKey, 1))} className="rounded-full border border-[#ECECF2] bg-white px-3 py-1 text-[#C2772A]">次 →</button>
-        <button type="button" onClick={() => load(seasonKey)} className="rounded-full border border-[#ECECF2] bg-white px-3 py-1 text-[#C2772A]">再読み込み</button>
+        <button type="button" onClick={() => setSeasonKey(adjacentSeasonKey(seasonKey, 1))} className="rounded-full border border-[#ECE5DA] bg-white px-3 py-1 text-[#C2772A]">次 →</button>
+        <button type="button" onClick={() => load(seasonKey)} className="rounded-full border border-[#ECE5DA] bg-white px-3 py-1 text-[#C2772A]">再読み込み</button>
         <button type="button" onClick={doBuild} disabled={busy} className="rounded-full border border-[#C2772A] bg-white px-3 py-1 text-[#C2772A] disabled:opacity-50">候補を更新</button>
         <button type="button" onClick={doCollect} disabled={busy} className="rounded-full border border-[#C2772A] bg-[#FBF3E6] px-3 py-1 text-[#8A5518] disabled:opacity-50">公式サイトから候補を集める</button>
-        <button type="button" onClick={exportJson} className="rounded-full border border-[#ECECF2] bg-white px-3 py-1 text-[#C2772A]">JSONエクスポート</button>
+        <button type="button" onClick={exportJson} className="rounded-full border border-[#ECE5DA] bg-white px-3 py-1 text-[#C2772A]">JSONエクスポート</button>
         <button type="button" onClick={publishAllConfirmed} disabled={busy} className="rounded-full bg-[#A8621F] px-3 py-1 text-white disabled:opacity-50">確認済みを公開</button>
         <button type="button" onClick={confirmAllWithSource} disabled={busy} className="rounded-full bg-[#3B6D11] px-3 py-1 text-white disabled:opacity-50">出典つき候補を一括で確認済み＋公開</button>
       </div>
@@ -449,21 +449,21 @@ export default function AdminStreamingPage() {
 
       {/* 公式サイトからの収集：進み具合と、手作業に回す作品 */}
       {collect && (
-        <section className="mt-3 rounded-2xl border border-[#ECECF2] bg-white p-4 text-xs">
-          <p className="font-bold text-[#1C1C2E]">
+        <section className="mt-3 rounded-2xl border border-[#ECE5DA] bg-white p-4 text-xs">
+          <p className="font-bold text-[#1A1523]">
             公式サイトから収集 {collect.running ? "中" : "完了"}：{collect.done} / {collect.total} 作品
             {collect.running && collect.current ? `（${collect.current}）` : ""}
           </p>
-          <div className="mt-2 h-2 overflow-hidden rounded-full bg-[#F1F1F5]">
+          <div className="mt-2 h-2 overflow-hidden rounded-full bg-[#F2ECE3]">
             <div
               className="h-full rounded-full bg-[#A8621F]"
               style={{ width: `${collect.total ? (collect.done / collect.total) * 100 : 0}%` }}
             />
           </div>
-          <p className="mt-2 text-[#6B7280]">
+          <p className="mt-2 text-[#625B6E]">
             新規 {collect.added} 件／補完 {collect.updated} 件／特番・前シーズンなどで除外 {collect.excluded} 件
           </p>
-          <p className="mt-1 text-[11px] text-[#6B7280]">
+          <p className="mt-1 text-[11px] text-[#625B6E]">
             入った行はすべて「候補」です。出典（公式サイトのページと根拠の文）を確認してから公開してください。
           </p>
           {collect.failed.length > 0 && (
@@ -477,7 +477,7 @@ export default function AdminStreamingPage() {
                     <a href={f.url} target="_blank" rel="noreferrer" className="font-bold text-[#8A5518] underline">
                       {f.title}
                     </a>
-                    <span className="ml-1 text-[#6B7280]">— {f.reason}</span>
+                    <span className="ml-1 text-[#625B6E]">— {f.reason}</span>
                   </li>
                 ))}
               </ul>
@@ -487,9 +487,9 @@ export default function AdminStreamingPage() {
       )}
 
       {/* 取り込み */}
-      <details className="mt-4 rounded-2xl border border-[#ECECF2] bg-white p-4">
-        <summary className="cursor-pointer text-sm font-bold text-[#1C1C2E]">候補を貼り付けて取り込む（CSV / JSON）</summary>
-        <p className="mt-2 text-[11px] text-[#6B7280]">
+      <details className="mt-4 rounded-2xl border border-[#ECE5DA] bg-white p-4">
+        <summary className="cursor-pointer text-sm font-bold text-[#1A1523]">候補を貼り付けて取り込む（CSV / JSON）</summary>
+        <p className="mt-2 text-[11px] text-[#625B6E]">
           CSV列：anilistId,title,serviceKey,availability,開始日(YYYY-MM-DD),曜日(0=日),時刻,出典URL<br />
           取り込んだ行は「候補」になります。確認済み・配信なしの既存データは上書きしません。
         </p>
@@ -498,13 +498,13 @@ export default function AdminStreamingPage() {
           onChange={(e) => setImportText(e.target.value)}
           rows={6}
           placeholder={`21,作品名,d-anime,included,2026-07-05,6,23:30,https://...`}
-          className="mt-2 w-full rounded-xl border border-[#ECECF2] p-2 font-mono text-[11px] outline-none focus:border-[#C2772A]"
+          className="mt-2 w-full rounded-xl border border-[#ECE5DA] p-2 font-mono text-[11px] outline-none focus:border-[#C2772A]"
         />
         <div className="mt-2 flex flex-wrap items-center gap-2 text-xs font-bold">
-          <button type="button" onClick={doPreview} className="rounded-full border border-[#ECECF2] px-3 py-1 text-[#C2772A]">検証（プレビュー）</button>
+          <button type="button" onClick={doPreview} className="rounded-full border border-[#ECE5DA] px-3 py-1 text-[#C2772A]">検証（プレビュー）</button>
           <button type="button" onClick={doImport} disabled={busy || !preview || preview.count === 0} className="rounded-full bg-[#A8621F] px-3 py-1 text-white disabled:opacity-50">取り込む</button>
           {preview && (
-            <span className="text-[11px] font-normal text-[#6B7280]">
+            <span className="text-[11px] font-normal text-[#625B6E]">
               取り込み可能 {preview.count}件{preview.errors.length ? ` / エラー ${preview.errors.length}件：${preview.errors.slice(0, 2).join(" / ")}` : ""}
             </span>
           )}
@@ -518,12 +518,12 @@ export default function AdminStreamingPage() {
             key={k}
             type="button"
             onClick={() => setFilter(k)}
-            className={`rounded-full px-3 py-1 ${filter === k ? "bg-[#A8621F] text-white" : "border border-[#ECECF2] bg-white text-[#6B7280]"}`}
+            className={`rounded-full px-3 py-1 ${filter === k ? "bg-[#A8621F] text-white" : "border border-[#ECE5DA] bg-white text-[#625B6E]"}`}
           >
             {k === "all" ? `すべて ${rows?.length ?? 0}` : `${STATUS_JA[k]} ${counts[k] ?? 0}`}
           </button>
         ))}
-        <select value={svcFilter} onChange={(e) => setSvcFilter(e.target.value)} className="rounded-full border border-[#ECECF2] bg-white px-2 py-1 text-[#1C1C2E]">
+        <select value={svcFilter} onChange={(e) => setSvcFilter(e.target.value)} className="rounded-full border border-[#ECE5DA] bg-white px-2 py-1 text-[#1A1523]">
           <option value="all">全サービス</option>
           {STREAM_SERVICES.map((s) => (
             <option key={s.key} value={s.key}>{s.name}</option>
@@ -535,7 +535,7 @@ export default function AdminStreamingPage() {
       {rows === null ? (
         <p className="mt-6 text-sm text-black/50">読み込み中…</p>
       ) : shown.length === 0 ? (
-        <div className="mt-4 rounded-2xl border border-[#ECECF2] bg-white p-6 text-sm text-black/50">
+        <div className="mt-4 rounded-2xl border border-[#ECE5DA] bg-white p-6 text-sm text-black/50">
           データがありません。上の「貼り付けて取り込む」から候補を追加してください。
         </div>
       ) : (
@@ -543,11 +543,11 @@ export default function AdminStreamingPage() {
           {shown.map((e) => {
             const manualOnly = MANUAL_ONLY_SERVICES.includes(e.serviceKey);
             return (
-              <li key={e.id} className="rounded-2xl border border-[#ECECF2] bg-white p-3">
+              <li key={e.id} className="rounded-2xl border border-[#ECE5DA] bg-white p-3">
                 <div className="flex flex-wrap items-center gap-2">
                   <ServiceIcon name={e.serviceName} size={18} />
-                  <span className="text-sm font-bold text-[#1C1C2E]">{e.title || `#${e.anilistId}`}</span>
-                  <span className="text-[11px] text-[#6B7280]">{e.serviceName}</span>
+                  <span className="text-sm font-bold text-[#1A1523]">{e.title || `#${e.anilistId}`}</span>
+                  <span className="text-[11px] text-[#625B6E]">{e.serviceName}</span>
                   {manualOnly && <span className="rounded bg-[#FDEAEA] px-1.5 py-0.5 text-[10px] font-bold text-[#DC2626]">要手動確認</span>}
                   {e.published && <span className="rounded bg-[#EAF3DE] px-1.5 py-0.5 text-[10px] font-bold text-[#3B6D11]">公開中</span>}
                   {serviceSearchUrl(e.serviceKey, e.title) && (
@@ -563,7 +563,7 @@ export default function AdminStreamingPage() {
                 </div>
 
                 {/* この作品に別サービスの行を足す（U-NEXT・dアニメなど自動で拾えないもの用） */}
-                <div className="mt-1.5 flex flex-wrap items-center gap-1 text-[10px] text-[#6B7280]">
+                <div className="mt-1.5 flex flex-wrap items-center gap-1 text-[10px] text-[#625B6E]">
                   <span>他サービスを追加：</span>
                   {STREAM_SERVICES.filter(
                     (s) => !(rows ?? []).some((r) => r.anilistId === e.anilistId && r.serviceKey === s.key)
@@ -573,7 +573,7 @@ export default function AdminStreamingPage() {
                       type="button"
                       onClick={() => addServiceRow(e, s.key)}
                       disabled={busy}
-                      className="rounded-full border border-[#ECECF2] px-2 py-0.5 font-bold text-[#C2772A] hover:bg-[#FBF3E6] disabled:opacity-50"
+                      className="rounded-full border border-[#ECE5DA] px-2 py-0.5 font-bold text-[#C2772A] hover:bg-[#FBF3E6] disabled:opacity-50"
                     >
                       ＋{s.name}
                     </button>
@@ -582,29 +582,29 @@ export default function AdminStreamingPage() {
 
                 <div className="mt-2 grid grid-cols-2 gap-2 text-[11px] md:grid-cols-4">
                   <label className="flex flex-col gap-0.5">状態
-                    <select value={e.status} onChange={(ev) => patch(e.id, { status: ev.target.value as EntryStatus })} className="rounded border border-[#ECECF2] px-1.5 py-1">
+                    <select value={e.status} onChange={(ev) => patch(e.id, { status: ev.target.value as EntryStatus })} className="rounded border border-[#ECE5DA] px-1.5 py-1">
                       {(Object.keys(STATUS_JA) as EntryStatus[]).map((k) => (
                         <option key={k} value={k}>{STATUS_JA[k]}</option>
                       ))}
                     </select>
                   </label>
                   <label className="flex flex-col gap-0.5">種別
-                    <select value={e.availability} onChange={(ev) => patch(e.id, { availability: ev.target.value as Availability })} className="rounded border border-[#ECECF2] px-1.5 py-1">
+                    <select value={e.availability} onChange={(ev) => patch(e.id, { availability: ev.target.value as Availability })} className="rounded border border-[#ECE5DA] px-1.5 py-1">
                       {(Object.keys(AVAIL_JA) as Availability[]).map((k) => (
                         <option key={k} value={k}>{AVAIL_JA[k]}</option>
                       ))}
                     </select>
                   </label>
                   <label className="flex flex-col gap-0.5">初回配信日
-                    <input type="date" value={toDateInput(e.firstAvailableAt)} onChange={(ev) => patch(e.id, { firstAvailableAt: fromDateInput(ev.target.value) })} className="rounded border border-[#ECECF2] px-1.5 py-1" />
+                    <input type="date" value={toDateInput(e.firstAvailableAt)} onChange={(ev) => patch(e.id, { firstAvailableAt: fromDateInput(ev.target.value) })} className="rounded border border-[#ECE5DA] px-1.5 py-1" />
                   </label>
                   <label className="flex flex-col gap-0.5">毎週
                     <span className="flex gap-1">
-                      <select value={e.weeklyDay ?? ""} onChange={(ev) => patch(e.id, { weeklyDay: ev.target.value === "" ? null : Number(ev.target.value) })} className="w-full rounded border border-[#ECECF2] px-1 py-1">
+                      <select value={e.weeklyDay ?? ""} onChange={(ev) => patch(e.id, { weeklyDay: ev.target.value === "" ? null : Number(ev.target.value) })} className="w-full rounded border border-[#ECE5DA] px-1 py-1">
                         <option value="">—</option>
                         {WD.map((w, i) => (<option key={i} value={i}>{w}</option>))}
                       </select>
-                      <input type="time" value={e.weeklyTime ?? ""} onChange={(ev) => patch(e.id, { weeklyTime: ev.target.value || null })} className="w-full rounded border border-[#ECECF2] px-1 py-1" />
+                      <input type="time" value={e.weeklyTime ?? ""} onChange={(ev) => patch(e.id, { weeklyTime: ev.target.value || null })} className="w-full rounded border border-[#ECE5DA] px-1 py-1" />
                     </span>
                   </label>
                 </div>
@@ -622,7 +622,7 @@ export default function AdminStreamingPage() {
                 </div>
 
                 {e.sourceLabel && e.sourceLabel !== "手動追加" && (
-                  <p className="mt-2 text-[11px] text-[#6B7280]">
+                  <p className="mt-2 text-[11px] text-[#625B6E]">
                     根拠：
                     {e.sourceUrl ? (
                       <a href={e.sourceUrl} target="_blank" rel="noreferrer" className="text-[#8A5518] underline">
@@ -639,14 +639,14 @@ export default function AdminStreamingPage() {
                     value={e.sourceUrl}
                     onChange={(ev) => patch(e.id, { sourceUrl: ev.target.value })}
                     placeholder="出典URL（確認済みにするには必須）"
-                    className="w-full rounded border border-[#ECECF2] px-2 py-1 text-[11px]"
+                    className="w-full rounded border border-[#ECE5DA] px-2 py-1 text-[11px]"
                   />
                   <input
                     type="text"
                     value={e.note}
                     onChange={(ev) => patch(e.id, { note: ev.target.value })}
                     placeholder="管理メモ（一般には出ません）"
-                    className="w-full rounded border border-[#ECECF2] px-2 py-1 text-[11px]"
+                    className="w-full rounded border border-[#ECE5DA] px-2 py-1 text-[11px]"
                   />
                   <button type="button" onClick={() => save(e)} disabled={busy} className="flex-none rounded-full bg-[#A8621F] px-4 py-1.5 text-xs font-bold text-white disabled:opacity-50">
                     保存

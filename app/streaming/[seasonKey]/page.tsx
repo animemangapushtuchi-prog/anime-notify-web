@@ -10,6 +10,7 @@ import {
 import { getPublishedEntries, getSeasonMeta } from "@/lib/seasonStreaming";
 import StreamingList from "@/components/StreamingList";
 import Mascot from "@/components/Mascot";
+import PageHeader from "@/components/PageHeader";
 
 export const revalidate = 3600;
 
@@ -53,34 +54,47 @@ export default async function SeasonStreamingPage({ params }: Props) {
   const prev = parseSeasonKey(adjacentSeasonKey(info.key, -1))!;
   const next = parseSeasonKey(adjacentSeasonKey(info.key, 1))!;
 
+  const works = new Set(entries.map((e) => e.anilistId)).size;
+  const services = new Set(entries.map((e) => e.serviceKey)).size;
+
   return (
-    <main className="mx-auto max-w-2xl px-4 py-5 lg:max-w-6xl lg:px-8">
-      <nav className="text-[11px] text-[#6B7280]">
-        <Link href="/" className="hover:underline">ホーム</Link>
-        <span className="mx-1">›</span>
-        <Link href="/streaming" className="hover:underline">今期配信</Link>
-        <span className="mx-1">›</span>
-        <span className="text-[#1C1C2E]">{info.label}</span>
-      </nav>
-
-      <h1 className="mt-2 text-xl font-extrabold text-[#1C1C2E]">
-        {info.label} 配信サービス別一覧
-      </h1>
-      <p className="mt-1 text-sm text-[#6B7280]">
-        Prime Video・Netflix・ABEMA・dアニメストアなどを横断比較
-      </p>
-      <p className="mt-1 text-[11px] text-black/40">
-        確認済みの情報を掲載しています。配信状況は変更される場合があります。
-        {meta?.lastPublishedAt ? `（最終確認日 ${jstDate(meta.lastPublishedAt)}）` : ""}
-      </p>
-
-      <div className="mt-3 flex items-center justify-between text-xs font-bold text-[#8A5518]">
-        <Link href={`/streaming/${prev.key}`} className="hover:underline">← {prev.label}</Link>
-        <Link href={`/streaming/${next.key}`} className="hover:underline">{next.label} →</Link>
-      </div>
+    <main className="mx-auto max-w-2xl px-4 pb-6 lg:max-w-[1400px] lg:px-8">
+      <PageHeader
+        crumbs={[{ href: "/", label: "ホーム" }, { href: "/streaming", label: "今期配信" }, { label: info.label }]}
+        eyebrow="Where to watch"
+        title={<>{info.label}<br className="sm:hidden" /> 配信サービス別一覧</>}
+        desc={
+          <>
+            <p>Prime Video・Netflix・ABEMA・dアニメストアなどを横断して比較できます。</p>
+            <p className="mt-1 text-xs">
+              各作品の公式サイトで確認できた情報だけを掲載しています。配信状況は変更される場合があります。
+              {meta?.lastPublishedAt ? `（最終確認日 ${jstDate(meta.lastPublishedAt)}）` : ""}
+            </p>
+          </>
+        }
+        aside={
+          entries.length > 0 ? (
+            <dl className="flex gap-6 rounded-2xl border border-line bg-white px-5 py-3">
+              <div>
+                <dt className="text-[11px] text-ink-2">作品</dt>
+                <dd className="num text-2xl font-bold text-ink">{works}</dd>
+              </div>
+              <div>
+                <dt className="text-[11px] text-ink-2">サービス</dt>
+                <dd className="num text-2xl font-bold text-ink">{services}</dd>
+              </div>
+            </dl>
+          ) : null
+        }
+      >
+        <nav aria-label="シーズン" className="mt-5 flex items-center justify-between gap-2 text-xs font-bold">
+          <Link href={`/streaming/${prev.key}`} className="rounded-full border border-line bg-white px-3.5 py-1.5 text-amber-ink transition hover:border-amber">← {prev.label}</Link>
+          <Link href={`/streaming/${next.key}`} className="rounded-full border border-line bg-white px-3.5 py-1.5 text-amber-ink transition hover:border-amber">{next.label} →</Link>
+        </nav>
+      </PageHeader>
 
       {entries.length === 0 ? (
-        <div className="mt-8 flex flex-col items-center gap-3 rounded-2xl border border-[#ECECF2] bg-white p-8 text-center text-sm text-black/50">
+        <div className="mt-8 flex flex-col items-center gap-3 rounded-3xl border border-line bg-white p-10 text-center text-sm text-ink-2">
           <Mascot pose="sit" h={120} />
           <p>このシーズンの配信情報は現在確認中です。確認でき次第、順次掲載します。</p>
         </div>
@@ -88,7 +102,7 @@ export default async function SeasonStreamingPage({ params }: Props) {
         <StreamingList entries={entries} />
       )}
 
-      <p className="mt-8 text-[10px] text-black/40">出典：各配信サービス公式・AniList</p>
+      <p className="mt-8 text-[11px] text-ink-2">出典：各作品の公式サイト・各配信サービス公式・AniList</p>
     </main>
   );
 }

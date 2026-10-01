@@ -5,18 +5,19 @@ import { listOsusume, thumbWorkIds } from "@/lib/osusume";
 import { fetchCovers } from "@/lib/anilist";
 import Mascot from "@/components/Mascot";
 import OsusumeThumb from "@/components/OsusumeThumb";
+import PageHeader from "@/components/PageHeader";
 
 export const revalidate = 3600;
 
 export const metadata: Metadata = {
-  title: "アニメおすすめ・特集記事一覧｜アニミル！",
+  title: "特集・読みもの｜アニメの配信をデータで比較｜アニミル！",
   description:
-    "テーマ別のおすすめアニメと、配信サービスの比較記事をまとめています。実際の配信データをもとに、どこで見られるかまで紹介。",
+    "配信サービスの比較や、今期アニメがどこで見られるかをまとめた記事の一覧。アニミル！の配信データと各サービスの公式情報で確かめたことだけを書いています。",
   alternates: { canonical: "/osusume" },
   openGraph: {
-    title: "アニメおすすめ・特集記事一覧｜アニミル！",
+    title: "特集・読みもの｜アニメの配信をデータで比較｜アニミル！",
     description:
-      "テーマ別のおすすめアニメと、配信サービスの比較記事をまとめています。実際の配信データをもとに、どこで見られるかまで紹介。",
+      "配信サービスの比較や、今期アニメがどこで見られるかをまとめた記事の一覧。アニミル！の配信データと各サービスの公式情報で確かめたことだけを書いています。",
     url: "/osusume",
     images: [OG_IMAGE],
   },
@@ -27,43 +28,66 @@ export default async function OsusumeListPage() {
   // サムネ背景用のカバー画像をまとめて取得（失敗しても文字だけで成立する）
   const covers = await fetchCovers(thumbWorkIds(list)).catch(() => ({} as Record<number, string>));
   return (
-    <main className="mx-auto max-w-2xl px-4 py-5 lg:max-w-5xl lg:px-8">
-      <div className="flex items-center gap-2">
-        <Mascot pose="thumbsup" h={44} />
-        <h1 className="text-xl font-extrabold text-[#1C1C2E]">おすすめ・特集</h1>
-      </div>
-      <p className="mt-1 text-xs text-[#6B7280]">テーマ別のおすすめアニメをランキングで紹介します。</p>
+    <main className="mx-auto max-w-2xl px-4 pb-6 lg:max-w-[1400px] lg:px-8">
+      <PageHeader
+        crumbs={[{ href: "/", label: "ホーム" }, { label: "特集・読みもの" }]}
+        eyebrow="Features"
+        title="特集・読みもの"
+        desc={
+          <p>
+            アニミル！の配信データと、各サービスの公式情報で確かめたことだけを書いています。
+            作品の出来の評価はしていません。
+          </p>
+        }
+        aside={<Mascot pose="thumbsup" h={96} className="hidden lg:block" />}
+      />
 
       {list.length === 0 ? (
-        <p className="mt-6 text-sm text-black/50">特集は準備中です。</p>
+        <p className="mt-6 text-sm text-ink-2">特集は準備中です。</p>
       ) : (
-        <ul className="mt-4 space-y-3 lg:grid lg:grid-cols-2 lg:gap-4 lg:space-y-0">
-          {list.map((o) => (
-            <li key={o.slug}>
-              <Link
-                href={`/osusume/${o.slug}`}
-                className="block overflow-hidden rounded-2xl border border-[#ECECF2] bg-white"
-              >
-                {o.heroImage ? (
-                  // eslint-disable-next-line @next/next/no-img-element
-                  <img src={o.heroImage} alt={o.title} className="h-32 w-full object-cover" />
-                ) : (
-                  <OsusumeThumb
-                    spec={o.thumb ?? { label: o.title.slice(0, 12) }}
-                    images={(o.thumb?.workIds ?? []).map((id) => covers[id]).filter(Boolean)}
-                    className="h-32 w-full"
-                  />
-                )}
-                <div className="p-3">
-                  <p className="text-sm font-extrabold text-[#1C1C2E]">{o.title}</p>
-                  {o.description && <p className="mt-1 line-clamp-2 text-xs text-[#6B7280]">{o.description}</p>}
-                  <p className="mt-1 text-[11px] font-bold text-[#8A5518]">
-                    {o.entries.length > 0 ? `${o.entries.length}作品を紹介` : "解説記事"} ›
-                  </p>
-                </div>
-              </Link>
-            </li>
-          ))}
+        <ul className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          {list.map((o, i) => {
+            const big = i === 0;
+            return (
+              <li key={o.slug} className={`reveal ${big ? "sm:col-span-2" : ""}`}>
+                <Link
+                  href={`/osusume/${o.slug}`}
+                  className={`group flex h-full overflow-hidden rounded-3xl border border-line bg-white transition hover:-translate-y-0.5 hover:shadow-[0_20px_40px_-24px_rgba(26,21,35,0.5)] ${
+                    big ? "flex-col lg:flex-row" : "flex-col"
+                  }`}
+                >
+                  {o.heroImage ? (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img src={o.heroImage} alt="" className={big ? "h-56 w-full object-cover lg:h-auto lg:w-3/5" : "h-36 w-full object-cover"} />
+                  ) : (
+                    <OsusumeThumb
+                      spec={o.thumb ?? { label: o.title.slice(0, 12) }}
+                      images={(o.thumb?.workIds ?? []).map((id) => covers[id]).filter(Boolean)}
+                      className={big ? "h-56 w-full lg:h-auto lg:min-h-[280px] lg:w-3/5" : "h-36 w-full"}
+                      size={big ? "lg" : "md"}
+                    />
+                  )}
+                  <div className={`flex flex-1 flex-col ${big ? "p-6 lg:p-8" : "p-5"}`}>
+                    {big && (
+                      <p className="num text-[11px] font-bold uppercase tracking-[0.2em] text-amber-ink">Latest</p>
+                    )}
+                    <p className={`${big ? "mt-2 text-xl lg:text-2xl" : "text-[15px]"} font-black leading-snug text-ink group-hover:text-amber-ink`}>
+                      {o.title}
+                    </p>
+                    {o.description && (
+                      <p className={`mt-2 ${big ? "line-clamp-4" : "line-clamp-2"} text-[13px] leading-relaxed text-ink-2`}>
+                        {o.description}
+                      </p>
+                    )}
+                    <p className="mt-auto flex items-center justify-between pt-4 text-[11px] text-ink-2">
+                      <span className="num">{o.updatedAt}</span>
+                      <span className="font-bold text-amber-ink transition group-hover:translate-x-0.5">読む →</span>
+                    </p>
+                  </div>
+                </Link>
+              </li>
+            );
+          })}
         </ul>
       )}
     </main>

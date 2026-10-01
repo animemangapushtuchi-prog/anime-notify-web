@@ -88,10 +88,10 @@ export default function CalendarPage() {
   if (!user) {
     return (
       <main className="mx-auto max-w-md px-4 py-10">
-        <div className="rounded-2xl border border-[#ECECF2] bg-white p-6 text-center">
+        <div className="rounded-2xl border border-[#ECE5DA] bg-white p-6 text-center">
           <Mascot pose="device" h={120} />
-          <h1 className="mt-2 text-xl font-extrabold text-[#1C1C2E]">放送カレンダー</h1>
-          <p className="mt-2 text-sm text-[#6B7280]">
+          <h1 className="mt-3 text-[26px] font-black leading-tight text-ink">放送カレンダー</h1>
+          <p className="mt-2 text-sm text-[#625B6E]">
             ログインすると、通知登録した作品のテレビ放送予定を確認できます。
           </p>
           <Link
@@ -108,16 +108,16 @@ export default function CalendarPage() {
   return (
     <main className="mx-auto max-w-4xl px-4 py-5 lg:px-8">
       <div className="flex items-center gap-3">
-        <Mascot pose="device" h={52} />
+        <Mascot pose="device" h={60} />
         <div>
-          <h1 className="text-2xl font-extrabold text-[#1C1C2E]">カレンダー</h1>
-          <p className="text-xs text-[#6B7280]">マイリストのテレビ放送予定</p>
+          <h1 className="text-[28px] font-black leading-tight text-ink lg:text-[34px]">カレンダー</h1>
+          <p className="text-xs text-[#625B6E]">マイリストのテレビ放送予定</p>
         </div>
       </div>
 
       <TodayAnime entries={entries} loading={!ready || works === null} />
 
-      <section className="mt-4 rounded-2xl border border-[#ECECF2] bg-white p-3 sm:p-4">
+      <section className="mt-4 rounded-2xl border border-[#ECE5DA] bg-white p-3 sm:p-4">
         <ScheduleCalendar entries={entries} />
       </section>
     </main>

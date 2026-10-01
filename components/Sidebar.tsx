@@ -4,9 +4,10 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import Logo from "./Logo";
+import Mascot from "./Mascot";
 
 function NavIcon({ name, active }: { name: string; active: boolean }) {
-  const c = active ? "#C2772A" : "#6B7280";
+  const c = active ? "#A8621F" : "#625B6E";
   const common = {
     width: 20,
     height: 20,
@@ -83,29 +84,39 @@ export default function Sidebar() {
   const isActive = (href: string) =>
     href === "/" ? path === "/" : path.startsWith(href);
   return (
-    <aside className="sticky top-0 hidden h-screen w-56 shrink-0 flex-col border-r border-[#ECECF2] bg-[#F6F6FA] px-3 py-4 lg:flex">
-      <div className="px-3 pb-5">
+    <aside className="sticky top-0 hidden h-screen w-60 shrink-0 flex-col border-r border-line bg-paper px-4 py-5 lg:flex">
+      <div className="px-2 pb-7">
         <Logo size="md" />
       </div>
-      <nav className="flex flex-col gap-1">
+      <nav className="flex flex-col gap-0.5" aria-label="メインメニュー">
         {NAV.map((t) => {
           const on = isActive(t.href);
           return (
             <Link
               key={t.href}
               href={t.href}
-              className={`flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-bold ${
+              aria-current={on ? "page" : undefined}
+              className={`relative flex items-center gap-3 rounded-xl px-3 py-2.5 text-[14px] font-bold transition ${
                 on
-                  ? "bg-[#F6E9D5] text-[#C2772A]"
-                  : "text-[#4B5563] hover:bg-black/5"
+                  ? "bg-white text-ink shadow-[0_1px_2px_rgba(26,21,35,0.06),0_8px_20px_-14px_rgba(26,21,35,0.35)] ring-1 ring-line"
+                  : "text-ink-2 hover:bg-white/70 hover:text-ink"
               }`}
             >
+              {on && <span aria-hidden="true" className="absolute -left-4 top-1/2 h-5 w-1 -translate-y-1/2 rounded-r-full bg-amber" />}
               <NavIcon name={t.icon} active={on} />
               {t.label}
             </Link>
           );
         })}
       </nav>
+      {/* 下：使い方への入口。夜更かしの見張り番 */}
+      <Link href="/guide" className="group mt-auto flex items-end gap-2 rounded-2xl border border-line bg-white/70 p-3 transition hover:border-amber">
+        <Mascot pose="sit" h={54} />
+        <span className="pb-1 text-[12px] leading-snug text-ink-2">
+          <span className="block font-bold text-ink group-hover:text-amber-ink">使い方ガイド</span>
+          はじめての方へ
+        </span>
+      </Link>
     </aside>
   );
 }

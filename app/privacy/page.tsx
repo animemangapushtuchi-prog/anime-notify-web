@@ -14,8 +14,8 @@ const REVISED = "2026年7月15日";
 function Article({ title, children }: { title: string; children: React.ReactNode }) {
   return (
     <section>
-      <h2 className="text-[15px] font-bold text-[#1C1C2E]">{title}</h2>
-      <div className="mt-1.5 space-y-2 text-[13px] leading-relaxed text-[#374151]">{children}</div>
+      <h2 className="text-[15px] font-bold text-[#1A1523]">{title}</h2>
+      <div className="mt-1.5 space-y-2 text-[13px] leading-relaxed text-[#3A3342]">{children}</div>
     </section>
   );
 }
@@ -23,11 +23,11 @@ function Article({ title, children }: { title: string; children: React.ReactNode
 export default function PrivacyPage() {
   return (
     <main className="mx-auto max-w-2xl px-4 py-8">
-      <h1 className="text-2xl font-extrabold text-[#1C1C2E]">プライバシーポリシー</h1>
-      <p className="mt-1 text-xs text-[#6B7280]">最終改定日：{REVISED}</p>
+      <h1 className="text-[28px] font-black leading-tight text-ink lg:text-[34px]">プライバシーポリシー</h1>
+      <p className="mt-1 text-xs text-[#625B6E]">最終改定日：{REVISED}</p>
 
       <div className="mt-6 space-y-6">
-        <p className="text-[13px] leading-relaxed text-[#374151]">
+        <p className="text-[13px] leading-relaxed text-[#3A3342]">
           Animiru運営（以下「当運営者」）は、ウェブサービス「Animiru」（animiru.com。以下「本サービス」）における、ユーザーの情報の取り扱いについて、以下のとおりプライバシーポリシー（以下「本ポリシー」）を定めます。
         </p>
 

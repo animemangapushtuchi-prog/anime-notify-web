@@ -47,14 +47,14 @@ function dotColor(c: string): string {
 
 export default function NewsTimeline() {
   return (
-    <ol className="relative ml-1 border-l-2 border-[#ECECF2]">
+    <ol className="relative ml-1 border-l-2 border-[#ECE5DA]">
       {DUMMY.map((it, i) => (
         <li key={i} className="relative pb-4 pl-4 last:pb-0">
           <span
             className="absolute -left-[7px] top-1 h-3 w-3 rounded-full border-2 border-white"
             style={{ backgroundColor: dotColor(it.category) }}
           />
-          <p className="text-[11px] text-[#6B7280]">{it.date}</p>
+          <p className="text-[11px] text-[#625B6E]">{it.date}</p>
           <div className="mt-0.5 flex items-start gap-2">
             <span
               className={`flex-none rounded-full px-2 py-0.5 text-[10px] font-bold ${chipCls(
@@ -63,7 +63,7 @@ export default function NewsTimeline() {
             >
               {it.category}
             </span>
-            <span className="text-[13px] font-bold text-[#1C1C2E]">{it.title}</span>
+            <span className="text-[13px] font-bold text-[#1A1523]">{it.title}</span>
           </div>
         </li>
       ))}

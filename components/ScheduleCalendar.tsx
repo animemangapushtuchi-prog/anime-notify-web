@@ -31,8 +31,8 @@ function EntryRow({ e }: { e: AiringEntry }) {
         <img src={e.cover} alt={e.title} className="h-10 w-7 flex-none rounded object-cover" />
       )}
       <div className="min-w-0 flex-1">
-        <p className="truncate text-[13px] font-bold text-[#1C1C2E]">{e.title}</p>
-        <p className="text-[10px] text-[#6B7280]">
+        <p className="truncate text-[13px] font-bold text-[#1A1523]">{e.title}</p>
+        <p className="text-[10px] text-[#625B6E]">
           {hhmm(e.at)}
           {e.ep != null ? `　第${e.ep}話` : ""}
           {e.station ? `　${e.station}` : ""}
@@ -111,7 +111,7 @@ export default function ScheduleCalendar({ entries }: { entries: AiringEntry[] }
         <div className="mt-3">
           <div className="flex items-center justify-between">
             <button onClick={() => setWeekOffset((v) => v - 1)} className="px-3 py-1 text-sm font-bold text-[#C2772A]">◀</button>
-            <span className="text-sm font-bold text-[#1C1C2E]">
+            <span className="text-sm font-bold text-[#1A1523]">
               {weekOffset === 0 ? "今週" : `${weekDays[0].getMonth() + 1}/${weekDays[0].getDate()} の週`}
             </span>
             <button onClick={() => setWeekOffset((v) => v + 1)} className="px-3 py-1 text-sm font-bold text-[#C2772A]">▶</button>
@@ -123,15 +123,15 @@ export default function ScheduleCalendar({ entries }: { entries: AiringEntry[] }
               return (
                 <div
                   key={d.toISOString()}
-                  className={`rounded-2xl border p-3 ${today ? "border-[#C2772A]/40 bg-[#FBF3E6]" : "border-[#ECECF2] bg-white"}`}
+                  className={`rounded-2xl border p-3 ${today ? "border-[#C2772A]/40 bg-[#FBF3E6]" : "border-[#ECE5DA] bg-white"}`}
                 >
-                  <p className="text-xs font-bold text-[#6B7280]">
+                  <p className="text-xs font-bold text-[#625B6E]">
                     {d.getMonth() + 1}/{d.getDate()}（{WD[d.getDay()]}）{today ? " ・今日" : ""}
                   </p>
                   {list.length === 0 ? (
                     <p className="mt-1 text-[11px] text-black/30">予定なし</p>
                   ) : (
-                    <div className="mt-1 divide-y divide-[#F1F1F5]">
+                    <div className="mt-1 divide-y divide-[#F2ECE3]">
                       {list.map((e) => (
                         <EntryRow key={e.id} e={e} />
                       ))}
@@ -146,16 +146,16 @@ export default function ScheduleCalendar({ entries }: { entries: AiringEntry[] }
         <div className="mt-3">
           <div className="flex items-center justify-between">
             <button onClick={() => { setMonthOffset((v) => v - 1); setSelDay(-1); }} className="px-3 py-1 text-sm font-bold text-[#C2772A]">◀</button>
-            <span className="text-sm font-bold text-[#1C1C2E]">{mYear}年{mMonth + 1}月</span>
+            <span className="text-sm font-bold text-[#1A1523]">{mYear}年{mMonth + 1}月</span>
             <button onClick={() => { setMonthOffset((v) => v + 1); setSelDay(-1); }} className="px-3 py-1 text-sm font-bold text-[#C2772A]">▶</button>
           </div>
-          <p className="mt-1 text-center text-[10px] text-[#6B7280]">
+          <p className="mt-1 text-center text-[10px] text-[#625B6E]">
             作品画像を押すと詳細を開けます
           </p>
 
           <div className="mt-2 grid grid-cols-7 gap-1">
             {WD.map((w) => (
-              <div key={w} className="py-1 text-center text-[10px] font-bold text-[#6B7280]">{w}</div>
+              <div key={w} className="py-1 text-center text-[10px] font-bold text-[#625B6E]">{w}</div>
             ))}
             {cells.map((d, i) => {
               if (d == null) return <div key={i} className="min-h-16 sm:min-h-24" />;
@@ -169,7 +169,7 @@ export default function ScheduleCalendar({ entries }: { entries: AiringEntry[] }
                       ? "border-[#C2772A] bg-[#FBF3E6]"
                       : isToday(d)
                         ? "border-[#F3D9A9] bg-[#FFF9EE]"
-                        : "border-[#ECECF2] bg-white"
+                        : "border-[#ECE5DA] bg-white"
                   }`}
                 >
                   <button
@@ -177,7 +177,7 @@ export default function ScheduleCalendar({ entries }: { entries: AiringEntry[] }
                     onClick={() => setSelDay(d)}
                     aria-label={`${mMonth + 1}月${d}日の予定を表示`}
                     className={`block w-full text-left text-[10px] font-bold sm:text-xs ${
-                      sel || isToday(d) ? "text-[#C2772A]" : "text-[#1C1C2E]"
+                      sel || isToday(d) ? "text-[#C2772A]" : "text-[#1A1523]"
                     }`}
                   >
                     {d}
@@ -210,7 +210,7 @@ export default function ScheduleCalendar({ entries }: { entries: AiringEntry[] }
                       <button
                         type="button"
                         onClick={() => setSelDay(d)}
-                        className="flex h-5 min-w-5 items-center justify-center rounded-sm bg-black/5 px-0.5 text-[8px] font-bold text-[#6B7280] sm:h-7"
+                        className="flex h-5 min-w-5 items-center justify-center rounded-sm bg-black/5 px-0.5 text-[8px] font-bold text-[#625B6E] sm:h-7"
                         aria-label={`${dayEntries.length - 4}作品をさらに表示`}
                       >
                         +{dayEntries.length - 4}
@@ -222,14 +222,14 @@ export default function ScheduleCalendar({ entries }: { entries: AiringEntry[] }
             })}
           </div>
 
-          <div className="mt-3 rounded-2xl border border-[#ECECF2] bg-white p-3">
-            <p className="text-xs font-bold text-[#6B7280]">
+          <div className="mt-3 rounded-2xl border border-[#ECE5DA] bg-white p-3">
+            <p className="text-xs font-bold text-[#625B6E]">
               {mMonth + 1}/{selectedDay}（{WD[selWeekday]}）の放送
             </p>
             {byWeekday[selWeekday].length === 0 ? (
               <p className="mt-1 text-[11px] text-black/30">予定なし</p>
             ) : (
-              <div className="mt-1 divide-y divide-[#F1F1F5]">
+              <div className="mt-1 divide-y divide-[#F2ECE3]">
                 {byWeekday[selWeekday].map((e) => (
                   <EntryRow key={e.id} e={e} />
                 ))}

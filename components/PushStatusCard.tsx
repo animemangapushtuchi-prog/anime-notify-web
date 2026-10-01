@@ -135,7 +135,7 @@ export default function PushStatusCard({ appEnabled }: { appEnabled: boolean | n
       (device === "ios" && !standalone && diag.status !== "ready"));
 
   return (
-    <div className="mt-4 rounded-2xl border border-[#ECECF2] bg-white p-4">
+    <div className="mt-4 rounded-2xl border border-[#ECE5DA] bg-white p-4">
       <h2 className="mb-1 text-xs font-bold text-black/50">🔔 この端末の通知状態</h2>
 
       {/* 総合状態と操作結果（スクリーンリーダーにも伝える） */}

@@ -14,10 +14,12 @@ export default function OsusumeThumb({
   spec,
   images = [],
   className = "",
+  size = "md",
 }: {
   spec: ThumbSpec;
   images?: string[]; // 解決済みのカバー画像URL
   className?: string;
+  size?: "md" | "lg"; // lg = トップの大きいカード用（文字を大きく）
 }) {
   const bg = spec.color || DEFAULT_BG;
   const pics = images.filter(Boolean).slice(0, 5);
@@ -63,15 +65,15 @@ export default function OsusumeThumb({
         </>
       )}
 
-      <div className="relative flex h-full flex-col justify-center px-5 py-4">
+      <div className={`relative flex h-full flex-col justify-center ${size === "lg" ? "px-8 py-6" : "px-5 py-4"}`}>
         {spec.sub && (
-          <p className="text-[11px] font-bold tracking-wide text-white/85 drop-shadow">{spec.sub}</p>
+          <p className={`${size === "lg" ? "text-sm" : "text-[11px]"} font-bold tracking-wide text-white/85 drop-shadow`}>{spec.sub}</p>
         )}
-        <p className="mt-0.5 text-[22px] font-black leading-tight text-white drop-shadow-md">
+        <p className={`palt mt-0.5 ${size === "lg" ? "text-[28px] sm:text-[40px] lg:text-[52px]" : "text-[22px]"} font-black leading-tight text-white drop-shadow-md`}>
           {spec.label}
         </p>
         {spec.stat && (
-          <p className="mt-1.5 inline-flex w-fit rounded-full bg-black/25 px-2.5 py-0.5 text-[12px] font-bold text-white backdrop-blur-sm">
+          <p className={`mt-1.5 inline-flex w-fit rounded-full bg-black/25 px-2.5 py-0.5 ${size === "lg" ? "text-sm" : "text-[12px]"} font-bold text-white backdrop-blur-sm`}>
             {spec.stat}
           </p>
         )}

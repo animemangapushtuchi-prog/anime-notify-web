@@ -8,6 +8,8 @@ import { STREAM_SERVICES, serviceNameOf } from "@/lib/streaming";
 import { getPublishedEntries, getSeasonMeta } from "@/lib/seasonStreaming";
 import StreamingList from "@/components/StreamingList";
 import Mascot from "@/components/Mascot";
+import PageHeader from "@/components/PageHeader";
+import ServiceIcon from "@/components/ServiceIcon";
 
 export const revalidate = 3600;
 
@@ -51,37 +53,49 @@ export default async function ServiceStreamingPage({ params }: Props) {
   const entries = all.filter((e) => e.serviceKey === serviceKey);
 
   return (
-    <main className="mx-auto max-w-2xl px-4 py-5 lg:max-w-6xl lg:px-8">
-      <nav className="text-[11px] text-[#6B7280]">
-        <Link href="/streaming" className="hover:underline">今期配信</Link>
-        <span className="mx-1">›</span>
-        <Link href={`/streaming/${info.key}`} className="hover:underline">{info.label}</Link>
-        <span className="mx-1">›</span>
-        <span className="text-[#1C1C2E]">{name}</span>
-      </nav>
-
-      <h1 className="mt-2 text-xl font-extrabold text-[#1C1C2E]">
-        {info.label} {name}で配信されるアニメ
-      </h1>
-      <p className="mt-1 text-[11px] text-black/40">
-        確認済みの情報を掲載しています。配信状況は変更される場合があります。
-      </p>
-      {serviceKey === "prime-video" && entries.length > 0 && (
-        <p className="mt-3 rounded-xl border border-[#F6E9D5] bg-[#FBF3E6] px-3 py-2 text-xs leading-relaxed text-[#1C1C2E]">
-          Prime Videoには、会員なら追加料金なしで見られる「見放題」と、1話ごとに料金がかかる「レンタル・購入」があります。
-          「見放題」「レンタル」の表示が無い作品は、公式サイトにどちらか書かれていなかったものです。
-          見る前にPrime Videoで作品名を検索して確認してください。
-        </p>
-      )}
-
-      <div className="mt-3">
-        <Link href={`/streaming/${info.key}`} className="text-xs font-bold text-[#8A5518] hover:underline">
-          ← {info.label} の全サービス一覧へ
-        </Link>
-      </div>
+    <main className="mx-auto max-w-2xl px-4 pb-6 lg:max-w-[1400px] lg:px-8">
+      <PageHeader
+        crumbs={[
+          { href: "/streaming", label: "今期配信" },
+          { href: `/streaming/${info.key}`, label: info.label },
+          { label: name },
+        ]}
+        eyebrow={info.label}
+        title={
+          <span className="flex items-center gap-3">
+            <ServiceIcon name={name} size={40} />
+            <span>{name}で配信されるアニメ</span>
+          </span>
+        }
+        desc={<p>確認済みの情報を掲載しています。配信状況は変更される場合があります。</p>}
+        aside={
+          entries.length > 0 ? (
+            <div className="rounded-2xl border border-line bg-white px-5 py-3">
+              <p className="text-[11px] text-ink-2">作品</p>
+              <p className="num text-2xl font-bold text-ink">{entries.length}</p>
+            </div>
+          ) : null
+        }
+      >
+        {serviceKey === "prime-video" && entries.length > 0 && (
+          <p className="mt-5 rounded-2xl border border-amber-soft bg-amber-wash px-4 py-3 text-xs leading-relaxed text-ink">
+            Prime Videoには、会員なら追加料金なしで見られる「見放題」と、1話ごとに料金がかかる「レンタル・購入」があります。
+            「見放題」「レンタル」の表示が無い作品は、公式サイトにどちらか書かれていなかったものです。
+            見る前にPrime Videoで作品名を検索して確認してください。
+          </p>
+        )}
+        <div className="mt-5">
+          <Link
+            href={`/streaming/${info.key}`}
+            className="inline-flex rounded-full border border-line bg-white px-3.5 py-1.5 text-xs font-bold text-amber-ink transition hover:border-amber"
+          >
+            ← {info.label} の全サービス一覧へ
+          </Link>
+        </div>
+      </PageHeader>
 
       {entries.length === 0 ? (
-        <div className="mt-8 flex flex-col items-center gap-3 rounded-2xl border border-[#ECECF2] bg-white p-8 text-center text-sm text-black/50">
+        <div className="mt-8 flex flex-col items-center gap-3 rounded-3xl border border-line bg-white p-10 text-center text-sm text-ink-2">
           <Mascot pose="worried" h={110} />
           <p>現在、{name}で確認できている作品はありません。</p>
         </div>
@@ -89,8 +103,15 @@ export default async function ServiceStreamingPage({ params }: Props) {
         <StreamingList entries={entries} lockedServiceKey={serviceKey} />
       )}
 
-      <p className="mt-8 text-[10px] text-black/40">出典：各作品の公式サイト・{name}公式・AniList</p>
-      {meta?.lastPublishedAt ? null : null}
+      <p className="mt-8 text-[11px] text-ink-2">
+        出典：各作品の公式サイト・{name}公式・AniList
+        {meta?.lastPublishedAt ? `（最終確認日 ${jstDate(meta.lastPublishedAt)}）` : ""}
+      </p>
     </main>
   );
+}
+
+function jstDate(sec: number): string {
+  const d = new Date(sec * 1000 + 9 * 3600 * 1000);
+  return `${d.getUTCFullYear()}/${d.getUTCMonth() + 1}/${d.getUTCDate()}`;
 }

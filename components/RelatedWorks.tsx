@@ -19,7 +19,7 @@ import { getWorks, addWorks, type Work } from "@/lib/works";
 function Section({ title, children }: { title: string; children: React.ReactNode }) {
   return (
     <div>
-      <p className="text-[11px] font-bold text-[#6B7280]">{title}</p>
+      <p className="text-[11px] font-bold text-[#625B6E]">{title}</p>
       <div className="mt-1">{children}</div>
     </div>
   );
@@ -39,7 +39,7 @@ function ChainBadge({ mine, isCurrent }: { mine: Work | undefined; isCurrent: bo
     return <span className="flex-none rounded-full bg-[#F6E9D5] px-2 py-0.5 text-[10px] font-bold text-[#8A5518]">この作品</span>;
   }
   if (!mine) {
-    return <span className="flex-none rounded-full border border-[#ECECF2] px-2 py-0.5 text-[10px] font-bold text-black/40">未登録</span>;
+    return <span className="flex-none rounded-full border border-[#ECE5DA] px-2 py-0.5 text-[10px] font-bold text-black/40">未登録</span>;
   }
   if (mine.watchStatus === "watched") {
     return <span className="flex-none rounded-full bg-[#F1E9FE] px-2 py-0.5 text-[10px] font-bold text-[#7C3AED]">✓ 視聴済み</span>;
@@ -199,10 +199,10 @@ export default function RelatedWorks({
                     <span className="h-12 w-8 flex-none rounded bg-black/5" />
                   )}
                   <span className="min-w-0 flex-1">
-                    <span className={`block truncate text-sm font-semibold ${c.isCurrent ? "text-[#1C1C2E]" : "text-[#C2772A] hover:underline"}`}>
+                    <span className={`block truncate text-sm font-semibold ${c.isCurrent ? "text-[#1A1523]" : "text-[#C2772A] hover:underline"}`}>
                       {i + 1}. {c.title}
                     </span>
-                    <span className="block text-[10px] text-[#6B7280]">
+                    <span className="block text-[10px] text-[#625B6E]">
                       {[seasonLabel(c.season, c.seasonYear) || (c.startYear ? `${c.startYear}年` : ""), c.episodes ? `全${c.episodes}話` : "", formatJa(c.format)]
                         .filter(Boolean)
                         .join("　")}
@@ -222,7 +222,7 @@ export default function RelatedWorks({
                   <p className="text-xs text-black/40">登録状況を確認中…</p>
                 ) : (
                   <>
-                    <p className="text-[11px] text-[#6B7280]">
+                    <p className="text-[11px] text-[#625B6E]">
                       登録済み {registeredCount}作品／未登録 {unregistered.length}作品　（使用枠 {unregistered.length}・空き枠 {freeSlots}）
                     </p>
                     <button
@@ -264,7 +264,7 @@ export default function RelatedWorks({
                 </>
               )}
               <p aria-live="polite" className="mt-1">
-                {msg && <span className="block text-[11px] font-semibold text-[#1C1C2E]">{msg}</span>}
+                {msg && <span className="block text-[11px] font-semibold text-[#1A1523]">{msg}</span>}
               </p>
               <p className="mt-1 text-[10px] leading-snug text-black/40">
                 現在見つかっているテレビシリーズをまとめて登録します。将来発表される続編は含まれません。
@@ -290,9 +290,9 @@ export default function RelatedWorks({
       {manga.length > 0 && (
         <Section title="原作・漫画・小説">
           {manga.map((r) => (
-            <p key={r.id} className="py-1 text-sm text-[#1C1C2E]">
+            <p key={r.id} className="py-1 text-sm text-[#1A1523]">
               {r.title}
-              <span className="ml-1 text-xs text-[#6B7280]">
+              <span className="ml-1 text-xs text-[#625B6E]">
                 （{formatJa(r.format)}）
               </span>
             </p>

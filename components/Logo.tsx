@@ -8,16 +8,16 @@ export default function Logo({ size = "md" }: { size?: "sm" | "md" }) {
   return (
     <Link href="/" className="flex items-center gap-2">
       <span
-        className={`flex ${face} flex-none items-center justify-center overflow-hidden rounded-full bg-[#F6E9D5] ring-2 ring-[#E7C9A0]`}
+        className={`flex ${face} flex-none items-center justify-center overflow-hidden rounded-full bg-amber-soft ring-2 ring-[#E7C9A0]`}
       >
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img
-          src="/mascot/face.png"
+          src="/mascot/w/face.webp"
           alt="アニミル！"
           className="h-full w-full scale-110 object-cover"
         />
       </span>
-      <span className={`${text} font-extrabold tracking-tight text-[#C2772A]`}>
+      <span className={`${text} palt font-display font-black tracking-tight text-amber`}>
         アニミル<span className="text-[#C0392B]">！</span>
       </span>
     </Link>

@@ -298,7 +298,7 @@ export default function LoginPage() {
                 <div
                   key={i}
                   className="h-1.5 flex-1 rounded-full"
-                  style={{ background: i < score ? PW_COLOR[score] : "#ECECF2" }}
+                  style={{ background: i < score ? PW_COLOR[score] : "#ECE5DA" }}
                 />
               ))}
             </div>
@@ -333,7 +333,7 @@ export default function LoginPage() {
     return (
       <main className="mx-auto max-w-md px-4 py-10 text-center">
         <Mascot pose="cheer" h={110} />
-        <h1 className="mt-3 text-xl font-extrabold text-[#1C1C2E]">ログイン済みです</h1>
+        <h1 className="mt-3 text-[26px] font-black leading-tight text-ink">ログイン済みです</h1>
         <p className="mt-2 text-sm text-black/60">このままアニミルをお楽しみください。</p>
         <div className="mt-5 flex justify-center gap-2">
           <Link href="/" className="rounded-full bg-[#A8621F] px-4 py-2 text-sm font-bold text-white">マイリストへ</Link>
@@ -350,10 +350,10 @@ export default function LoginPage() {
         <div className="mb-4 flex justify-center">
           <Mascot pose="device" h={110} />
         </div>
-        <h1 className="text-xl font-extrabold text-[#1C1C2E]">メール確認待ち</h1>
-        <div className="mt-4 rounded-2xl border border-[#ECECF2] bg-white p-5">
-          <p className="text-sm leading-relaxed text-[#6B7280]">
-            <span className="font-bold text-[#1C1C2E]">{user?.email}</span> 宛の確認メールのリンクを開いて認証してください。
+        <h1 className="text-[28px] font-black leading-tight text-ink lg:text-[34px]">メール確認待ち</h1>
+        <div className="mt-4 rounded-2xl border border-[#ECE5DA] bg-white p-5">
+          <p className="text-sm leading-relaxed text-[#625B6E]">
+            <span className="font-bold text-[#1A1523]">{user?.email}</span> 宛の確認メールのリンクを開いて認証してください。
             認証が完了するまで登録枠は{GUEST_SLOTS}件のままです。認証後に{MEMBER_BASE_SLOTS}件へ増えます。
           </p>
           <button
@@ -386,7 +386,7 @@ export default function LoginPage() {
                 setErr("再送に失敗しました。しばらくして再度お試しください。");
               }
             }}
-            className="mt-2 w-full rounded-xl border border-[#ECECF2] bg-white py-3 text-sm font-bold text-[#C2772A]"
+            className="mt-2 w-full rounded-xl border border-[#ECE5DA] bg-white py-3 text-sm font-bold text-[#C2772A]"
           >
             確認メールを再送する
           </button>
@@ -403,7 +403,7 @@ export default function LoginPage() {
         <div className="mb-4 flex justify-center">
           <Mascot pose="point" h={110} />
         </div>
-        <h1 className="text-xl font-extrabold text-[#1C1C2E]">ゲスト利用中</h1>
+        <h1 className="text-[28px] font-black leading-tight text-ink lg:text-[34px]">ゲスト利用中</h1>
         <p className="mt-1 text-sm text-black/60">
           現在の登録：{guestCount != null ? `${guestCount}/${GUEST_SLOTS}件` : `最大${GUEST_SLOTS}件`}。
           メール登録すると{MEMBER_BASE_SLOTS}件、ログインボーナスで最大{MEMBER_MAX_SLOTS}件になります。
@@ -427,9 +427,9 @@ export default function LoginPage() {
         </div>
 
         {merge ? (
-          <div className="mt-4 rounded-2xl border border-[#ECECF2] bg-white p-5">
-            <h2 className="text-sm font-extrabold text-[#1C1C2E]">引き継ぐ作品を選んでください</h2>
-            <p className="mt-1 text-xs leading-relaxed text-[#6B7280]">
+          <div className="mt-4 rounded-2xl border border-[#ECE5DA] bg-white p-5">
+            <h2 className="text-sm font-extrabold text-[#1A1523]">引き継ぐ作品を選んでください</h2>
+            <p className="mt-1 text-xs leading-relaxed text-[#625B6E]">
               アカウントの登録枠（{merge.cap}件）に対して空きが{merge.free}件のため、ゲストの作品から引き継ぐものを選択してください。
               既存アカウントの{merge.memberCount}件はそのまま維持されます。
             </p>
@@ -477,8 +477,8 @@ export default function LoginPage() {
             {feedback}
           </div>
         ) : guestTab === "link" ? (
-          <form onSubmit={submitLink} className="mt-4 rounded-2xl border border-[#ECECF2] bg-white p-5">
-            <p className="mb-3 text-xs leading-relaxed text-[#6B7280]">
+          <form onSubmit={submitLink} className="mt-4 rounded-2xl border border-[#ECE5DA] bg-white p-5">
+            <p className="mb-3 text-xs leading-relaxed text-[#625B6E]">
               いまのゲストデータ（作品・視聴状況・通知設定）をそのまま引き継いでメール登録します。
             </p>
             {emailInput}
@@ -493,8 +493,8 @@ export default function LoginPage() {
             </button>
           </form>
         ) : (
-          <form onSubmit={submitMergeLogin} className="mt-4 rounded-2xl border border-[#ECECF2] bg-white p-5">
-            <p className="mb-3 text-xs leading-relaxed text-[#6B7280]">
+          <form onSubmit={submitMergeLogin} className="mt-4 rounded-2xl border border-[#ECE5DA] bg-white p-5">
+            <p className="mb-3 text-xs leading-relaxed text-[#625B6E]">
               すでにアニミルのアカウントをお持ちの場合はこちら。ログイン後、いまのゲストデータを安全に統合します。
             </p>
             {emailInput}
@@ -524,9 +524,9 @@ export default function LoginPage() {
       <div className="mb-4 flex justify-center">
         <Mascot pose="wave" h={110} />
       </div>
-      <h1 className="text-2xl font-extrabold text-[#1C1C2E]">{title}</h1>
+      <h1 className="text-[28px] font-black leading-tight text-ink lg:text-[34px]">{title}</h1>
 
-      <form onSubmit={submit} className="mt-6 rounded-2xl border border-[#ECECF2] bg-white p-5">
+      <form onSubmit={submit} className="mt-6 rounded-2xl border border-[#ECE5DA] bg-white p-5">
         {emailInput}
         {mode !== "reset" && pwInput(mode === "signup")}
         {feedback}
@@ -551,7 +551,7 @@ export default function LoginPage() {
         )}
       </form>
 
-      <div className="mt-3 rounded-2xl bg-[#FBF3E6] px-4 py-3 text-xs leading-relaxed text-[#6B7280]">
+      <div className="mt-3 rounded-2xl bg-[#FBF3E6] px-4 py-3 text-xs leading-relaxed text-[#625B6E]">
         <p className="font-bold text-[#C2772A]">登録なしでも{GUEST_SLOTS}作品まで使えます</p>
         <p className="mt-1">
           作品詳細で「通知登録」を押すと自動でゲスト利用が始まります。メール登録すると{MEMBER_BASE_SLOTS}件、

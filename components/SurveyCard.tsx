@@ -16,7 +16,7 @@ export default function SurveyCard() {
   if (!show) return null;
   return (
     <div className="mb-4 rounded-2xl border border-[#E4DBFB] bg-[#F3EEFF] p-4">
-      <p className="text-sm font-bold text-[#1C1C2E]">📝 ベータ版アンケートにご協力ください</p>
+      <p className="text-sm font-bold text-[#1A1523]">📝 ベータ版アンケートにご協力ください</p>
       <p className="mt-1 text-xs text-black/60">
         匿名・1分で終わります。感想が次のアップデートに直結します。
       </p>

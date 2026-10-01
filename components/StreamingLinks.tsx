@@ -110,10 +110,10 @@ export default function StreamingLinks({
   return (
     <div>
       {sorted.length === 0 ? (
-        <p className="mt-2 text-xs text-[#6B7280]">日本で見られる配信情報は現在確認中です</p>
+        <p className="mt-2 text-xs text-[#625B6E]">日本で見られる配信情報は現在確認中です</p>
       ) : (
         <>
-          <p className="mt-1 text-xs text-[#6B7280]">
+          <p className="mt-1 text-xs text-[#625B6E]">
             配信日時は取得できた公式相当の番組表情報のみ表示しています
           </p>
           <ul className="mt-2 grid gap-1 sm:grid-cols-2">
@@ -124,7 +124,7 @@ export default function StreamingLinks({
                   <ServiceIcon name={s.name} size={22} />
                   <span className="min-w-0 flex-1">
                     <span className="flex flex-wrap items-center gap-1">
-                      <span className="truncate text-sm font-bold text-[#1C1C2E]">{s.name}</span>
+                      <span className="truncate text-sm font-bold text-[#1A1523]">{s.name}</span>
                       {confirmedOf(s.key)?.availability &&
                         AVAILABILITY_JA[confirmedOf(s.key)!.availability] && (
                           <span className="rounded bg-[#F6E9D5] px-1.5 py-0.5 text-[10px] font-bold text-[#8A5518]">
@@ -139,14 +139,14 @@ export default function StreamingLinks({
                       )}
                     </span>
                     {s.nextAt != null && (
-                      <span className="block text-[10px] text-[#6B7280]">
+                      <span className="block text-[10px] text-[#625B6E]">
                         次回：{fmtAt(s.nextAt)}
                         {s.nextEp != null ? `　第${s.nextEp}話` : ""}
                       </span>
                     )}
                     {s.nextAt == null &&
                       weeklyLabel(confirmedOf(s.key)?.weeklyDay ?? null, confirmedOf(s.key)?.weeklyTime ?? null) && (
-                        <span className="block text-[10px] text-[#6B7280]">
+                        <span className="block text-[10px] text-[#625B6E]">
                           {weeklyLabel(confirmedOf(s.key)!.weeklyDay, confirmedOf(s.key)!.weeklyTime)}
                         </span>
                       )}
@@ -182,13 +182,13 @@ export default function StreamingLinks({
             })}
           </ul>
           {confirmedOf("prime-video")?.availability === "unknown" && (
-            <p className="mt-2 text-[10px] leading-relaxed text-[#6B7280]">
+            <p className="mt-2 text-[10px] leading-relaxed text-[#625B6E]">
               Prime Videoは、見放題か、1話ごとに料金がかかるレンタルかを確認できていません。見る前にPrime Videoでご確認ください。
             </p>
           )}
         </>
       )}
-      <p className="mt-2 text-[10px] text-[#6B7280]">
+      <p className="mt-2 text-[10px] text-[#625B6E]">
         出典：{confirmed.length > 0 ? "作品公式サイト・各配信サービス（確認済み）／" : ""}AniList／しょぼいカレンダー
         {updatedAt
           ? `　配信情報の最終更新：${updatedAt.getMonth() + 1}/${updatedAt.getDate()} ${String(updatedAt.getHours()).padStart(2, "0")}:${String(updatedAt.getMinutes()).padStart(2, "0")}`

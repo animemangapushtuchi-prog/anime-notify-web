@@ -45,24 +45,24 @@ export default function EpisodeProgress({
 
   return (
     <div
-      className={`rounded-xl border border-[#ECECF2] bg-[#FAFAFC] ${
+      className={`rounded-xl border border-[#ECE5DA] bg-[#FBF8F3] ${
         compact ? "mt-2 px-2.5 py-2" : "mt-3 px-3 py-3"
       }`}
     >
       <div className="flex flex-wrap items-center gap-2">
         <div className="min-w-0 flex-1">
-          <p className={`${compact ? "text-[11px]" : "text-[13px]"} font-extrabold text-[#1C1C2E]`}>
+          <p className={`${compact ? "text-[11px]" : "text-[13px]"} font-extrabold text-[#1A1523]`}>
             {watched > 0 ? `第${watched}話まで視聴` : "視聴進捗"}
-            {total ? <span className="ml-1 font-medium text-[#6B7280]">/ 全{total}話</span> : null}
+            {total ? <span className="ml-1 font-medium text-[#625B6E]">/ 全{total}話</span> : null}
           </p>
-          <p className="truncate text-[10px] text-[#6B7280]">{note}</p>
+          <p className="truncate text-[10px] text-[#625B6E]">{note}</p>
         </div>
         <button
           type="button"
           onClick={() => change(watched - 1)}
           disabled={busy || watched === 0}
           aria-label="視聴済み話数を1話戻す"
-          className="h-8 rounded-full border border-[#ECECF2] bg-white px-3 text-xs font-bold text-[#6B7280] disabled:opacity-35"
+          className="h-8 rounded-full border border-[#ECE5DA] bg-white px-3 text-xs font-bold text-[#625B6E] disabled:opacity-35"
         >
           −1話
         </button>

@@ -185,41 +185,62 @@ export default function MyListHome() {
   }, [shown]);
 
   if (loading) {
+    // 読み込み中は、下の「はじめ方」とほぼ同じ高さの枠を出しておく（表示が跳ねないように）
     return (
-      <section className="mx-auto max-w-2xl px-4 py-6">
-        <p className="text-sm text-black/40">マイリストを読み込み中…</p>
+      <section className="mx-auto max-w-2xl px-4 pt-16 lg:max-w-[1400px] lg:px-8 lg:pt-24" aria-busy="true">
+        <span className="sr-only">マイリストを読み込み中…</span>
+        <div className="h-6 w-40 animate-pulse rounded-full bg-paper-2" />
+        <div className="mt-4 grid gap-3 sm:grid-cols-3">
+          {[0, 1, 2].map((i) => (
+            <div key={i} className="h-56 animate-pulse rounded-3xl bg-paper-2" />
+          ))}
+        </div>
       </section>
     );
   }
 
   if (!user) {
+    const steps = [
+      { pose: "search" as const, n: "01", t: "作品をさがす", d: "検索や今期の一覧から、気になる作品を見つけます。" },
+      { pose: "point" as const, n: "02", t: "「通知登録」を押す", d: "メール登録なしで5作品まで。登録すると10作品（ログインボーナスで最大15作品）になり、端末をまたいで引き継げます。" },
+      { pose: "cheer" as const, n: "03", t: "あとは待つだけ", d: "新しい話の放送日と、配信サービスに入った日を、アニミル！がお知らせします。" },
+    ];
     return (
-      <section className="mx-auto max-w-md px-4 py-6">
-        <div className="rounded-2xl border border-[#ECECF2] bg-white p-6">
-          <div className="mb-3 flex justify-center">
-            <Mascot pose="wave" h={140} />
+      <section className="mx-auto max-w-2xl px-4 pt-16 lg:max-w-[1400px] lg:px-8 lg:pt-24" aria-labelledby="howto-title">
+        <div className="flex flex-wrap items-end justify-between gap-4">
+          <div>
+            <p className="num flex items-center gap-2 text-[11px] font-bold uppercase tracking-[0.22em] text-[#8A5518]">
+              <span aria-hidden="true" className="h-px w-6 bg-[#C2772A]" />
+              How it works
+            </p>
+            <h2 id="howto-title" className="mt-2 text-[26px] font-black leading-tight text-[#1A1523] lg:text-[34px]">
+              はじめ方は、3ステップ
+            </h2>
           </div>
-          <h2 className="text-lg font-extrabold text-[#1C1C2E]">
-            ようこそ！3ステップで始まります
-          </h2>
-          <ol className="mt-3 space-y-2 text-sm text-black/70">
-            <li>① 「検索」タブから好きな作品を見つける</li>
-            <li>② 「通知登録」を押すと登録なしで5作品まで使えます</li>
-            <li>③ 新話の放送・配信入りを自動で通知</li>
-          </ol>
-          <p className="mt-2 text-[11px] text-black/50">
-            メール登録すると10作品（ログインボーナスで最大15作品）＋端末をまたいだ引き継ぎができます。
-          </p>
           <Link
             href="/login"
-            className="mt-4 inline-block rounded-full bg-[#A8621F] px-5 py-2.5 text-sm font-bold text-white"
+            className="rounded-full bg-[#A8621F] px-5 py-2.5 text-sm font-bold text-white transition hover:-translate-y-0.5 hover:bg-[#8A5518]"
           >
             はじめる（ログイン / 新規登録）
           </Link>
         </div>
-        <p className="mt-4 text-xs text-black/50">
-          「検索」から、ログインなしで作品やPV・配信情報を見ることもできます。
-        </p>
+        <ol className="mt-7 grid gap-3 sm:grid-cols-3 lg:gap-4">
+          {steps.map((s) => (
+            <li key={s.n} className="reveal relative overflow-hidden rounded-3xl border border-[#ECE5DA] bg-white p-6">
+              <span aria-hidden="true" className="num absolute -right-2 -top-6 text-[110px] font-black leading-none text-[#FBF3E6]">
+                {s.n}
+              </span>
+              <div className="relative flex h-28 items-end">
+                <Mascot pose={s.pose} h={104} />
+              </div>
+              <h3 className="relative mt-4 text-lg font-black text-[#1A1523]">
+                <span className="num mr-2 text-sm text-[#8A5518]">{s.n}</span>
+                {s.t}
+              </h3>
+              <p className="relative mt-1.5 text-sm leading-relaxed text-[#625B6E]">{s.d}</p>
+            </li>
+          ))}
+        </ol>
       </section>
     );
   }
@@ -261,7 +282,7 @@ export default function MyListHome() {
   };
 
   return (
-    <section className="mx-auto max-w-2xl px-4 py-5 lg:max-w-6xl lg:px-8">
+    <section className="mx-auto max-w-2xl px-4 py-5 lg:max-w-[1400px] lg:px-8">
       {loginBonusToday && (
         <div className="mb-3 flex items-center gap-2 rounded-2xl bg-[#F6E9D5] px-4 py-2 text-xs font-bold text-[#8A5518]">
           <Mascot pose="cheer" h={40} />
@@ -273,7 +294,7 @@ export default function MyListHome() {
       {/* ゲスト利用の状態カード（メール登録CTA＋端末依存の注意） */}
       {isGuest && works !== null && (
         <div className="mt-3 rounded-2xl border border-[#F3D9A9] bg-[#FBF3E6] px-4 py-3">
-          <p className="text-xs font-bold text-[#1C1C2E]">
+          <p className="text-xs font-bold text-[#1A1523]">
             👤 ゲスト利用 {works.length}/{slotCap}件
             {works.length >= slotCap
               ? "　メール登録でさらに5件登録できます"
@@ -281,7 +302,7 @@ export default function MyListHome() {
                 ? "　あと1件登録できます"
                 : ""}
           </p>
-          <p className="mt-1 text-[11px] leading-snug text-[#6B7280]">
+          <p className="mt-1 text-[11px] leading-snug text-[#625B6E]">
             ゲストデータはこのブラウザの匿名IDと結び付いています。
             <Link href="/login" className="font-bold text-[#C2772A] underline-offset-2 hover:underline">
               メール登録
@@ -292,7 +313,7 @@ export default function MyListHome() {
       )}
       {/* 旧仕様で上限を超えて登録済みのユーザーへの案内 */}
       {works !== null && works.length > slotCap && (
-        <div className="mt-3 rounded-2xl border border-[#ECECF2] bg-white px-4 py-3 text-[11px] leading-snug text-[#6B7280]">
+        <div className="mt-3 rounded-2xl border border-[#ECE5DA] bg-white px-4 py-3 text-[11px] leading-snug text-[#625B6E]">
           既存の登録（{works.length}件）は維持されています。新規登録には作品の整理が必要です（現在の上限：{slotCap}件）。
         </div>
       )}
@@ -301,8 +322,8 @@ export default function MyListHome() {
         <div className="flex items-center gap-2">
           <Mascot pose="stand" h={40} />
           <div>
-            <h2 className="text-xl font-extrabold text-[#1C1C2E]">マイリスト</h2>
-            <p className="text-[10px] text-[#6B7280]">通知登録した作品</p>
+            <h2 className="text-xl font-extrabold text-[#1A1523]">マイリスト</h2>
+            <p className="text-[10px] text-[#625B6E]">通知登録した作品</p>
           </div>
         </div>
         <span
@@ -318,7 +339,7 @@ export default function MyListHome() {
 
       {/* 会員のログインボーナス進捗 */}
       {(accountType === "member" || accountType === "legacy") && slotCap < 15 && (
-        <p className="mt-1 text-[11px] text-[#6B7280]">
+        <p className="mt-1 text-[11px] text-[#625B6E]">
           ログインボーナス {Math.min(Math.max(loginDays - 1, 0), 5)}/5日・現在{slotCap}件（あと{15 - slotCap}日で最大15件）
         </p>
       )}
@@ -329,7 +350,7 @@ export default function MyListHome() {
               type="button"
               onClick={() => setFilter("all")}
               className={`flex-none rounded-full px-3 py-1 text-xs font-bold transition ${
-                filter === "all" ? "bg-[#A8621F] text-white" : "bg-white text-[#6B7280] border border-[#ECECF2]"
+                filter === "all" ? "bg-[#A8621F] text-white" : "bg-white text-[#625B6E] border border-[#ECE5DA]"
               }`}
             >
               すべて {works?.length ?? 0}
@@ -340,7 +361,7 @@ export default function MyListHome() {
                 type="button"
                 onClick={() => setFilter(s.key)}
                 className={`flex-none rounded-full px-3 py-1 text-xs font-bold transition ${
-                  filter === s.key ? "bg-[#A8621F] text-white" : "bg-white text-[#6B7280] border border-[#ECECF2]"
+                  filter === s.key ? "bg-[#A8621F] text-white" : "bg-white text-[#625B6E] border border-[#ECE5DA]"
                 }`}
               >
                 {s.label} {counts[s.key] ?? 0}
@@ -353,7 +374,7 @@ export default function MyListHome() {
               <select
                 value={svc}
                 onChange={(e) => setSvc(e.target.value)}
-                className="rounded-full border border-[#ECECF2] bg-white px-2 py-1 text-[#1C1C2E]"
+                className="rounded-full border border-[#ECE5DA] bg-white px-2 py-1 text-[#1A1523]"
               >
                 <option value="all">全サービス</option>
                 <option value="_sub" disabled={subKeys.length === 0}>
@@ -369,7 +390,7 @@ export default function MyListHome() {
             <select
               value={sort}
               onChange={(e) => setSort(e.target.value as Sort)}
-              className="rounded-full border border-[#ECECF2] bg-white px-2 py-1 text-[#1C1C2E]"
+              className="rounded-full border border-[#ECE5DA] bg-white px-2 py-1 text-[#1A1523]"
             >
               <option value="air">放送が近い順</option>
               <option value="added">登録が新しい順</option>
@@ -381,7 +402,7 @@ export default function MyListHome() {
 
           {/* 契約中サービス未設定のときは設定画面への短い導線を出す */}
           {subKeys.length === 0 && svcList.length > 0 && (
-            <p className="mt-1 text-right text-[11px] text-[#6B7280]">
+            <p className="mt-1 text-right text-[11px] text-[#625B6E]">
               <Link href="/settings" className="font-bold text-[#C2772A] underline-offset-2 hover:underline">
                 設定
               </Link>
@@ -392,12 +413,12 @@ export default function MyListHome() {
           {works === null ? (
             <p className="mt-6 text-sm text-black/50">読み込み中…</p>
           ) : works.length === 0 ? (
-            <div className="mt-4 flex flex-col items-center gap-3 rounded-2xl border border-[#ECECF2] bg-white p-6 text-center text-sm text-black/50">
+            <div className="mt-4 flex flex-col items-center gap-3 rounded-2xl border border-[#ECE5DA] bg-white p-6 text-center text-sm text-black/50">
               <Mascot pose="point" h={120} />
               <p>まだ登録がありません。「検索」タブから作品を登録すると、新話・配信入りが通知されます。</p>
             </div>
           ) : shown.length === 0 ? (
-            <div className="mt-4 rounded-2xl border border-[#ECECF2] bg-white p-6 text-sm text-black/50">
+            <div className="mt-4 rounded-2xl border border-[#ECE5DA] bg-white p-6 text-sm text-black/50">
               該当する作品はありません。
             </div>
           ) : (
@@ -408,7 +429,7 @@ export default function MyListHome() {
                   const open = openSeries.has(g.seriesId) || edit;
                   const shownItems = open ? g.items : [g.rep];
                   return (
-                    <li key={`s-${g.seriesId}`} className="rounded-2xl border border-[#ECECF2] bg-white p-3">
+                    <li key={`s-${g.seriesId}`} className="rounded-2xl border border-[#ECE5DA] bg-white p-3">
                       <button
                         type="button"
                         onClick={() =>
@@ -422,8 +443,8 @@ export default function MyListHome() {
                         className="flex w-full items-center justify-between gap-2 border-b border-black/5 pb-2 text-left"
                       >
                         <span className="min-w-0">
-                          <span className="block truncate text-[13px] font-extrabold text-[#1C1C2E]">📚 {g.title}</span>
-                          <span className="block text-[10px] text-[#6B7280]">
+                          <span className="block truncate text-[13px] font-extrabold text-[#1A1523]">📚 {g.title}</span>
+                          <span className="block text-[10px] text-[#625B6E]">
                             シリーズ {g.items.length}作品を登録中{open ? "（公開順の目安）" : "・次に見る作品を表示中"}
                           </span>
                         </span>
@@ -442,7 +463,7 @@ export default function MyListHome() {
                   );
                 }
                 return (
-                  <li key={g.w.id} className="rounded-2xl border border-[#ECECF2] bg-white p-3">
+                  <li key={g.w.id} className="rounded-2xl border border-[#ECE5DA] bg-white p-3">
                     {workCard(g.w)}
                   </li>
                 );
@@ -478,7 +499,7 @@ export default function MyListHome() {
                         )}
                         <div className="min-w-0">
                           <div className="flex items-center gap-2">
-                            <span className="truncate text-sm font-bold text-[#1C1C2E]">{w.title}</span>
+                            <span className="truncate text-sm font-bold text-[#1A1523]">{w.title}</span>
                             <span
                               className={`flex-none rounded-full px-2 py-0.5 text-[10px] font-bold ${
                                 airing ? "bg-[#FDEAEA] text-[#DC2626]" : "bg-black/5 text-black/50"
@@ -487,7 +508,7 @@ export default function MyListHome() {
                               {airing ? "放送中" : "放送終了"}
                             </span>
                           </div>
-                          <p className="mt-0.5 truncate text-[11px] text-[#6B7280]">{next ?? w.meta}</p>
+                          <p className="mt-0.5 truncate text-[11px] text-[#625B6E]">{next ?? w.meta}</p>
                           {(combinedServices.get(w.id) ?? []).length > 0 && (
                             <div className="mt-1 flex gap-1.5">
                               {/* 契約中サービスを先頭に並べ、✓マーク（色に依存しない印）を付ける */}

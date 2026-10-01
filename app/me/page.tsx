@@ -59,8 +59,8 @@ export default function MePage() {
     <main className="mx-auto max-w-3xl px-4 py-8">
       <div className="flex items-baseline justify-between">
         <div className="flex items-center gap-2">
-          <Mascot pose="stand" h={44} />
-          <h1 className="text-2xl font-extrabold text-[#1C1C2E]">マイリスト</h1>
+          <Mascot pose="stand" h={60} />
+          <h1 className="text-[28px] font-black leading-tight text-ink lg:text-[34px]">マイリスト</h1>
         </div>
         <span className="text-xs font-bold text-black/50">
           {works?.length ?? 0}/{slotCap}
@@ -73,7 +73,7 @@ export default function MePage() {
         </span>
       </p>
       {isGuest && (
-        <p className="mt-2 rounded-2xl bg-[#FBF3E6] px-4 py-3 text-[11px] leading-relaxed text-[#6B7280]">
+        <p className="mt-2 rounded-2xl bg-[#FBF3E6] px-4 py-3 text-[11px] leading-relaxed text-[#625B6E]">
           ゲストデータはこのブラウザの匿名IDと結び付いています。
           <Link href="/login" className="font-bold text-[#C2772A] underline-offset-2 hover:underline">メール登録</Link>
           するとデータを引き継いで保護でき、登録枠も10件（最大15件）になります。
@@ -83,7 +83,7 @@ export default function MePage() {
       {works === null ? (
         <p className="mt-6 text-sm text-black/50">読み込み中…</p>
       ) : works.length === 0 ? (
-        <div className="mt-6 rounded-2xl border border-[#ECECF2] bg-white p-6 text-sm text-black/50">
+        <div className="mt-6 rounded-2xl border border-[#ECE5DA] bg-white p-6 text-sm text-black/50">
           まだ登録がありません。
           <Link href="/" className="ml-1 font-bold text-[#C2772A]">
             作品を探す →
@@ -104,7 +104,7 @@ export default function MePage() {
                     />
                   )}
                 </div>
-                <p className="mt-1 line-clamp-2 text-xs font-semibold text-[#1C1C2E]">
+                <p className="mt-1 line-clamp-2 text-xs font-semibold text-[#1A1523]">
                   {w.title}
                 </p>
               </Link>

@@ -8,7 +8,6 @@ import { useEffect, useState } from "react";
 import { useAuth } from "@/lib/auth";
 import { getTvPrograms, getUserChannels, nextBroadcast, type TvProgram } from "@/lib/home";
 
-const CARD_TITLE = "text-[13px] font-bold text-[#6B7280]";
 const WD = ["日", "月", "火", "水", "木", "金", "土"];
 
 // 深夜アニメの 24〜28時表記に補正して整形（例：木1:00 → 水25:00）
@@ -65,16 +64,20 @@ export default function NextBroadcast({
   const at = useSyoboi ? prog!.st : (fallbackAt as number);
 
   return (
-    <section className="mt-4 rounded-2xl border border-[#F3D9A9] bg-[#E8F0FE] p-4">
-      <h2 className={CARD_TITLE}>📺 次回のテレビ放送</h2>
-      <p className="mt-1 text-base font-extrabold text-[#1C1C2E]">
-        {ep != null ? `第${ep}話　` : ""}
-        {fmt(at)}
-        <span className="ml-2 text-sm font-bold text-[#C2772A]">
+    <section className="relative mt-4 flex flex-wrap items-center gap-x-6 gap-y-2 overflow-hidden rounded-3xl bg-night px-5 py-4 text-white lg:px-6">
+      <div aria-hidden="true" className="starfield absolute inset-0 opacity-60" />
+      <h2 className="relative flex items-center gap-2 text-xs font-bold text-white/60">
+        <span className="h-2 w-2 animate-pulse-dot rounded-full bg-bell" />
+        次回のテレビ放送
+      </h2>
+      <p className="relative flex flex-wrap items-baseline gap-x-3 text-lg font-black">
+        {ep != null && <span>第<span className="num">{ep}</span>話</span>}
+        <span className="num text-bell">{fmt(at)}</span>
+        <span className="text-sm font-bold text-white/80">
           {useSyoboi ? prog!.ch : "放送局は確認中"}
         </span>
       </p>
-      <p className="mt-1 text-[10px] text-[#6B7280]">
+      <p className="relative w-full text-[10px] text-white/60 sm:ml-auto sm:w-auto">
         {useSyoboi
           ? `出典：しょぼいカレンダー（${scoped ? "視聴局を反映" : "全局から最速"}）`
           : "出典：AniList（日本時間）／テレビ局は未確認"}

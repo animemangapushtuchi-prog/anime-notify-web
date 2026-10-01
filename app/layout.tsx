@@ -1,5 +1,5 @@
 import type { Metadata, Viewport } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
+import { Geist, Geist_Mono, Zen_Kaku_Gothic_New } from "next/font/google";
 import "./globals.css";
 import { AuthProvider } from "@/lib/auth";
 import SiteHeader from "@/components/SiteHeader";
@@ -8,13 +8,26 @@ import BottomTabs from "@/components/BottomTabs";
 import Footer from "@/components/Footer";
 import PushManager from "@/components/PushManager";
 import PageView from "@/components/PageView";
+import Reveal from "@/components/Reveal";
 import VerifyGate from "@/components/VerifyGate";
 import IosBanner from "@/components/IosBanner";
 import Script from "next/script";
+import { OG_IMAGE } from "@/lib/seo";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
   subsets: ["latin"],
+});
+
+// 見出し（h1・h2）専用の日本語フォント。極太の1種類だけ読み込む。
+// 日本語フォントは文字ごとに約120ファイルに分かれて配信され、使った文字のファイルだけが読み込まれる。
+// 本文まで使うと太さ4種類で約4.4MBになったため（2026-10 実測）、本文は端末の日本語フォントにしている
+const zen = Zen_Kaku_Gothic_New({
+  variable: "--font-zen",
+  weight: "900",
+  subsets: ["latin"],
+  display: "swap",
+  preload: false,
 });
 
 const geistMono = Geist_Mono({
@@ -43,18 +56,18 @@ export const metadata: Metadata = {
     url: "https://www.animiru.com",
     title: SITE_TITLE,
     description: SITE_DESC,
-    images: ["/icon-512.png"],
+    images: [OG_IMAGE],
   },
   twitter: {
-    card: "summary",
+    card: "summary_large_image",
     title: SITE_TITLE,
     description: SITE_DESC,
-    images: ["/icon-512.png"],
+    images: [OG_IMAGE],
   },
 };
 
 export const viewport: Viewport = {
-  themeColor: "#C2772A",
+  themeColor: "#FAF6EF",
 };
 
 // AdSense審査コード：環境変数 NEXT_PUBLIC_ADSENSE_CLIENT（例: ca-pub-XXXXXXXXXXXXXXXX）が
@@ -69,9 +82,9 @@ export default function RootLayout({
   return (
     <html
       lang="ja"
-      className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
+      className={`${geistSans.variable} ${geistMono.variable} ${zen.variable} h-full antialiased`}
     >
-      <body className="min-h-full">
+      <body className="min-h-full bg-paper text-ink">
         <AuthProvider>
           <div className="lg:flex">
             <Sidebar />
@@ -81,16 +94,15 @@ export default function RootLayout({
               <div className="flex-1">
                 <VerifyGate>{children}</VerifyGate>
               </div>
-              <div className="pb-24 lg:pb-10">
-                <Footer />
-              </div>
             </div>
           </div>
+          <Footer />
           <div className="lg:hidden">
             <BottomTabs />
           </div>
           <PushManager />
           <PageView />
+          <Reveal />
         </AuthProvider>
         {ADSENSE_CLIENT ? (
           <Script

@@ -36,7 +36,7 @@ export default function PushManager() {
   if (!toast) return null;
   return (
     <div className="fixed inset-x-0 bottom-4 z-50 mx-auto max-w-md px-4">
-      <div className="rounded-xl bg-[#1C1C2E] px-4 py-3 text-white shadow-lg">
+      <div className="rounded-xl bg-[#1A1523] px-4 py-3 text-white shadow-lg">
         <p className="text-sm font-bold">{toast.title}</p>
         <p className="mt-0.5 whitespace-pre-line text-xs text-white/80">{toast.body}</p>
       </div>

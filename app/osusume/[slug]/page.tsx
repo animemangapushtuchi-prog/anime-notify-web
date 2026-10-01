@@ -141,40 +141,47 @@ export default async function OsusumeDetail({
   const jsonLd = [breadcrumb, main];
 
   return (
-    <main className="mx-auto max-w-2xl px-4 py-5">
+    <main className="mx-auto max-w-2xl px-4 pb-6 lg:max-w-[1180px] lg:px-8">
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
 
-      <nav className="text-[11px] text-[#6B7280]">
-        <Link href="/" className="hover:underline">ホーム</Link>
-        <span className="mx-1">›</span>
-        <Link href="/osusume" className="hover:underline">おすすめ・特集</Link>
-        <span className="mx-1">›</span>
-        <span className="text-[#1C1C2E]">{o.title}</span>
+      <nav aria-label="パンくずリスト" className="pt-4 text-[11px] text-ink-2 lg:pt-6">
+        <ol className="flex flex-wrap items-center gap-1">
+          <li><Link href="/" className="transition hover:text-amber-ink">ホーム</Link></li>
+          <li aria-hidden="true" className="text-ink-2/60">/</li>
+          <li><Link href="/osusume" className="transition hover:text-amber-ink">特集・読みもの</Link></li>
+          <li aria-hidden="true" className="text-ink-2/60">/</li>
+          <li aria-current="page" className="line-clamp-1 text-ink">{o.title}</li>
+        </ol>
       </nav>
 
-      {/* ヒーロー */}
-      <section className="mt-2 overflow-hidden rounded-2xl text-white" style={{ background: "linear-gradient(to bottom right, #3B3670, #C2772A)" }}>
+      {/* ヒーロー：絵（サムネ）を大きく、その下に夜色の見出し */}
+      <section className="mt-4 overflow-hidden rounded-[28px] bg-night text-white shadow-[0_30px_80px_-40px_rgba(21,17,42,0.9)]">
         {o.heroImage ? (
           // eslint-disable-next-line @next/next/no-img-element
-          <img src={o.heroImage} alt={o.title} className="h-40 w-full object-cover" />
+          <img src={o.heroImage} alt="" className="h-48 w-full object-cover lg:h-72" />
         ) : o.thumb ? (
           <OsusumeThumb
             spec={o.thumb}
             images={(o.thumb.workIds ?? []).map((id) => covers[id]).filter(Boolean)}
-            className="h-40 w-full"
+            className="h-48 w-full lg:h-72"
+            size="lg"
           />
         ) : null}
-        <div className="p-4">
-          <h1 className="text-xl font-extrabold leading-snug">{o.title}</h1>
-          {o.updatedAt && <p className="mt-1 text-[11px] text-white/70">更新：{o.updatedAt}</p>}
-          {o.intro && <p className="mt-2 whitespace-pre-line text-sm leading-relaxed text-white/90">{o.intro}</p>}
+        <div className="relative px-6 pb-8 pt-7 lg:px-12 lg:pb-11 lg:pt-9">
+          <div aria-hidden="true" className="starfield absolute inset-0 opacity-50" />
+          <p className="num relative text-[11px] font-bold uppercase tracking-[0.22em] text-bell">Feature</p>
+          <h1 className="relative mt-2 max-w-4xl text-[24px] font-black leading-[1.35] lg:text-[36px]">{o.title}</h1>
+          {o.updatedAt && <p className="relative mt-3 text-xs text-white/65">更新 <span className="num">{o.updatedAt}</span></p>}
+          {o.intro && <p className="relative mt-4 max-w-3xl whitespace-pre-line text-[14px] leading-[1.95] text-white/80">{o.intro}</p>}
         </div>
       </section>
 
+      <div className="mt-10 lg:grid lg:grid-cols-[minmax(0,1fr)_260px] lg:gap-14">
+      <div className="mx-auto min-w-0 max-w-[720px] lg:order-1 lg:mx-0 lg:max-w-none">
       {/* 目次：どんな内容か一目で分かり、読みたい所へ飛べる */}
       {o.body && o.body.length > 2 && (
-        <nav className="mt-5 rounded-2xl border border-[#ECECF2] bg-white p-4">
-          <p className="flex items-center gap-1.5 text-[13px] font-extrabold text-[#1C1C2E]">
+        <nav aria-label="目次" className="rounded-3xl border border-line bg-white p-5 lg:hidden">
+          <p className="flex items-center gap-1.5 text-[13px] font-extrabold text-[#1A1523]">
             <span className="inline-block h-4 w-1 rounded-full bg-[#A8621F]" />
             この記事の内容
           </p>
@@ -184,7 +191,7 @@ export default async function OsusumeDetail({
                 <span className="flex h-5 w-5 flex-none items-center justify-center rounded-full bg-[#F6E9D5] text-[10px] font-black text-[#8A5518]">
                   {i + 1}
                 </span>
-                <a href={`#${t.id}`} className="text-[13px] leading-snug text-[#374151] hover:text-[#C2772A] hover:underline">
+                <a href={`#${t.id}`} className="text-[13px] leading-snug text-[#3A3342] hover:text-amber-ink hover:underline">
                   {t.text}
                 </a>
               </li>
@@ -195,20 +202,20 @@ export default async function OsusumeDetail({
 
       {/* 解説本文（見出し＋段落）。読み物系の記事で使う */}
       {o.body && o.body.length > 0 && (
-        <article className="mt-6 space-y-7">
+        <article className="mt-8 space-y-12 lg:mt-0">
           {o.body.map((s, i) => (
-            <section key={i} id={`sec-${i}`} className="scroll-mt-4">
-              <h2 className="flex items-start gap-2 rounded-xl bg-gradient-to-r from-[#F6E9D5] to-transparent py-2 pl-2.5 pr-3 text-base font-extrabold leading-snug text-[#1C1C2E]">
-                <span className="mt-0.5 flex h-5 w-5 flex-none items-center justify-center rounded-full bg-[#A8621F] text-[10px] font-black text-white">
-                  {i + 1}
+            <section key={i} id={`sec-${i}`} className="scroll-mt-20">
+              <h2 className="border-t border-line pt-6 text-[21px] font-black leading-[1.45] text-ink lg:text-[24px]">
+                <span className="num mb-2 block text-xs font-bold tracking-[0.2em] text-amber-ink">
+                  {String(i + 1).padStart(2, "0")}
                 </span>
                 {s.heading}
               </h2>
 
               {s.text && (
-                <div className="mt-2.5 space-y-3">
+                <div className="mt-4 space-y-5">
                   {s.text.split("\n\n").map((p, j) => (
-                    <p key={j} className="whitespace-pre-line text-[14px] leading-[1.9] text-[#374151]">
+                    <p key={j} className="whitespace-pre-line text-[15px] leading-[2] text-[#3A3342]">
                       {p}
                     </p>
                   ))}
@@ -221,14 +228,14 @@ export default async function OsusumeDetail({
                   {s.stats.items.map((it, j) => (
                     <div
                       key={j}
-                      className="rounded-2xl border border-[#ECECF2] bg-white p-3 text-center"
+                      className="rounded-2xl border border-[#ECE5DA] bg-white p-3 text-center"
                       style={{ borderTopColor: it.color || "#C2772A", borderTopWidth: 3 }}
                     >
                       <p className="text-[20px] font-black leading-tight" style={{ color: it.color || "#C2772A" }}>
                         {it.value}
                       </p>
-                      <p className="mt-0.5 text-[11px] font-bold text-[#1C1C2E]">{it.label}</p>
-                      {it.note && <p className="mt-0.5 text-[10px] text-[#6B7280]">{it.note}</p>}
+                      <p className="mt-0.5 text-[11px] font-bold text-[#1A1523]">{it.label}</p>
+                      {it.note && <p className="mt-0.5 text-[10px] text-[#625B6E]">{it.note}</p>}
                     </div>
                   ))}
                 </div>
@@ -243,7 +250,7 @@ export default async function OsusumeDetail({
                     </p>
                     <ul className="mt-1.5 space-y-1">
                       {s.pros.good.map((g, j) => (
-                        <li key={j} className="flex gap-1.5 text-[12px] leading-snug text-[#374151]">
+                        <li key={j} className="flex gap-1.5 text-[12px] leading-snug text-[#3A3342]">
                           <span className="flex-none font-black text-[#3B6D11]">○</span>
                           {g}
                         </li>
@@ -256,7 +263,7 @@ export default async function OsusumeDetail({
                     </p>
                     <ul className="mt-1.5 space-y-1">
                       {s.pros.bad.map((b, j) => (
-                        <li key={j} className="flex gap-1.5 text-[12px] leading-snug text-[#374151]">
+                        <li key={j} className="flex gap-1.5 text-[12px] leading-snug text-[#3A3342]">
                           <span className="flex-none font-black text-[#A32D2D]">×</span>
                           {b}
                         </li>
@@ -275,7 +282,7 @@ export default async function OsusumeDetail({
                       aria-hidden="true"
                       className="absolute -left-1.5 bottom-4 h-3 w-3 rotate-45 border-b border-l border-[#E7C9A0] bg-[#FBF3E6]"
                     />
-                    <p className="whitespace-pre-line text-[13px] leading-relaxed text-[#374151]">
+                    <p className="whitespace-pre-line text-[13px] leading-relaxed text-[#3A3342]">
                       {s.balloon.text}
                     </p>
                   </div>
@@ -302,7 +309,7 @@ export default async function OsusumeDetail({
                                 />
                               )}
                             </span>
-                            <span className="mt-1 line-clamp-2 block text-[11px] font-bold leading-snug text-[#1C1C2E]">
+                            <span className="mt-1 line-clamp-2 block text-[11px] font-bold leading-snug text-[#1A1523]">
                               {b.title}
                             </span>
                           </Link>
@@ -311,7 +318,7 @@ export default async function OsusumeDetail({
                     })}
                   </ul>
                   {s.works.note && (
-                    <p className="mt-2 text-[11px] text-[#6B7280]">{s.works.note}</p>
+                    <p className="mt-2 text-[11px] text-[#625B6E]">{s.works.note}</p>
                   )}
                 </div>
               )}
@@ -328,9 +335,9 @@ export default async function OsusumeDetail({
                   }`}
                 >
                   {s.callout.title && (
-                    <p className="text-[13px] font-extrabold text-[#1C1C2E]">{s.callout.title}</p>
+                    <p className="text-[13px] font-extrabold text-[#1A1523]">{s.callout.title}</p>
                   )}
-                  <p className="mt-0.5 whitespace-pre-line text-[13px] leading-relaxed text-[#374151]">
+                  <p className="mt-0.5 whitespace-pre-line text-[13px] leading-relaxed text-[#3A3342]">
                     {s.callout.text}
                   </p>
                 </div>
@@ -338,21 +345,21 @@ export default async function OsusumeDetail({
 
               {/* 横棒グラフ（カバー率などの比較） */}
               {s.bars && (
-                <div className="mt-3 rounded-2xl border border-[#ECECF2] bg-white p-4">
+                <div className="mt-3 rounded-2xl border border-[#ECE5DA] bg-white p-4">
                   <div className="space-y-2.5">
                     {s.bars.items.map((b, j) => {
                       const max = b.max ?? Math.max(...s.bars!.items.map((x) => x.value));
                       const pct = max > 0 ? Math.round((b.value / max) * 100) : 0;
                       return (
                         <div key={j} className="flex items-center gap-2">
-                          <span className="w-28 flex-none text-[12px] font-bold text-[#1C1C2E]">{b.label}</span>
-                          <span className="h-4 flex-1 overflow-hidden rounded-full bg-[#F1F1F5]">
+                          <span className="w-28 flex-none text-[12px] font-bold text-[#1A1523]">{b.label}</span>
+                          <span className="h-4 flex-1 overflow-hidden rounded-full bg-[#F2ECE3]">
                             <span
                               className="block h-full rounded-full"
                               style={{ width: `${pct}%`, background: b.color || "#C2772A" }}
                             />
                           </span>
-                          <span className="w-16 flex-none text-right text-[12px] font-bold text-[#1C1C2E]">
+                          <span className="w-16 flex-none text-right text-[12px] font-bold text-[#1A1523]">
                             {b.value}
                             {b.suffix ?? ""}
                           </span>
@@ -360,21 +367,21 @@ export default async function OsusumeDetail({
                       );
                     })}
                   </div>
-                  {s.bars.note && <p className="mt-2.5 text-[11px] text-[#6B7280]">{s.bars.note}</p>}
+                  {s.bars.note && <p className="mt-2.5 text-[11px] text-[#625B6E]">{s.bars.note}</p>}
                 </div>
               )}
 
               {/* 比較表 */}
               {s.table && (
                 <div className="mt-3">
-                  <div className="overflow-x-auto rounded-2xl border border-[#ECECF2]">
+                  <div className="overflow-x-auto rounded-2xl border border-[#ECE5DA]">
                     <table className="w-full border-collapse bg-white text-[13px]">
                       <thead>
                         <tr className="bg-[#FBF3E6]">
                           {s.table.head.map((h, j) => (
                             <th
                               key={j}
-                              className="whitespace-nowrap border-b border-[#ECECF2] px-3 py-2 text-left font-bold text-[#8A5518]"
+                              className="whitespace-nowrap border-b border-[#ECE5DA] px-3 py-2 text-left font-bold text-[#8A5518]"
                             >
                               {h}
                             </th>
@@ -383,11 +390,11 @@ export default async function OsusumeDetail({
                       </thead>
                       <tbody>
                         {s.table.rows.map((r, j) => (
-                          <tr key={j} className="border-b border-[#F1F1F5] last:border-0">
+                          <tr key={j} className="border-b border-[#F2ECE3] last:border-0">
                             {r.map((c, k) => (
                               <td
                                 key={k}
-                                className={`px-3 py-2 align-top ${k === 0 ? "font-bold text-[#1C1C2E]" : "text-[#374151]"}`}
+                                className={`px-3 py-2 align-top ${k === 0 ? "font-bold text-[#1A1523]" : "text-[#3A3342]"}`}
                               >
                                 {c}
                               </td>
@@ -397,7 +404,7 @@ export default async function OsusumeDetail({
                       </tbody>
                     </table>
                   </div>
-                  {s.table.note && <p className="mt-2 text-[11px] text-[#6B7280]">{s.table.note}</p>}
+                  {s.table.note && <p className="mt-2 text-[11px] text-[#625B6E]">{s.table.note}</p>}
                 </div>
               )}
             </section>
@@ -411,7 +418,7 @@ export default async function OsusumeDetail({
           const img = e.image || (e.workId ? covers[e.workId] : "") || "";
           const rankColor = RANK_BG[e.rank - 1] ?? "#C2772A";
           return (
-            <li key={`${e.rank}-${e.title}`} className="overflow-hidden rounded-2xl border border-[#ECECF2] bg-white">
+            <li key={`${e.rank}-${e.title}`} className="overflow-hidden rounded-2xl border border-[#ECE5DA] bg-white">
               <div className="flex gap-3 p-3">
                 <span
                   className="flex h-7 w-7 flex-none items-center justify-center rounded-full text-sm font-black text-white"
@@ -425,21 +432,21 @@ export default async function OsusumeDetail({
                 )}
                 <div className="min-w-0 flex-1">
                   {e.workId ? (
-                    <Link href={`/work/${e.workId}`} className="text-[15px] font-extrabold text-[#1C1C2E] hover:text-[#C2772A]">
+                    <Link href={`/work/${e.workId}`} className="text-[15px] font-extrabold text-[#1A1523] hover:text-[#C2772A]">
                       {e.title}
                     </Link>
                   ) : (
-                    <p className="text-[15px] font-extrabold text-[#1C1C2E]">{e.title}</p>
+                    <p className="text-[15px] font-extrabold text-[#1A1523]">{e.title}</p>
                   )}
                   {e.reviewTitle && <p className="mt-1 text-[13px] font-bold text-[#C2772A]">{e.reviewTitle}</p>}
                   {e.reviewBody && (
-                    <p className="mt-1 whitespace-pre-line text-[13px] leading-relaxed text-[#374151]">{e.reviewBody}</p>
+                    <p className="mt-1 whitespace-pre-line text-[13px] leading-relaxed text-[#3A3342]">{e.reviewBody}</p>
                   )}
                 </div>
               </div>
 
               {((e.streaming && e.streaming.length > 0) || e.workId) && (
-                <div className="flex flex-wrap items-center gap-2 border-t border-[#F1F1F5] px-3 py-2">
+                <div className="flex flex-wrap items-center gap-2 border-t border-[#F2ECE3] px-3 py-2">
                   {e.streaming?.map((s) => (
                     <a key={s.name} href={s.url} target="_blank" rel="noopener noreferrer" className="rounded-full bg-[#F6E9D5] px-3 py-1 text-[11px] font-bold text-[#8A5518]">
                       {s.name}で見る ↗
@@ -458,23 +465,54 @@ export default async function OsusumeDetail({
       </ol>
 
       {/* CTA */}
-      <section className="mt-6 rounded-2xl border border-[#F6E9D5] bg-[#FBF3E6] p-4 text-center">
-        <p className="text-sm font-bold text-[#1C1C2E]">気になった作品は「＋登録」で新着通知！</p>
-        <p className="mt-1 text-xs text-[#6B7280]">新話の放送・配信入りを自動でお知らせします。</p>
-        <Link href="/" className="mt-3 inline-block rounded-full bg-[#A8621F] px-5 py-2 text-sm font-bold text-white">
-          アプリを使ってみる
-        </Link>
+      <section className="grain relative mt-14 overflow-hidden rounded-3xl bg-amber-soft px-6 py-8 sm:flex sm:items-center sm:justify-between sm:gap-6">
+        <div>
+          <p className="text-lg font-black text-ink">気になった作品は、見張っておこう。</p>
+          <p className="mt-1 text-sm text-ink-2">作品ページの「通知登録」で、新しい話の放送・配信入りをお知らせします。</p>
+        </div>
+        <div className="mt-5 flex flex-none items-end gap-3 sm:mt-0">
+          <Link href="/search" className="rounded-full bg-amber-deep px-5 py-2.5 text-sm font-bold text-white transition hover:bg-amber-ink">
+            作品をさがす
+          </Link>
+          <Mascot pose="point" h={84} className="hidden sm:block" />
+        </div>
       </section>
+      </div>
+
+      {/* 目次（PC）：右側に固定して、今どこを読んでいるか分かるようにする */}
+      {o.body && o.body.length > 2 && (
+        <aside className="hidden lg:order-2 lg:block">
+          <nav aria-label="目次" className="sticky top-6 rounded-3xl border border-line bg-white p-5">
+            <p className="num text-[11px] font-bold uppercase tracking-[0.2em] text-amber-ink">Contents</p>
+            <ol className="mt-3 space-y-2.5">
+              {tocOf(o).map((t, i) => (
+                <li key={t.id} className="flex gap-2.5">
+                  <span className="num w-5 flex-none pt-px text-[11px] font-bold text-ink-2">{String(i + 1).padStart(2, "0")}</span>
+                  <a href={`#${t.id}`} className="text-[13px] leading-snug text-ink-2 transition hover:text-amber-ink">
+                    {t.text}
+                  </a>
+                </li>
+              ))}
+            </ol>
+          </nav>
+        </aside>
+      )}
+      </div>
 
       {/* 関連特集 */}
       {others.length > 0 && (
-        <section className="mt-6">
-          <h2 className="text-xs font-bold text-[#6B7280]">ほかの特集</h2>
-          <ul className="mt-2 space-y-2">
+        <section className="mt-16 border-t border-line pt-10">
+          <p className="num text-[11px] font-bold uppercase tracking-[0.22em] text-amber-ink">More features</p>
+          <h2 className="mt-2 text-2xl font-black text-ink">ほかの特集</h2>
+          <ul className="mt-5 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
             {others.map((x) => (
               <li key={x.slug}>
-                <Link href={`/osusume/${x.slug}`} className="block rounded-xl border border-[#ECECF2] bg-white px-3 py-2 text-sm font-bold text-[#1C1C2E] hover:text-[#C2772A]">
-                  {x.title} ›
+                <Link
+                  href={`/osusume/${x.slug}`}
+                  className="group flex h-full items-start justify-between gap-3 rounded-2xl border border-line bg-white px-5 py-4 text-sm font-bold leading-snug text-ink transition hover:-translate-y-0.5 hover:border-amber"
+                >
+                  <span className="group-hover:text-amber-ink">{x.title}</span>
+                  <span aria-hidden="true" className="text-amber-ink transition group-hover:translate-x-0.5">→</span>
                 </Link>
               </li>
             ))}

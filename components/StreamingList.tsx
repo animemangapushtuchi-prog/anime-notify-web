@@ -50,6 +50,12 @@ function groupByWork(entries: PublicEntry[]): Work[] {
 
 const WD = ["日", "月", "火", "水", "木", "金", "土"];
 
+// 「10/2」形式（JST）
+function mdLabel(sec: number): string {
+  const d = new Date((sec + 9 * 3600) * 1000);
+  return `${d.getUTCMonth() + 1}/${d.getUTCDate()}`;
+}
+
 export default function StreamingList({
   entries,
   lockedServiceKey,
@@ -125,64 +131,84 @@ export default function StreamingList({
     });
 
   const chip = (on: boolean) =>
-    `rounded-full px-3 py-1 text-xs font-bold transition ${
-      on ? "bg-[#A8621F] text-white" : "border border-[#ECECF2] bg-white text-[#6B7280]"
+    `rounded-full px-3 py-1.5 text-xs font-bold transition ${
+      on ? "bg-ink text-white" : "border border-line bg-white text-ink-2 hover:border-amber hover:text-ink"
     }`;
 
   return (
     <div>
       {/* 絞り込み */}
-      <div className="mt-4 space-y-3">
-        <input
-          type="text"
-          value={q}
-          onChange={(e) => setQ(e.target.value)}
-          placeholder="作品名で絞り込み"
-          className="w-full rounded-xl border border-[#ECECF2] bg-white px-4 py-2.5 text-sm outline-none focus:border-[#C2772A]"
-        />
+      <div className="mt-6 rounded-3xl border border-line bg-white p-4 lg:p-5">
+        <label className="relative block">
+          <span className="sr-only">作品名で絞り込み</span>
+          <svg aria-hidden="true" className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-ink-2" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round"><circle cx="11" cy="11" r="7" /><path d="m21 21-4.3-4.3" /></svg>
+          <input
+            type="search"
+            value={q}
+            onChange={(e) => setQ(e.target.value)}
+            placeholder="作品名で絞り込み"
+            className="w-full rounded-2xl border border-line bg-paper py-3 pl-11 pr-4 text-sm outline-none transition placeholder:text-ink-2/70 focus:border-amber focus:bg-white"
+          />
+        </label>
 
         {!lockedServiceKey && presentServices.length > 0 && (
-          <div className="flex flex-wrap gap-2">
+          <div className="mt-3 flex flex-wrap gap-1.5" role="group" aria-label="配信サービスで絞り込み">
             {presentServices.map((s) => (
-              <button key={s.key} type="button" onClick={() => toggleSvc(s.key)} className={chip(svc.has(s.key))}>
+              <button
+                key={s.key}
+                type="button"
+                aria-pressed={svc.has(s.key)}
+                onClick={() => toggleSvc(s.key)}
+                className={`inline-flex items-center gap-1.5 rounded-full py-1 pl-1 pr-3 text-xs font-bold transition ${
+                  svc.has(s.key) ? "bg-ink text-white" : "border border-line bg-white text-ink-2 hover:border-amber hover:text-ink"
+                }`}
+              >
+                <ServiceIcon name={s.name} size={20} />
                 {s.name}
               </button>
             ))}
           </div>
         )}
 
-        <div className="flex flex-wrap items-center gap-2">
+        <div className="mt-3 flex flex-wrap items-center gap-2 border-t border-line pt-3">
           <select
             value={day}
+            aria-label="曜日"
             onChange={(e) => setDay(e.target.value === "all" ? "all" : Number(e.target.value))}
-            className="rounded-full border border-[#ECECF2] bg-white px-3 py-1 text-xs font-bold text-[#1C1C2E]"
+            className="rounded-full border border-line bg-white px-3 py-1.5 text-xs font-bold text-ink"
           >
             <option value="all">全曜日</option>
             {WD.map((w, i) => (
               <option key={i} value={i}>{w}曜</option>
             ))}
           </select>
-          <button type="button" onClick={() => setOnlyIncluded((v) => !v)} className={chip(onlyIncluded)}>見放題</button>
-          <button type="button" onClick={() => setOnlyFree((v) => !v)} className={chip(onlyFree)}>無料</button>
-          <button type="button" onClick={() => setOnlyExclusive((v) => !v)} className={chip(onlyExclusive)}>独占</button>
+          <button type="button" aria-pressed={onlyIncluded} onClick={() => setOnlyIncluded((v) => !v)} className={chip(onlyIncluded)}>見放題</button>
+          <button type="button" aria-pressed={onlyFree} onClick={() => setOnlyFree((v) => !v)} className={chip(onlyFree)}>無料</button>
+          <button type="button" aria-pressed={onlyExclusive} onClick={() => setOnlyExclusive((v) => !v)} className={chip(onlyExclusive)}>独占</button>
           {user && (
-            <button type="button" onClick={() => setOnlySub((v) => !v)} className={chip(onlySub)}>契約中のみ</button>
+            <button type="button" aria-pressed={onlySub} onClick={() => setOnlySub((v) => !v)} className={chip(onlySub)}>契約中のみ</button>
           )}
-          <select
-            value={sort}
-            onChange={(e) => setSort(e.target.value as "day" | "date" | "title")}
-            className="ml-auto rounded-full border border-[#ECECF2] bg-white px-3 py-1 text-xs font-bold text-[#1C1C2E]"
-          >
-            <option value="day">曜日順</option>
-            <option value="date">配信開始が早い順</option>
-            <option value="title">作品名順</option>
-          </select>
+          <span className="ml-auto flex items-center gap-2">
+            <span className="text-xs text-ink-2" aria-live="polite">
+              <span className="num font-bold text-ink">{shown.length}</span> 作品
+            </span>
+            <select
+              value={sort}
+              aria-label="並び順"
+              onChange={(e) => setSort(e.target.value as "day" | "date" | "title")}
+              className="rounded-full border border-line bg-white px-3 py-1.5 text-xs font-bold text-ink"
+            >
+              <option value="day">曜日順</option>
+              <option value="date">配信開始が早い順</option>
+              <option value="title">作品名順</option>
+            </select>
+          </span>
         </div>
       </div>
 
       {/* 一覧 */}
       {shown.length === 0 ? (
-        <div className="mt-8 flex flex-col items-center gap-3 rounded-2xl border border-[#ECECF2] bg-white p-8 text-center text-sm text-black/50">
+        <div className="mt-8 flex flex-col items-center gap-3 rounded-3xl border border-line bg-white p-10 text-center text-sm text-ink-2">
           <Mascot pose="worried" h={110} />
           <p>
             条件に一致する作品がありません。
@@ -190,53 +216,77 @@ export default function StreamingList({
           </p>
         </div>
       ) : (
-        <ul className="mt-5 grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-3">
-          {shown.map((w) => (
-            <li key={w.anilistId}>
-              <Link
-                href={`/work/${w.anilistId}`}
-                className="flex gap-3 rounded-2xl border border-[#ECECF2] bg-white p-3 hover:border-[#C2772A]"
-              >
-                {w.coverImage && (
-                  // eslint-disable-next-line @next/next/no-img-element
-                  <img src={w.coverImage} alt={w.title} className="h-24 w-16 flex-none rounded-md object-cover" />
-                )}
-                <div className="min-w-0 flex-1">
-                  <p className="line-clamp-2 text-sm font-bold text-[#1C1C2E]">{w.title}</p>
-                  <div className="mt-1.5 flex flex-col gap-1">
-                    {w.services.map((e) => (
-                      <div key={e.serviceKey} className="flex flex-wrap items-center gap-1.5 text-[11px] text-[#6B7280]">
-                        <ServiceIcon name={e.serviceName} size={16} />
-                        {e.sourceUrl ? (
-                          <a
-                            href={e.sourceUrl}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            onClick={(ev) => ev.stopPropagation()}
-                            className="font-bold text-[#C2772A] underline-offset-2 hover:underline"
-                          >
-                            {e.serviceName} ↗
-                          </a>
-                        ) : (
-                          <span className="font-bold text-[#1C1C2E]">{e.serviceName}</span>
-                        )}
-                        {AVAILABILITY_JA[e.availability] && (
-                          <span className="rounded bg-[#F6E9D5] px-1.5 py-0.5 font-bold text-[#8A5518]">
-                            {AVAILABILITY_JA[e.availability]}
-                          </span>
-                        )}
-                        {e.isExclusive && <span className="rounded bg-[#FDEAEA] px-1.5 py-0.5 font-bold text-[#DC2626]">独占</span>}
-                        {e.isFastest && <span className="rounded bg-[#EAF3DE] px-1.5 py-0.5 font-bold text-[#3B6D11]">最速</span>}
-                        {weeklyLabel(e.weeklyDay, e.weeklyTime) && (
-                          <span className="text-[10px] text-black/40">{weeklyLabel(e.weeklyDay, e.weeklyTime)}</span>
-                        )}
-                      </div>
-                    ))}
+        <ul className="mt-5 grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-3">
+          {shown.map((w) => {
+            const exclusive = w.services.some((e) => e.isExclusive);
+            return (
+              <li key={w.anilistId}>
+                {/* カード全体を作品ページへのリンクにするが、<a> の中に <a>（配信サービスへのリンク）を
+                    入れ子にはできないので、タイトルのリンクを透明に引き伸ばしてカード全体を覆う */}
+                <div className="group relative flex h-full gap-4 rounded-3xl border border-line bg-white p-4 transition hover:-translate-y-0.5 hover:border-amber/60 hover:shadow-[0_18px_40px_-24px_rgba(26,21,35,0.5)]">
+                  <div className="relative h-[120px] w-20 flex-none overflow-hidden rounded-xl bg-paper-2 ring-1 ring-black/5">
+                    {w.coverImage && (
+                      // eslint-disable-next-line @next/next/no-img-element
+                      <img src={w.coverImage} alt="" loading="lazy" className="h-full w-full object-cover transition duration-500 group-hover:scale-[1.05]" />
+                    )}
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <p className="line-clamp-2 text-[15px] font-black leading-snug text-ink group-hover:text-amber-ink">
+                      <Link href={`/work/${w.anilistId}`} className="after:absolute after:inset-0 after:rounded-3xl after:content-['']">
+                        {w.title}
+                      </Link>
+                    </p>
+                    <p className="mt-1 flex flex-wrap items-center gap-x-2 text-[11px] text-ink-2">
+                      {w.earliest != null && (
+                        <span>
+                          <span className="num font-bold text-ink">{mdLabel(w.earliest)}</span> 配信開始
+                        </span>
+                      )}
+                      <span>
+                        <span className="num font-bold text-ink">{w.services.length}</span> サービス
+                      </span>
+                      {exclusive && <span className="rounded-full bg-[#FDEAEA] px-2 py-0.5 font-bold text-[#B91C1C]">独占あり</span>}
+                    </p>
+                    <ul className="mt-2.5 flex flex-wrap gap-1.5">
+                      {w.services.map((e) => {
+                        const weekly = weeklyLabel(e.weeklyDay, e.weeklyTime);
+                        const avail = AVAILABILITY_JA[e.availability];
+                        const inner = (
+                          <>
+                            <ServiceIcon name={e.serviceName} size={16} />
+                            <span>{e.serviceName}</span>
+                            {avail && <span className="font-medium text-amber-ink">{avail}</span>}
+                            {e.isExclusive && <span className="text-[#B91C1C]">独占</span>}
+                            {e.isFastest && <span className="text-[#3B6D11]">最速</span>}
+                            {weekly && <span className="num font-medium text-ink-2">{weekly.replace("毎週", "")}</span>}
+                          </>
+                        );
+                        const cls =
+                          "relative z-10 inline-flex items-center gap-1 rounded-full border bg-paper py-0.5 pl-0.5 pr-2 text-[11px] font-bold text-ink";
+                        return (
+                          <li key={e.serviceKey} className="flex">
+                            {e.sourceUrl ? (
+                              <a
+                                href={e.sourceUrl}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                title={`${e.serviceName}：出典を開く`}
+                                className={`${cls} ${e.isExclusive ? "border-[#F7C1C1]" : "border-line"} transition hover:border-amber hover:bg-white`}
+                              >
+                                {inner}
+                              </a>
+                            ) : (
+                              <span className={`${cls} ${e.isExclusive ? "border-[#F7C1C1]" : "border-line"}`}>{inner}</span>
+                            )}
+                          </li>
+                        );
+                      })}
+                    </ul>
                   </div>
                 </div>
-              </Link>
-            </li>
-          ))}
+              </li>
+            );
+          })}
         </ul>
       )}
     </div>

@@ -5,7 +5,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 
 function Icon({ name, active }: { name: string; active: boolean }) {
-  const c = active ? "#C2772A" : "#6B7280";
+  const c = active ? "#A8621F" : "#625B6E";
   const common = { width: 20, height: 20, viewBox: "0 0 24 24", fill: "none", stroke: c, strokeWidth: 2, strokeLinecap: "round" as const, strokeLinejoin: "round" as const };
   if (name === "home")
     return (
@@ -65,7 +65,7 @@ export default function BottomTabs() {
   const isActive = (href: string) =>
     href === "/" ? path === "/" : path.startsWith(href);
   return (
-    <nav className="fixed inset-x-0 bottom-0 z-30 border-t border-[#ECECF2] bg-white/95 backdrop-blur">
+    <nav aria-label="メインメニュー" className="fixed inset-x-0 bottom-0 z-30 border-t border-line bg-white/90 pb-[env(safe-area-inset-bottom)] backdrop-blur-md">
       <div className="mx-auto flex max-w-2xl">
         {TABS.map((t) => {
           const on = isActive(t.href);
@@ -73,18 +73,19 @@ export default function BottomTabs() {
             <Link
               key={t.href}
               href={t.href}
+              aria-current={on ? "page" : undefined}
               className="flex min-w-0 flex-1 flex-col items-center gap-0.5 py-1.5"
             >
               <span
                 className={`flex h-7 w-11 items-center justify-center rounded-full ${
-                  on ? "bg-[#F6E9D5]" : ""
+                  on ? "bg-amber-soft" : ""
                 }`}
               >
                 <Icon name={t.icon} active={on} />
               </span>
               <span
                 className={`whitespace-nowrap text-[10px] ${
-                  on ? "font-bold text-[#C2772A]" : "text-[#6B7280]"
+                  on ? "font-bold text-amber-ink" : "text-ink-2"
                 }`}
               >
                 {t.label}

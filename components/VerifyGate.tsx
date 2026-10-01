@@ -17,7 +17,7 @@ export default function VerifyGate({ children }: { children: ReactNode }) {
     <>
       <div className="border-b border-[#F3D9A9] bg-[#FBF3E6] px-4 py-2.5">
         <div className="mx-auto flex max-w-4xl flex-wrap items-center gap-x-3 gap-y-1.5">
-          <p className="min-w-0 flex-1 text-xs leading-snug text-[#1C1C2E]">
+          <p className="min-w-0 flex-1 text-xs leading-snug text-[#1A1523]">
             📧 <span className="font-bold">メール確認待ち：</span>
             {user?.email} 宛の確認メールのリンクを開いてください。認証まで登録枠は5件です。
           </p>

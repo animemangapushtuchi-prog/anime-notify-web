@@ -306,15 +306,17 @@ export default function SearchPage() {
       : cur.label;
 
   return (
-    <main className="mx-auto max-w-2xl px-4 py-5 lg:max-w-6xl lg:px-8">
-      <div className="flex items-center gap-2">
-        <Mascot pose="search" h={44} />
-        <h1 className="text-xl font-extrabold text-[#1C1C2E]">検索</h1>
+    <main className="mx-auto max-w-2xl px-4 pb-6 pt-4 lg:max-w-[1400px] lg:px-8 lg:pt-6">
+      <div className="flex items-center gap-3">
+        <Mascot pose="search" h={60} />
+        <h1 className="text-[28px] font-black leading-tight text-ink lg:text-[34px]">検索</h1>
       </div>
 
-      <div className="relative mt-3">
+      <div className="relative mt-5">
+        <svg aria-hidden="true" className="pointer-events-none absolute left-5 top-1/2 z-10 h-5 w-5 -translate-y-1/2 text-ink-2" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round"><circle cx="11" cy="11" r="7" /><path d="m21 21-4.3-4.3" /></svg>
         <input
-          type="text"
+          type="search"
+          aria-label="検索"
           value={q}
           onChange={(e) => {
             setQ(e.target.value);
@@ -330,10 +332,10 @@ export default function SearchPage() {
                 ? "声優・スタッフ名（例：宮野真守）"
                 : "作品名で検索"
           }
-          className="w-full rounded-xl border border-[#ECECF2] bg-white px-4 py-3 text-sm outline-none focus:border-[#C2772A]"
+          className="w-full rounded-2xl border border-line bg-white py-4 pl-14 pr-5 text-base shadow-[0_10px_30px_-20px_rgba(26,21,35,0.4)] outline-none transition focus:border-amber focus:shadow-[0_0_0_4px_rgba(194,119,42,0.15)]"
         />
         {sugOpen && sug.length > 0 && (
-          <div className="absolute z-30 mt-1 w-full overflow-hidden rounded-xl border border-[#ECECF2] bg-white shadow-xl">
+          <div className="absolute z-30 mt-1 w-full overflow-hidden rounded-xl border border-[#ECE5DA] bg-white shadow-xl">
             {sug.map((s) => (
               <button
                 key={`${s.kind}-${s.id}`}
@@ -353,8 +355,8 @@ export default function SearchPage() {
                   </span>
                 )}
                 <span className="min-w-0 flex-1">
-                  <span className="block truncate text-[13px] font-bold text-[#1C1C2E]">{s.label}</span>
-                  <span className="block text-[10px] text-[#6B7280]">{s.sub}</span>
+                  <span className="block truncate text-[13px] font-bold text-[#1A1523]">{s.label}</span>
+                  <span className="block text-[10px] text-[#625B6E]">{s.sub}</span>
                 </span>
                 <span className="flex-none text-black/25">›</span>
               </button>
@@ -384,7 +386,7 @@ export default function SearchPage() {
           <span className="rounded-full bg-[#F1E9FE] px-3 py-1 text-xs font-bold text-[#7C3AED]">
             {target.kind === "studio" ? "🎬" : "🎤"} {target.name}
           </span>
-          <button type="button" onClick={() => setTarget(null)} className="rounded-full border border-[#ECECF2] bg-white px-2 py-1 text-[11px] font-bold text-[#6B7280]">
+          <button type="button" onClick={() => setTarget(null)} className="rounded-full border border-[#ECE5DA] bg-white px-2 py-1 text-[11px] font-bold text-[#625B6E]">
             解除 ×
           </button>
         </div>
@@ -403,7 +405,7 @@ export default function SearchPage() {
       <div ref={listTopRef} className="mt-3 flex items-center justify-between scroll-mt-4">
         <h2 className="text-xs font-bold text-[#8A5518]">{header}</h2>
         {!entity && (
-          <select value={sortKey} onChange={(e) => setSortKey(e.target.value)} className="rounded-full border border-[#ECECF2] bg-white px-2 py-1 text-xs font-bold text-[#1C1C2E]">
+          <select value={sortKey} onChange={(e) => setSortKey(e.target.value)} className="rounded-full border border-[#ECE5DA] bg-white px-2 py-1 text-xs font-bold text-[#1A1523]">
             {SORTS.map((s) => (
               <option key={s.key} value={s.key}>{s.label}</option>
             ))}
@@ -412,7 +414,7 @@ export default function SearchPage() {
       </div>
 
       {entity && !target ? (
-        <div className="mt-4 rounded-2xl border border-[#ECECF2] bg-white p-6 text-sm text-black/50">
+        <div className="mt-4 rounded-2xl border border-[#ECE5DA] bg-white p-6 text-sm text-black/50">
           {cur.kind === "studio"
             ? "制作会社名を入力し、候補から選ぶと、その会社の制作作品が一覧表示されます（例：MAPPA、京アニ、ジブリ、ufotable）。"
             : "声優・スタッフ名を入力し、候補から選ぶと、その人の出演・参加作品が一覧表示されます。"}
@@ -420,11 +422,11 @@ export default function SearchPage() {
       ) : loading ? (
         <p className="mt-4 text-sm text-black/50">読み込み中…</p>
       ) : items.length === 0 && searched ? (
-        <div className="mt-4 flex flex-col items-center gap-3 rounded-2xl border border-[#ECECF2] bg-white p-6 text-center text-sm text-black/50">
+        <div className="mt-4 flex flex-col items-center gap-3 rounded-2xl border border-[#ECE5DA] bg-white p-6 text-center text-sm text-black/50">
           <Mascot pose="worried" h={110} />
           <p>見つかりませんでした。条件を変えてみてください。</p>
           {page > 1 && (
-            <button type="button" onClick={() => goToPage(1)} className="mt-3 rounded-lg border border-[#ECECF2] bg-white px-3 py-1.5 text-xs font-bold text-[#8A5518]">
+            <button type="button" onClick={() => goToPage(1)} className="mt-3 rounded-lg border border-[#ECE5DA] bg-white px-3 py-1.5 text-xs font-bold text-[#8A5518]">
               ← 最初のページに戻る
             </button>
           )}
@@ -470,17 +472,17 @@ export default function SearchPage() {
           {(page > 1 || hasNext) && (
             <>
               <div className="mt-4 flex flex-wrap items-center justify-center gap-1.5">
-                <button type="button" onClick={() => goToPage(page - 1)} disabled={page <= 1 || paging} className="rounded-lg border border-[#ECECF2] bg-white px-3 py-1.5 text-xs font-bold text-[#8A5518] disabled:opacity-40">← 前へ</button>
+                <button type="button" onClick={() => goToPage(page - 1)} disabled={page <= 1 || paging} className="rounded-lg border border-[#ECE5DA] bg-white px-3 py-1.5 text-xs font-bold text-[#8A5518] disabled:opacity-40">← 前へ</button>
                 {lo > 1 && (
                   <>
-                    <button type="button" onClick={() => goToPage(1)} className="rounded-lg px-2.5 py-1.5 text-xs font-bold text-[#6B7280]">1</button>
+                    <button type="button" onClick={() => goToPage(1)} className="rounded-lg px-2.5 py-1.5 text-xs font-bold text-[#625B6E]">1</button>
                     {lo > 2 && <span className="px-1 text-xs text-black/30">…</span>}
                   </>
                 )}
                 {windowNums.map((n) => (
-                  <button key={n} type="button" onClick={() => goToPage(n)} disabled={paging} className={`rounded-lg px-2.5 py-1.5 text-xs font-bold ${n === page ? "bg-[#A8621F] text-white" : "text-[#6B7280]"}`}>{n}</button>
+                  <button key={n} type="button" onClick={() => goToPage(n)} disabled={paging} className={`rounded-lg px-2.5 py-1.5 text-xs font-bold ${n === page ? "bg-[#A8621F] text-white" : "text-[#625B6E]"}`}>{n}</button>
                 ))}
-                <button type="button" onClick={() => goToPage(page + 1)} disabled={!hasNext || paging} className="rounded-lg border border-[#ECECF2] bg-white px-3 py-1.5 text-xs font-bold text-[#8A5518] disabled:opacity-40">次へ →</button>
+                <button type="button" onClick={() => goToPage(page + 1)} disabled={!hasNext || paging} className="rounded-lg border border-[#ECE5DA] bg-white px-3 py-1.5 text-xs font-bold text-[#8A5518] disabled:opacity-40">次へ →</button>
               </div>
               <p className="mt-2 text-center text-[11px] text-black/40">
                 ページ {page}
