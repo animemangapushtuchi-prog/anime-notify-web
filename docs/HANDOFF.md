@@ -138,6 +138,10 @@ docs/HANDOFF.md            このファイル
   人が確認済みの U-NEXT 13作品のうち11作品で一致（外れ2件は、JSで描画するサイトと記載なし）
 - 以前の調査: AniList の配信リンクには dアニメ・ABEMA・U-NEXT が載らない（夏の正解データ108行中0行）、しょぼカレのネット配信枠は ABEMA 中心
 
+**公式の表記は変わる**：マロニエ王国の七人の騎士は 9/29 に「世界独占配信」→ 10/9 に「世界配信」（NHK Eテレ放送あり）に変わった。
+記事は直したが、**管理画面の該当行（2026-fall・prime-video）の「独占」チェックと時刻 24:00 は未修正**（正しくは独占なし・0:00）。
+「午前0時（※前日深夜）」は暦どおり 0:00 として読むよう抜き出しルールを修正済み
+
 **季節の切り替え**: `/streaming` とサイトマップは `latestSeasonKeyWithData()` で
 「公開データがある最新シーズン」を選ぶ（今期から過去へさかのぼる）。
 **来期の開始21日前からは、来期に公開データがあれば来期を優先する**（2026-09-29 追加。それまでは来期データを先に公開しても開始日まで切り替わらなかった）。
@@ -203,6 +207,15 @@ cd $env:USERPROFILE\dev\anime-notify-web
 - 再審査は Search Console でインデックス数が増えたのを確認してから申請する方針
 
 ## 9. SEO
+
+**アクセス計測（2026-10-09 改修）**
+- `components/PageView.tsx` → Functions `pv`（別リポジトリ `functions/index.js`）→ Firestore `cache/stats` の `pv`/`uv`/`pages`/`refs`[日付]
+- **本番（www.animiru.com）以外・`navigator.webdriver`・`/admin` は数えない**。以前は手元の確認や画面撮影も本番の数字に入っていた
+  （8/16・9/29・10/1 の突出は作業日。2026-10-09 より前の数字を比べるときは作業日を外す）
+- `pages`＝ページの種類（top/work/streaming/osusume…）、`refs`＝入口（google/yahoo/bing/x/sns/direct/internal/other）。
+  Functions は決まった分類名だけ受け付ける（誰でも送れる口なので、任意の文字列で文書が膨らまないように）。管理画面 `/admin` に過去7日の内訳
+- Search Console（2026-10-09 時点）：クリックの大半は「animiru」などサイト名での検索。表示回数は 9月の1日約20回 → 10/6 に約86回と増加中。
+  「〇〇 どこで見れる」での表示は出始めたがクリックはほぼ0。効果の判断は 10月20日以降に
 
 - Search Console: animemangapushtuchi アカウント（`/u/3`）。サイトマップは `https://www.animiru.com/sitemap.xml`
 - sitemap: 静的7ページ＋記事＋今期人気作品60件＋配信ページ（データがある時のみ）
