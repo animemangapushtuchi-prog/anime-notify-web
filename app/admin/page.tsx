@@ -22,7 +22,28 @@ type Stats = {
   survey?: { count?: number; satisfactionAvg?: number | null; continueUse?: Record<string, number> };
   pv?: Record<string, number>;
   uv?: Record<string, number>;
+  pages?: Record<string, Record<string, number>>; // 日付 → ページの種類 → 表示数（2026-10-09〜）
+  refs?: Record<string, Record<string, number>>; // 日付 → どこから来たか → 訪問数（2026-10-09〜）
 };
+
+const PAGE_JA: Record<string, string> = {
+  top: "トップ", work: "作品ページ", streaming: "配信一覧", osusume: "記事", search: "検索",
+  calendar: "カレンダー", me: "マイリスト", notifications: "通知", settings: "設定", login: "ログイン",
+  guide: "使い方", survey: "アンケート", terms: "利用規約", privacy: "プライバシー", other: "その他",
+};
+const REF_JA: Record<string, string> = {
+  google: "Google", yahoo: "Yahoo!", bing: "Bing", x: "X（旧Twitter）", sns: "その他のSNS",
+  direct: "直接（ブックマーク・アプリなど）", internal: "サイト内", other: "その他のサイト",
+};
+
+// 直近の日付ぶんを合計して、多い順に並べる
+function sumDays(m: Record<string, Record<string, number>> | undefined, days: string[], ja: Record<string, string>) {
+  const tot: Record<string, number> = {};
+  for (const d of days) for (const [k, v] of Object.entries(m?.[d] ?? {})) tot[k] = (tot[k] ?? 0) + v;
+  return Object.entries(tot)
+    .sort((a, b) => b[1] - a[1])
+    .map(([k, v]) => ({ label: ja[k] ?? k, value: v }));
+}
 
 function Card({ label, value, sub }: { label: string; value: string | number; sub?: string }) {
   return (
@@ -123,6 +144,9 @@ export default function AdminPage() {
   const days = last14();
   const pvBars = days.map((d) => ({ label: d.slice(5), value: st.pv?.[d] ?? 0 }));
   const uvBars = days.map((d) => ({ label: d.slice(5), value: st.uv?.[d] ?? 0 }));
+  const last7 = days.slice(-7);
+  const pageBars = sumDays(st.pages, last7, PAGE_JA);
+  const refBars = sumDays(st.refs, last7, REF_JA);
   const platforms = Object.entries(st.platforms ?? {}).map(([k, v]) => ({ label: k, value: v }));
   const works = (st.worksTop ?? []).map((w) => ({ label: w.title || `#${w.id}`, value: w.count }));
   const updated = st.updatedAt?.seconds ? new Date(st.updatedAt.seconds * 1000).toLocaleString("ja-JP") : "—";
@@ -158,6 +182,27 @@ export default function AdminPage() {
             <div className="mt-2">
               <Bars data={uvBars} />
             </div>
+          </section>
+
+          {/* ページの種類・どこから来たか（過去7日） */}
+          <section className="mt-6 rounded-2xl border border-[#ECE5DA] bg-white p-4">
+            <h2 className="text-xs font-bold text-[#625B6E]">見られたページの種類（PV・過去7日）</h2>
+            {pageBars.length === 0 ? (
+              <p className="mt-2 text-xs text-black/40">まだデータがありません（2026年10月9日から記録）。</p>
+            ) : (
+              <div className="mt-2">
+                <Bars data={pageBars} />
+              </div>
+            )}
+            <h2 className="mt-4 text-xs font-bold text-[#625B6E]">どこから来たか（訪問の入口・過去7日）</h2>
+            {refBars.length === 0 ? (
+              <p className="mt-2 text-xs text-black/40">まだデータがありません（2026年10月9日から記録）。</p>
+            ) : (
+              <div className="mt-2">
+                <Bars data={refBars} />
+              </div>
+            )}
+            <p className="mt-3 text-[11px] text-[#625B6E]">本番サイトでの表示だけを数えています（確認用サイト・自動操作のブラウザ・管理画面は除外）。</p>
           </section>
 
           {/* 登録作品ランキング */}

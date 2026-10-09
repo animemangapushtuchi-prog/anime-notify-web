@@ -59,6 +59,12 @@ test("「木曜深夜0時30分」は 木曜 24:30 として読む", () => {
   assert.equal(by["d-anime"].firstAvailableAt, null);
 });
 
+test("「午前0時（前日の深夜）」は暦どおり 0:00 のまま読む", () => {
+  const { by } = run("Prime Video にて10月4日(日)午前0時(※3(土)深夜)より配信開始予定");
+  assert.equal(by["prime-video"].firstAvailableAt, jst(2026, 10, 4));
+  assert.equal(by["prime-video"].weeklyTime, "00:00");
+});
+
 test("サービス名の次の行にある日時を読む（表の並び）", () => {
   const { by } = run("U-NEXT\n10月4日(日)22:00〜 毎週日曜更新");
   assert.equal(by["u-next"].firstAvailableAt, jst(2026, 10, 4));

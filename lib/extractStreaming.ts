@@ -137,7 +137,8 @@ function parseSchedule(line: string): Parsed {
     else if (hm) time = `${hm[1].padStart(2, "0")}:${hm[2]}`;
     else if (h) time = `${h[1].padStart(2, "0")}:00`;
     // 「木曜深夜0時30分」は放送の慣習で「木曜 24:30」（金曜の午前0時30分）を指す。曜日と組で使うため 24時台に直す
-    if (time && /深夜/.test(t) && Number(time.slice(0, 2)) <= 5) {
+    // ただし「10月4日(日)午前0時(※3(土)深夜)」のように「午前」と書かれていれば、暦どおりの時刻なので直さない
+    if (time && /深夜/.test(t) && !/午前\s*\d{1,2}\s*時/.test(t) && Number(time.slice(0, 2)) <= 5) {
       time = `${Number(time.slice(0, 2)) + 24}:${time.slice(3)}`;
     }
     if (time && Number(time.slice(0, 2)) > 29) time = null;
