@@ -211,7 +211,10 @@ cd $env:USERPROFILE\dev\anime-notify-web
 - **2026-09-29 に本当のSSR化を実施**（それまで `app/page.tsx` は "use client" のままで、
   クローラーには「読み込み中…」しか届いていなかった。§13 参照）
 - `components/AdSlot.tsx` は枠IDが入るまで何も出さない（休眠状態）
-- 再審査は Search Console でインデックス数が増えたのを確認してから申請する方針
+- **2026-10-14 に再審査を申請**（シンさんの了承のうえ Claude が Chrome で操作）。状態は「準備中・審査待ち」。審査は通常数日〜2〜4週間。
+  申請時点：Google 登録済み209ページ／未登録109（転送・重複・noindex 36、Google の処理待ち 74）、
+  検索の表示回数は 10/5〜10/11 の7日で1,309回・クリック37回、訪問者は1日約30人
+- Search Console・AdSense は Chrome の animemangapushtuchi アカウント（Chrome では `/u/2`。`?authuser=animemangapushtuchi@gmail.com` で開ける）
 
 ## 9. SEO
 
@@ -248,7 +251,7 @@ cd $env:USERPROFILE\dev\anime-notify-web
    U-NEXT を検索しても「II」のページは見つからない）→ **2026-10-01 にシンさんの判断で現状維持（取り下げない）**。
    夏の記事の U-NEXT 35作品もそのまま
 4. 新しいストック記事の作成（秋アニメ向けなど）
-5. AdSense 再審査（インデックス状況を見てから）
+5. ~~AdSense 再審査~~ → 2026-10-14 申請済み。結果待ち（§8）
 
 ## 12. 2026-09-29 の一括改修（SEO・完成度）
 
