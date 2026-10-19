@@ -109,13 +109,17 @@ async function robotsAllows(url: URL): Promise<boolean> {
 }
 
 // ---- 取得と文字コード ----
-async function fetchHtml(url: string): Promise<{ html: string; finalUrl: string } | null> {
+async function fetchHtml(
+  url: string,
+  info?: { status?: number } // 失敗の理由を呼び出し側で分けるため、HTTPの状態コードを返す
+): Promise<{ html: string; finalUrl: string } | null> {
   const res = await fetch(url, {
     headers: { "User-Agent": CRAWLER_UA, Accept: "text/html,application/xhtml+xml" },
     signal: AbortSignal.timeout(FETCH_TIMEOUT_MS),
     redirect: "follow",
     cache: "no-store",
   });
+  if (info) info.status = res.status;
   if (!res.ok) return null;
   const ctype = res.headers.get("content-type") ?? "";
   if (ctype && !/html|xml/i.test(ctype)) return null;
@@ -149,12 +153,52 @@ function decodeEntities(s: string): string {
     .replace(/&#x([0-9a-f]+);/gi, (_, n) => String.fromCodePoint(parseInt(n, 16)));
 }
 
+// 配信サービスのドメイン → 名前（lib/extractStreaming.ts の SERVICES が読める表記）。
+// 公式サイトがサービスをロゴ画像とリンクだけで並べている場合に、リンクの行き先から名前を補うために使う
+const SERVICE_DOMAINS: { re: RegExp; name: string }[] = [
+  { re: /(^|\.)abema\.tv$/, name: "ABEMA" },
+  { re: /(^|\.)animestore\.docomo\.ne\.jp$/, name: "dアニメストア" },
+  { re: /(^|\.)video\.unext\.jp$/, name: "U-NEXT" },
+  { re: /(^|\.)netflix\.com$/, name: "Netflix" },
+  { re: /(^|\.)disneyplus\.com$/, name: "Disney+" },
+  { re: /(^|\.)tv\.dmm\.com$/, name: "DMM TV" },
+  { re: /(^|\.)fod\.fujitv\.co\.jp$/, name: "FOD" },
+  { re: /(^|\.)hulu\.jp$/, name: "Hulu" },
+  { re: /(^|\.)lemino\.docomo\.ne\.jp$/, name: "Lemino" },
+  { re: /(^|\.)telasa\.jp$/, name: "TELASA" },
+  { re: /(^|\.)b-ch\.com$/, name: "バンダイチャンネル" },
+  { re: /(^|\.)nicovideo\.jp$/, name: "ニコニコ" },
+  { re: /(^|\.)primevideo\.com$/, name: "Prime Video" },
+];
+function serviceNameOfUrl(href: string): string | null {
+  let u: URL;
+  try {
+    u = new URL(decodeEntities(href));
+  } catch {
+    return null;
+  }
+  const host = u.hostname.toLowerCase();
+  // Amazon は作品ページ（/gp/video/detail/…）だけを Prime Video とみなす（チャンネルや物販のリンクと区別するため）
+  if (/(^|\.)amazon\.co\.jp$/.test(host)) return /\/gp\/video\/detail\//.test(u.pathname) ? "Prime Video" : null;
+  return SERVICE_DOMAINS.find((d) => d.re.test(host))?.name ?? null;
+}
+
 export function htmlToText(html: string): string {
   let s = html
     .replace(/<!--[\s\S]*?-->/g, " ")
     .replace(/<(script|style|noscript|svg|template|iframe)[\s\S]*?<\/\1>/gi, " ");
   // 画像の代替文字（配信サービスのロゴに名前が入っていることが多い）を残す
   s = s.replace(/<img[^>]*\balt=["']([^"']+)["'][^>]*>/gi, " $1 ");
+  // 文字の無いリンク（ロゴ画像だけ）が配信サービスを指していれば、行き先からサービス名を補う。
+  // リンクに文字があるとき（例：「dアニメストア for Prime Video」→ Amazon）は、その文字を優先して何も足さない
+  s = s.replace(/<a\b([^>]*)>([\s\S]*?)<\/a>/gi, (all, attrs: string, inner: string) => {
+    const href = /\bhref=["']([^"']+)["']/i.exec(attrs)?.[1];
+    if (!href) return all;
+    const innerText = inner.replace(/<[^>]+>/g, " ").replace(/&nbsp;|\s/g, "");
+    if (innerText) return all;
+    const name = serviceNameOfUrl(href);
+    return name ? `${all} ${name} ` : all;
+  });
   s = s.replace(/<(br|\/p|\/li|\/tr|\/div|\/h[1-6]|\/dt|\/dd|\/section|\/article)\b[^>]*>/gi, "\n");
   s = s.replace(/<\/t[dh]>/gi, " ");
   s = s.replace(/<[^>]+>/g, " ");
@@ -213,12 +257,19 @@ export async function collectOfficialPages(officialUrl: string): Promise<Officia
   }
 
   let first: { html: string; finalUrl: string } | null = null;
+  const info: { status?: number } = {};
   try {
-    first = await fetchHtml(top.href);
+    first = await fetchHtml(top.href, info);
   } catch {
     first = null;
   }
-  if (!first) return { status: "unreachable", pages: [], reason: "公式サイトを開けませんでした" };
+  if (!first) {
+    // 403/401/429 はサイト側が自動の読み取りを断っている。名乗りを偽って読みに行くことはしない（人がブラウザで確認する）
+    if (info.status === 401 || info.status === 403 || info.status === 429) {
+      return { status: "blocked", pages: [], reason: `サイトが自動の読み取りを断っています（HTTP ${info.status}）。手作業で確認してください` };
+    }
+    return { status: "unreachable", pages: [], reason: "公式サイトを開けませんでした" };
+  }
 
   const pages: OfficialPage[] = [];
   const topText = relevantText(htmlToText(first.html));
