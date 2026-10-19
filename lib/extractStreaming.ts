@@ -24,6 +24,7 @@ export type ExtractedRow = {
   sourceUrl: string;
   sourceLabel: string;
   sourceType: "official-site";
+  watchUrl: string | null; // 配信サービスの作品ページ（公式サイトに載っていたリンク。1つに決まるときだけ）
 };
 
 export type ExtractResult = {
@@ -242,6 +243,7 @@ export function extractStreaming(opts: {
           sourceUrl: page.url,
           sourceLabel: `公式サイト：「${quote(single ? evidenceLine : line, s.re)}」`,
           sourceType: "official-site",
+          watchUrl: null,
         };
         if (row.firstAvailableAt !== null && !inSeasonWindow(row.firstAvailableAt, opts.season)) {
           excluded++;
@@ -257,5 +259,14 @@ export function extractStreaming(opts: {
     });
   }
 
-  return { rows: [...best.values()].map((b) => b.row), excluded };
+  // 公式サイトに載っていた「配信サービスの作品ページ」へのリンクを付ける。
+  // 同じサービスへのリンクが2つ以上ある（1期と2期が並んでいる等）ときは、どれか断定できないので付けない
+  const links: Record<string, Set<string>> = {};
+  for (const page of opts.pages) for (const [k, urls] of Object.entries(page.links ?? {})) for (const u of urls) (links[k] ??= new Set()).add(u);
+  const rows = [...best.values()].map((b) => b.row);
+  for (const r of rows) {
+    const set = links[r.serviceKey];
+    if (set && set.size === 1) r.watchUrl = [...set][0];
+  }
+  return { rows, excluded };
 }

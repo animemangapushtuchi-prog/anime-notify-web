@@ -51,6 +51,7 @@ export type AdminEntry = {
   sourceUrl: string;
   sourceLabel: string;
   sourceCheckedAt: number | null;
+  watchUrl: string; // 配信サービスの作品ページ（公式サイトに載っていたリンク）。空なら作品ページへ
   confidence: "high" | "medium" | "low";
   note: string;
   published: boolean;
@@ -92,6 +93,7 @@ function fromDoc(id: string, d: any): AdminEntry {
     sourceUrl: String(d.sourceUrl ?? ""),
     sourceLabel: String(d.sourceLabel ?? ""),
     sourceCheckedAt: toSec(d.sourceCheckedAt),
+    watchUrl: String(d.watchUrl ?? ""),
     confidence: (d.confidence ?? "medium") as "high" | "medium" | "low",
     note: String(d.note ?? ""),
     published: d.published === true,
@@ -125,6 +127,7 @@ function toAdminDoc(e: AdminEntry) {
     sourceUrl: e.sourceUrl ?? "",
     sourceLabel: e.sourceLabel ?? "",
     sourceCheckedAt: e.sourceCheckedAt,
+    watchUrl: e.watchUrl ?? "",
     confidence: e.confidence,
     note: e.note ?? "",
     published: !!e.published,
@@ -148,6 +151,7 @@ function toPublicDoc(e: AdminEntry) {
     isFastest: !!e.isFastest,
     sourceUrl: e.sourceUrl ?? "",
     sourceCheckedAt: e.sourceCheckedAt,
+    watchUrl: e.watchUrl ?? "",
     updatedAt: serverTimestamp(),
   };
 }
@@ -229,6 +233,7 @@ export async function refreshSeasonMeta(
       isFastest: d.isFastest === true,
       sourceUrl: d.sourceUrl ?? "",
       sourceCheckedAt: toSec(d.sourceCheckedAt),
+      watchUrl: typeof d.watchUrl === "string" ? d.watchUrl : "",
     };
   });
   const fits = JSON.stringify(entries).length < PACK_LIMIT_BYTES;
@@ -275,6 +280,7 @@ export type ImportRow = {
   sourceUrl?: string;
   sourceLabel?: string;
   sourceType?: SourceType;
+  watchUrl?: string | null;
 };
 
 export type ImportResult = { added: number; updated: number; skipped: number; errors: string[] };
@@ -305,6 +311,7 @@ export function parseImport(text: string): { rows: ImportRow[]; errors: string[]
       sourceUrl: r.sourceUrl ? String(r.sourceUrl) : "",
       sourceLabel: r.sourceLabel ? String(r.sourceLabel) : "",
       sourceType: (r.sourceType ?? "manual") as SourceType,
+      watchUrl: r.watchUrl ? String(r.watchUrl) : "",
     });
   };
 
@@ -370,6 +377,7 @@ export async function applyImport(seasonKey: string, rows: ImportRow[]): Promise
         sourceUrl: r.sourceUrl ?? "",
         sourceLabel: r.sourceLabel ?? "",
         sourceCheckedAt: null,
+        watchUrl: r.watchUrl ?? "",
         confidence: "medium",
         note: "",
         published: false,
@@ -395,6 +403,7 @@ export async function applyImport(seasonKey: string, rows: ImportRow[]): Promise
     if (!cd.weeklyTime && r.weeklyTime) patch.weeklyTime = r.weeklyTime;
     if (!cd.sourceUrl && r.sourceUrl) patch.sourceUrl = r.sourceUrl;
     if (!cd.sourceLabel && r.sourceLabel) patch.sourceLabel = r.sourceLabel;
+    if (!cd.watchUrl && r.watchUrl) patch.watchUrl = r.watchUrl;
     // 種別（見放題など）も「不明」のときだけ補完する
     if ((!cd.availability || cd.availability === "unknown") && r.availability && r.availability !== "unknown")
       patch.availability = r.availability;

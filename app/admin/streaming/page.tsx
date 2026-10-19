@@ -232,6 +232,7 @@ export default function AdminStreamingPage() {
       sourceUrl: "",
       sourceLabel: "手動追加",
       sourceCheckedAt: null,
+      watchUrl: "",
       note: "",
       published: false,
     };
@@ -639,6 +640,13 @@ export default function AdminStreamingPage() {
                     value={e.sourceUrl}
                     onChange={(ev) => patch(e.id, { sourceUrl: ev.target.value })}
                     placeholder="出典URL（確認済みにするには必須）"
+                    className="w-full rounded border border-[#ECE5DA] px-2 py-1 text-[11px]"
+                  />
+                  <input
+                    type="url"
+                    value={e.watchUrl}
+                    onChange={(ev) => patch(e.id, { watchUrl: ev.target.value })}
+                    placeholder={`${e.serviceName}の作品ページURL（公式サイトに載っているもの・任意）`}
                     className="w-full rounded border border-[#ECE5DA] px-2 py-1 text-[11px]"
                   />
                   <input

@@ -9,7 +9,6 @@ import { getUserPrefs, isSubscribedService } from "@/lib/subscriptions";
 import { STREAM_SERVICES } from "@/lib/streaming";
 import {
   type PublicEntry,
-  AVAILABILITY_JA,
   weeklyLabel,
 } from "@/lib/seasonStreaming";
 import ServiceIcon from "@/components/ServiceIcon";
@@ -19,7 +18,8 @@ type Work = {
   anilistId: number;
   title: string;
   coverImage: string;
-  services: PublicEntry[];
+  services: PublicEntry[]; // その作品の全サービス（並び順はサービス一覧の順で固定）
+  matched?: Set<string>; // 絞り込み条件に合ったサービス
   earliest: number | null; // 最も早い初回配信(UNIX秒)
   days: Set<number>;
 };
@@ -45,7 +45,24 @@ function groupByWork(entries: PublicEntry[]): Work[] {
       w.earliest = w.earliest == null ? e.firstAvailableAt : Math.min(w.earliest, e.firstAvailableAt);
     if (e.weeklyDay != null) w.days.add(e.weeklyDay);
   }
+  // どの作品でも同じ位置に同じサービスが来るよう、サービス一覧の順に並べる
+  const order = new Map(STREAM_SERVICES.map((s, i) => [s.key, i]));
+  for (const w of map.values()) w.services.sort((a, b) => (order.get(a.serviceKey) ?? 99) - (order.get(b.serviceKey) ?? 99));
   return [...map.values()];
+}
+
+// カードに1行で出す「いつから・いつ見られるか」：最速の配信（無ければ開始日が最も早い配信）を代表にする
+function headline(w: Work): { date: string | null; weekly: string | null; fastest: string[] } {
+  const fastest = w.services.filter((e) => e.isFastest);
+  const pool = fastest.length ? fastest : w.services;
+  const rep =
+    [...pool].sort((a, b) => (a.firstAvailableAt ?? Infinity) - (b.firstAvailableAt ?? Infinity))[0] ?? null;
+  const withWeekly = pool.find((e) => e.weeklyDay != null) ?? null;
+  return {
+    date: w.earliest != null ? mdLabel(w.earliest) : rep?.firstAvailableAt != null ? mdLabel(rep.firstAvailableAt) : null,
+    weekly: withWeekly ? weeklyLabel(withWeekly.weeklyDay, withWeekly.weeklyTime) : null,
+    fastest: fastest.map((e) => e.serviceName),
+  };
 }
 
 const WD = ["日", "月", "火", "水", "木", "金", "土"];
@@ -83,9 +100,16 @@ export default function StreamingList({
   }, [user]);
 
   // サービス一覧（このデータに存在するものだけをチップに）
+  // サービスごとの作品数を添えて、多い順に並べる（どのサービスで何本見られるかがボタンで分かるように）
   const presentServices = useMemo(() => {
-    const set = new Set(entries.map((e) => e.serviceKey));
-    return STREAM_SERVICES.filter((s) => set.has(s.key));
+    const count = new Map<string, Set<number>>();
+    for (const e of entries) {
+      if (!count.has(e.serviceKey)) count.set(e.serviceKey, new Set());
+      count.get(e.serviceKey)!.add(e.anilistId);
+    }
+    return STREAM_SERVICES.filter((s) => count.has(s.key))
+      .map((s) => ({ ...s, works: count.get(s.key)!.size }))
+      .sort((a, b) => b.works - a.works);
   }, [entries]);
 
   const works = useMemo(() => groupByWork(entries), [entries]);
@@ -94,7 +118,7 @@ export default function StreamingList({
     const qq = q.trim().toLowerCase();
     const list = works
       .map((w) => {
-        // このカードで見せるサービスを絞り込み条件で間引く
+        // 絞り込み条件に合うサービスを数える（カードには全サービスを出し、合うものを強調する）
         const svcs = w.services.filter((e) => {
           if (lockedServiceKey && e.serviceKey !== lockedServiceKey) return false;
           if (svc.size > 0 && !svc.has(e.serviceKey)) return false;
@@ -105,9 +129,9 @@ export default function StreamingList({
           if (onlySub && !isSubscribedService(e.serviceName, subKeys)) return false;
           return true;
         });
-        return { ...w, services: svcs };
+        return { ...w, matched: new Set(svcs.map((e) => e.serviceKey)) };
       })
-      .filter((w) => w.services.length > 0)
+      .filter((w) => w.matched.size > 0)
       .filter((w) => (qq ? w.title.toLowerCase().includes(qq) : true));
 
     list.sort((a, b) => {
@@ -121,6 +145,9 @@ export default function StreamingList({
     });
     return list;
   }, [works, svc, day, onlySub, onlyIncluded, onlyFree, onlyExclusive, q, sort, subKeys, lockedServiceKey]);
+
+  const filtering =
+    !!lockedServiceKey || svc.size > 0 || onlyIncluded || onlyFree || onlyExclusive || onlySub || day !== "all";
 
   const toggleSvc = (k: string) =>
     setSvc((prev) => {
@@ -165,6 +192,7 @@ export default function StreamingList({
               >
                 <ServiceIcon name={s.name} size={20} />
                 {s.name}
+                <span className={`num text-[11px] ${svc.has(s.key) ? "text-white/70" : "text-ink-2/80"}`}>{s.works}</span>
               </button>
             ))}
           </div>
@@ -216,78 +244,103 @@ export default function StreamingList({
           </p>
         </div>
       ) : (
-        <ul className="mt-5 grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-3">
-          {shown.map((w) => {
-            const exclusive = w.services.some((e) => e.isExclusive);
-            return (
-              <li key={w.anilistId}>
-                {/* カード全体を作品ページへのリンクにするが、<a> の中に <a>（配信サービスへのリンク）を
-                    入れ子にはできないので、タイトルのリンクを透明に引き伸ばしてカード全体を覆う */}
-                <div className="group relative flex h-full gap-4 rounded-3xl border border-line bg-white p-4 transition hover:-translate-y-0.5 hover:border-amber/60 hover:shadow-[0_18px_40px_-24px_rgba(26,21,35,0.5)]">
-                  <div className="relative h-[120px] w-20 flex-none overflow-hidden rounded-xl bg-paper-2 ring-1 ring-black/5">
-                    {w.coverImage && (
-                      // eslint-disable-next-line @next/next/no-img-element
-                      <img src={w.coverImage} alt="" loading="lazy" className="h-full w-full object-cover transition duration-500 group-hover:scale-[1.05]" />
-                    )}
-                  </div>
-                  <div className="min-w-0 flex-1">
-                    <p className="line-clamp-2 text-[15px] font-black leading-snug text-ink group-hover:text-amber-ink">
-                      <Link href={`/work/${w.anilistId}`} className="after:absolute after:inset-0 after:rounded-3xl after:content-['']">
-                        {w.title}
-                      </Link>
-                    </p>
-                    <p className="mt-1 flex flex-wrap items-center gap-x-2 text-[11px] text-ink-2">
-                      {w.earliest != null && (
-                        <span>
-                          <span className="num font-bold text-ink">{mdLabel(w.earliest)}</span> 配信開始
-                        </span>
-                      )}
-                      <span>
-                        <span className="num font-bold text-ink">{w.services.length}</span> サービス
-                      </span>
-                      {exclusive && <span className="rounded-full bg-[#FDEAEA] px-2 py-0.5 font-bold text-[#B91C1C]">独占あり</span>}
-                    </p>
-                    <ul className="mt-2.5 flex flex-wrap gap-1.5">
-                      {w.services.map((e) => {
-                        const weekly = weeklyLabel(e.weeklyDay, e.weeklyTime);
-                        const avail = AVAILABILITY_JA[e.availability];
-                        const inner = (
-                          <>
-                            <ServiceIcon name={e.serviceName} size={16} />
-                            <span>{e.serviceName}</span>
-                            {avail && <span className="font-medium text-amber-ink">{avail}</span>}
-                            {e.isExclusive && <span className="text-[#B91C1C]">独占</span>}
-                            {e.isFastest && <span className="text-[#3B6D11]">最速</span>}
-                            {weekly && <span className="num font-medium text-ink-2">{weekly.replace("毎週", "")}</span>}
-                          </>
-                        );
-                        const cls =
-                          "relative z-10 inline-flex items-center gap-1 rounded-full border bg-paper py-0.5 pl-0.5 pr-2 text-[11px] font-bold text-ink";
-                        return (
-                          <li key={e.serviceKey} className="flex">
-                            {e.sourceUrl ? (
-                              <a
-                                href={e.sourceUrl}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                title={`${e.serviceName}：出典を開く`}
-                                className={`${cls} ${e.isExclusive ? "border-[#F7C1C1]" : "border-line"} transition hover:border-amber hover:bg-white`}
-                              >
-                                {inner}
-                              </a>
-                            ) : (
-                              <span className={`${cls} ${e.isExclusive ? "border-[#F7C1C1]" : "border-line"}`}>{inner}</span>
+        <>
+          <p className="mt-5 flex items-center gap-1.5 text-[11px] text-ink-2">
+            <span aria-hidden className="inline-flex h-3.5 w-3.5 items-center justify-center rounded-full bg-white text-[8px] font-black text-ink shadow ring-1 ring-black/10">↗</span>
+            が付いたアイコンを押すと、その配信サービスの作品ページが開きます。カードを押すと作品の詳しい配信情報へ。
+          </p>
+          <ul className="mt-3 grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-3">
+            {shown.map((w) => {
+              const h = headline(w);
+              const exclusive = w.services.filter((e) => e.isExclusive);
+              const matched = w.matched ?? new Set<string>();
+              return (
+                <li key={w.anilistId}>
+                  {/* カード全体を作品ページへのリンクにするが、<a> の中に <a>（配信サービスへのリンク）を
+                      入れ子にはできないので、タイトルのリンクを透明に引き伸ばしてカード全体を覆う */}
+                  <div className="group relative flex h-full flex-col overflow-hidden rounded-3xl border border-line bg-white transition hover:-translate-y-0.5 hover:border-amber/60 hover:shadow-[0_18px_40px_-24px_rgba(26,21,35,0.5)]">
+                    <div className="flex gap-4 p-4 pb-3">
+                      <div className="relative h-[118px] w-[84px] flex-none overflow-hidden rounded-xl bg-paper-2 ring-1 ring-black/5">
+                        {w.coverImage && (
+                          // eslint-disable-next-line @next/next/no-img-element
+                          <img src={w.coverImage} alt="" loading="lazy" className="h-full w-full object-cover transition duration-500 group-hover:scale-[1.05]" />
+                        )}
+                      </div>
+                      <div className="min-w-0 flex-1">
+                        <p className="line-clamp-3 text-[15px] font-black leading-snug text-ink group-hover:text-amber-ink">
+                          <Link href={`/work/${w.anilistId}`} className="after:absolute after:inset-0 after:rounded-3xl after:content-['']">
+                            {w.title}
+                          </Link>
+                        </p>
+                        {(h.date || h.weekly) && (
+                          <p className="mt-1.5 flex flex-wrap items-center gap-x-2 text-[12px] text-ink-2">
+                            {h.date && (
+                              <span>
+                                <span className="num font-bold text-ink">{h.date}</span> から配信
+                              </span>
                             )}
-                          </li>
-                        );
-                      })}
-                    </ul>
+                            {h.weekly && <span className="num">{h.weekly}</span>}
+                          </p>
+                        )}
+                        {(exclusive.length > 0 || h.fastest.length > 0) && (
+                          <p className="mt-2 flex flex-wrap gap-1">
+                            {exclusive.map((e) => (
+                              <span key={e.serviceKey} className="rounded-full bg-[#FDEAEA] px-2 py-0.5 text-[10px] font-bold text-[#B91C1C]">
+                                {e.serviceName} 独占
+                              </span>
+                            ))}
+                            {h.fastest.length > 0 && (
+                              <span className="rounded-full bg-[#EAF3DE] px-2 py-0.5 text-[10px] font-bold text-[#3B6D11]">
+                                最速 {h.fastest.join("・")}
+                              </span>
+                            )}
+                          </p>
+                        )}
+                      </div>
+                    </div>
+                    <div className="mt-auto border-t border-line/70 bg-paper/60 px-4 pb-3.5 pt-2.5">
+                      <p className="mb-2 flex items-center justify-between text-[10px] font-bold text-ink-2">
+                        <span>
+                          見られるサービス <span className="num text-[12px] text-ink">{w.services.length}</span>
+                        </span>
+                        <span className="text-amber-ink group-hover:underline">詳しく見る ›</span>
+                      </p>
+                      <ul className="flex flex-wrap gap-1.5">
+                        {w.services.map((e) => {
+                          const dim = filtering && !matched.has(e.serviceKey);
+                          const ring = e.isExclusive ? "ring-2 ring-[#E24B4A] ring-offset-1" : "";
+                          return (
+                            <li key={e.serviceKey} className={`relative ${dim ? "opacity-25" : ""}`}>
+                              {e.watchUrl ? (
+                                <a
+                                  href={e.watchUrl}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  aria-label={`${e.serviceName}で「${w.title}」を見る（新しいタブで開きます）`}
+                                  title={`${e.serviceName}で見る`}
+                                  className={`relative z-10 block rounded-[22%] transition hover:-translate-y-0.5 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-amber ${ring}`}
+                                >
+                                  <ServiceIcon name={e.serviceName} size={28} />
+                                  <span aria-hidden className="absolute -right-1 -top-1 flex h-3.5 w-3.5 items-center justify-center rounded-full bg-white text-[8px] font-black text-ink shadow ring-1 ring-black/10">
+                                    ↗
+                                  </span>
+                                </a>
+                              ) : (
+                                <span className={`block rounded-[22%] ${ring}`}>
+                                  <ServiceIcon name={e.serviceName} size={28} />
+                                </span>
+                              )}
+                            </li>
+                          );
+                        })}
+                      </ul>
+                    </div>
                   </div>
-                </div>
-              </li>
-            );
-          })}
-        </ul>
+                </li>
+              );
+            })}
+          </ul>
+        </>
       )}
     </div>
   );

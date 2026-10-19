@@ -88,7 +88,8 @@ export default function StreamingLinks({
       return {
         key: c.serviceKey,
         name: c.serviceName || b?.name || c.serviceKey,
-        url: b?.url, // 推測リンクは作らず、AniListにある場合のみ
+        // 推測リンクは作らない：作品の公式サイトに載っていた配信サービスの作品ページ → AniList のリンク の順
+        url: c.watchUrl ?? b?.url,
         nextAt: b?.nextAt,
         nextEp: b?.nextEp,
       };

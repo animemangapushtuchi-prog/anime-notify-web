@@ -100,7 +100,8 @@ export default async function ServiceStreamingPage({ params }: Props) {
           <p>現在、{name}で確認できている作品はありません。</p>
         </div>
       ) : (
-        <StreamingList entries={entries} lockedServiceKey={serviceKey} />
+        // カードにはその作品の全サービスを出し、このサービスを強調する（作品はこのサービスがあるものだけ）
+        <StreamingList entries={all.filter((e) => entries.some((x) => x.anilistId === e.anilistId))} lockedServiceKey={serviceKey} />
       )}
 
       <p className="mt-8 text-[11px] text-ink-2">

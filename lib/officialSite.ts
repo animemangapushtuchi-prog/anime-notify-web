@@ -17,7 +17,8 @@ const MAX_SUBPAGES = 2;
 // 1ページから Claude に渡す文字数の上限
 const MAX_RELEVANT_CHARS = 8000;
 
-export type OfficialPage = { url: string; text: string };
+// links: そのページにあった「配信サービスの作品ページ」へのリンク（サービスキー → URL の一覧）
+export type OfficialPage = { url: string; text: string; links?: Record<string, string[]> };
 
 export type OfficialResult =
   | { status: "ok"; pages: OfficialPage[] }
@@ -183,6 +184,81 @@ function serviceNameOfUrl(href: string): string | null {
   return SERVICE_DOMAINS.find((d) => d.re.test(host))?.name ?? null;
 }
 
+// ---- 配信サービスの作品ページへのリンク ----
+// 公式サイトが各配信サービスの「作品ページ」にリンクしていれば、そのURLを集める（見る人がそのまま飛べるように）。
+// 推測でURLを作らないため、公式サイトに書かれたリンクだけを使い、作品ページの形をしたものだけを認める。
+// keep: 作品を表す引数（無ければ作品ページではない）／ optional: あれば残す引数（ABEMA の ?s= はシーズンの指定）
+const WATCH_PAGE: { key: string; host: RegExp; path: RegExp; keep?: string[]; optional?: string[] }[] = [
+  { key: "abema", host: /(^|\.)abema\.tv$/, path: /^\/video\/title\/[^/]+/, optional: ["s"] },
+  { key: "d-anime", host: /(^|\.)animestore\.docomo\.ne\.jp$/, path: /^\/animestore\/ci(_pc)?\/?$/, keep: ["workId"] },
+  { key: "u-next", host: /(^|\.)video\.unext\.jp$/, path: /^\/title\/SID\d+/ },
+  { key: "netflix", host: /(^|\.)netflix\.com$/, path: /^(\/[a-z]{2}(-[a-z]{2})?)?\/title\/\d+/i },
+  { key: "disney-plus", host: /(^|\.)disneyplus\.com$/, path: /\/(series|movies|browse\/entity-)[^?]*/ },
+  { key: "dmm-tv", host: /(^|\.)tv\.dmm\.com$/, path: /^\/vod\/detail\/?$/, keep: ["season", "content"] },
+  { key: "fod", host: /(^|\.)fod\.fujitv\.co\.jp$/, path: /^\/title\/[^/]+/ },
+  { key: "hulu", host: /(^|\.)hulu\.jp$/, path: /^\/[a-z0-9-]{3,}\/?$/ },
+  { key: "lemino", host: /(^|\.)lemino\.docomo\.ne\.jp$/, path: /^\/(contents|ft)\/[^/]+/ },
+  { key: "telasa", host: /(^|\.)telasa\.jp$/, path: /^\/(series|videos)\/\d+/ },
+  { key: "bandai-channel", host: /(^|\.)b-ch\.com$/, path: /^\/titles\/\d+/ },
+  { key: "niconico", host: /^anime\.nicovideo\.jp$/, path: /^\/detail\/[^/]+/ },
+  { key: "niconico", host: /^(www\.)?nicovideo\.jp$/, path: /^\/series\/\d+/ },
+  { key: "niconico", host: /^ch\.nicovideo\.jp$/, path: /^\/[a-z0-9_-]{3,}\/?$/i },
+  { key: "prime-video", host: /(^|\.)amazon\.co\.jp$/, path: /\/gp\/video\/detail\/[A-Z0-9]+/ },
+  { key: "prime-video", host: /(^|\.)primevideo\.com$/, path: /\/detail\/[A-Za-z0-9.]+/ },
+];
+function watchPageOf(href: string, base: URL): { key: string; url: string } | null {
+  let u: URL;
+  try {
+    u = new URL(decodeEntities(href), base);
+  } catch {
+    return null;
+  }
+  if (u.protocol !== "https:" && u.protocol !== "http:") return null;
+  const host = u.hostname.toLowerCase();
+  for (const w of WATCH_PAGE) {
+    if (!w.host.test(host) || !w.path.test(u.pathname)) continue;
+    const clean = new URL(u.origin + u.pathname.replace(/\/+$/, ""));
+    for (const k of w.keep ?? []) {
+      const v = u.searchParams.get(k);
+      if (v) clean.searchParams.set(k, v);
+    }
+    // d アニメストアと DMM TV は、作品を表す引数が無ければ作品ページではない
+    if (w.keep && ![...clean.searchParams.keys()].length) return null;
+    for (const k of w.optional ?? []) {
+      const v = u.searchParams.get(k);
+      if (v) clean.searchParams.set(k, v);
+    }
+    return { key: w.key, url: clean.toString() };
+  }
+  return null;
+}
+
+// リンクの文字（またはロゴの代替文字）が別のサービス名なら、行き先のドメインでサービスを決めない
+// 例：「dアニメストア for Prime Video」→ amazon.co.jp、「アニメ放題」→ U-NEXT系 など
+const LINK_TEXT_OTHER: Record<string, RegExp> = {
+  "prime-video": /dアニメ|アニメタイムズ|for\s*Prime|チャンネル/i,
+  "u-next": /アニメ放題/,
+  niconico: /dアニメ/,
+};
+
+export function serviceWatchLinks(html: string, baseUrl: string): Record<string, string[]> {
+  const base = new URL(baseUrl);
+  const out: Record<string, Set<string>> = {};
+  const re = /<a\b([^>]*)>([\s\S]*?)<\/a>/gi;
+  for (let m = re.exec(html); m; m = re.exec(html)) {
+    const href = /\bhref=["']([^"']+)["']/i.exec(m[1])?.[1];
+    if (!href) continue;
+    const hit = watchPageOf(href, base);
+    if (!hit) continue;
+    const label = decodeEntities(
+      m[2].replace(/<img[^>]*\balt=["']([^"']*)["'][^>]*>/gi, " $1 ").replace(/<[^>]+>/g, " ")
+    );
+    if (LINK_TEXT_OTHER[hit.key]?.test(label)) continue;
+    (out[hit.key] ??= new Set()).add(hit.url);
+  }
+  return Object.fromEntries(Object.entries(out).map(([k, s]) => [k, [...s]]));
+}
+
 export function htmlToText(html: string): string {
   let s = html
     .replace(/<!--[\s\S]*?-->/g, " ")
@@ -273,7 +349,7 @@ export async function collectOfficialPages(officialUrl: string): Promise<Officia
 
   const pages: OfficialPage[] = [];
   const topText = relevantText(htmlToText(first.html));
-  if (topText) pages.push({ url: first.finalUrl, text: topText });
+  if (topText) pages.push({ url: first.finalUrl, text: topText, links: serviceWatchLinks(first.html, first.finalUrl) });
 
   for (const sub of findSubpages(first.html, new URL(first.finalUrl))) {
     const u = new URL(sub);
@@ -282,7 +358,7 @@ export async function collectOfficialPages(officialUrl: string): Promise<Officia
       const r = await fetchHtml(u.href);
       if (!r) continue;
       const t = relevantText(htmlToText(r.html));
-      if (t) pages.push({ url: r.finalUrl, text: t });
+      if (t) pages.push({ url: r.finalUrl, text: t, links: serviceWatchLinks(r.html, r.finalUrl) });
     } catch {
       /* 1ページ読めなくても続ける */
     }

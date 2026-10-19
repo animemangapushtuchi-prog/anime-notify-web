@@ -28,6 +28,7 @@ export type PublicEntry = {
   isFastest: boolean;
   sourceUrl: string;
   sourceCheckedAt: number | null; // UNIX秒
+  watchUrl: string | null; // 配信サービスの作品ページ（公式サイトに載っていたリンク）。無ければ null
 };
 
 export type SeasonMeta = {
@@ -118,6 +119,7 @@ function toEntry(id: string, d: any): PublicEntry | null {
     isFastest: d.isFastest === true,
     sourceUrl: String(d.sourceUrl ?? ""),
     sourceCheckedAt: toSec(d.sourceCheckedAt),
+    watchUrl: typeof d.watchUrl === "string" && d.watchUrl.startsWith("https://") ? d.watchUrl : null,
   };
 }
 
