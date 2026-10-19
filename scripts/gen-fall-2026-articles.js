@@ -1,7 +1,9 @@
 // 2026年秋アニメの記事2本（配信サービス別まとめ・Prime Videoの一覧）を、公開中の配信データから作り直す。
 // 数字はすべてデータから計算する（手で書き写さない）。2026-09-29 版（Temp/gen_articles.js）を最新データ用に直したもの。
 // あわせて「2026年秋アニメの追いかけ方」の該当段落の数字も更新する。
-// 使い方: node gen_fall_articles.js [--write]
+// 使い方: node scripts/gen-fall-2026-articles.js [--write]
+// （サイト本体ではなく手元で動かす Node のスクリプトなので require を使う）
+/* eslint-disable @typescript-eslint/no-require-imports */
 const fs = require("fs");
 const path = require("path");
 const FT = path.join(process.env.APPDATA, "npm/node_modules/firebase-tools/lib");
