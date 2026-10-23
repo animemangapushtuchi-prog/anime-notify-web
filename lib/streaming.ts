@@ -39,13 +39,14 @@ export function serviceNameOf(key: string): string {
 // 各サービスの「公式サイト内検索」URL（作品ページの推測リンクは作らない。
 // 確認作業のために公式の検索結果へ作品名を渡すだけの用途）
 const SEARCH_URLS: Record<string, (q: string) => string> = {
-  "d-anime": (q) => `https://animestore.docomo.ne.jp/animestore/tp_search?searchKey=${q}`,
+  // 2026-10-23 確認：dアニメは sch?searchKey=（旧 tp_search はトップへ飛ばされる）、DMM TV は /vod/list/?keyword=（旧 /vod/search/ は404）
+  "d-anime": (q) => `https://animestore.docomo.ne.jp/animestore/sch?searchKey=${q}`,
   "u-next": (q) => `https://video.unext.jp/freeword?query=${q}`,
   abema: (q) => `https://abema.tv/search?q=${q}`,
   netflix: (q) => `https://www.netflix.com/search?q=${q}`,
   "prime-video": (q) => `https://www.amazon.co.jp/s?k=${q}&i=instant-video`,
   hulu: (q) => `https://www.hulu.jp/search?q=${q}`,
-  "dmm-tv": (q) => `https://tv.dmm.com/vod/search/?keyword=${q}`,
+  "dmm-tv": (q) => `https://tv.dmm.com/vod/list/?keyword=${q}`,
   lemino: (q) => `https://lemino.docomo.ne.jp/search?query=${q}`,
   fod: (q) => `https://fod.fujitv.co.jp/search/?keyword=${q}`,
   "disney-plus": (q) => `https://www.disneyplus.com/ja-jp/search?q=${q}`,
@@ -56,6 +57,24 @@ const SEARCH_URLS: Record<string, (q: string) => string> = {
 export function serviceSearchUrl(serviceKey: string, title: string): string | null {
   const f = SEARCH_URLS[serviceKey];
   return f ? f(encodeURIComponent(title)) : null;
+}
+
+// 一般の利用者に見せてよい検索リンク：ログインなしで検索結果が出ることを確かめたサービスだけ（2026-10-23 確認）。
+// Netflix・Disney+ はログインしないと検索できない。Lemino・FOD は検索ページのアドレスが確かめられず、
+// バンダイチャンネルは確認時にメンテナンス中だったので、ここには入れない（作品ページのリンクが無ければ「リンクなし」）
+const PUBLIC_SEARCH_OK = new Set(["d-anime", "u-next", "abema", "hulu", "dmm-tv", "telasa", "prime-video"]);
+
+// 検索に使う作品名：「第3期」「Season2」などの期数より後ろを外す（続編も検索結果に並ぶように）
+export function searchTitle(title: string): string {
+  const t = title
+    .normalize("NFKC")
+    .replace(/\s*(第\s*\d+\s*期|season\s*\d+|\d+(st|nd|rd|th)\s*season|第\s*\d+\s*クール).*$/i, "")
+    .trim();
+  return t || title;
+}
+
+export function publicSearchUrl(serviceKey: string, title: string): string | null {
+  return PUBLIC_SEARCH_OK.has(serviceKey) ? serviceSearchUrl(serviceKey, searchTitle(title)) : null;
 }
 
 // 既知サービスへ正規化。YouTube・海外専用・不明サービスは null（勝手に既知へ割り当てない）

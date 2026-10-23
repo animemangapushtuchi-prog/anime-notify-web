@@ -17,6 +17,8 @@ import {
   mergeStreaming,
   subscribedServiceKeys,
   type MergedStream,
+  publicSearchUrl,
+  searchTitle,
 } from "@/lib/streaming";
 import ServiceIcon from "@/components/ServiceIcon";
 import Link from "next/link";
@@ -120,6 +122,9 @@ export default function StreamingLinks({
           <ul className="mt-2 grid gap-1 sm:grid-cols-2">
             {sorted.map((s) => {
               const isSub = subKeys.includes(s.key);
+              // 作品ページのリンクが無ければ、そのサービス内の検索結果へ（ログイン無しで検索できると確かめたサービスだけ）
+              const search = s.url ? null : publicSearchUrl(s.key, title);
+              const href = s.url ?? search;
               const inner = (
                 <>
                   <ServiceIcon name={s.name} size={22} />
@@ -159,6 +164,8 @@ export default function StreamingLinks({
                   )}
                   {s.url ? (
                     <span className="flex-none text-xs font-bold text-[#8A5518]">開く ›</span>
+                  ) : search ? (
+                    <span className="flex-none text-xs font-bold text-[#8A5518]">検索 ›</span>
                   ) : (
                     <span className="flex-none text-[10px] text-black/40">リンクなし</span>
                   )}
@@ -166,12 +173,13 @@ export default function StreamingLinks({
               );
               return (
                 <li key={s.key}>
-                  {s.url ? (
+                  {href ? (
                     <a
-                      href={s.url}
+                      href={href}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="flex items-center gap-3 rounded-xl bg-white px-3 py-2"
+                      title={search ? `${s.name}で「${searchTitle(title)}」を検索` : `${s.name}で見る`}
+                      className="flex items-center gap-3 rounded-xl bg-white px-3 py-2 transition hover:bg-[#FBF3E6]"
                     >
                       {inner}
                     </a>

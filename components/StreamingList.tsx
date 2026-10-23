@@ -6,7 +6,7 @@ import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { useAuth } from "@/lib/auth";
 import { getUserPrefs, isSubscribedService } from "@/lib/subscriptions";
-import { STREAM_SERVICES } from "@/lib/streaming";
+import { STREAM_SERVICES, publicSearchUrl, searchTitle } from "@/lib/streaming";
 import {
   type PublicEntry,
   weeklyLabel,
@@ -247,7 +247,7 @@ export default function StreamingList({
         <>
           <p className="mt-5 flex items-center gap-1.5 text-[11px] text-ink-2">
             <span aria-hidden className="inline-flex h-3.5 w-3.5 items-center justify-center rounded-full bg-white text-[8px] font-black text-ink shadow ring-1 ring-black/10">↗</span>
-            が付いたアイコンを押すと、その配信サービスの作品ページが開きます。カードを押すと作品の詳しい配信情報へ。
+            が付いたアイコンはその配信サービスの作品ページへ、付いていないアイコンはそのサービス内の検索結果へ移動します（ログインが必要なサービスなどは、カードと同じく作品の詳しい配信情報へ）。
           </p>
           <ul className="mt-3 grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-3">
             {shown.map((w) => {
@@ -309,21 +309,30 @@ export default function StreamingList({
                         {w.services.map((e) => {
                           const dim = filtering && !matched.has(e.serviceKey);
                           const ring = e.isExclusive ? "ring-2 ring-[#E24B4A] ring-offset-1" : "";
+                          // 作品ページのリンク（公式サイトに載っていたもの）が無ければ、そのサービス内の検索結果へ
+                          const search = e.watchUrl ? null : publicSearchUrl(e.serviceKey, w.title);
+                          const href = e.watchUrl ?? search;
                           return (
                             <li key={e.serviceKey} className={`relative ${dim ? "opacity-25" : ""}`}>
-                              {e.watchUrl ? (
+                              {href ? (
                                 <a
-                                  href={e.watchUrl}
+                                  href={href}
                                   target="_blank"
                                   rel="noopener noreferrer"
-                                  aria-label={`${e.serviceName}で「${w.title}」を見る（新しいタブで開きます）`}
-                                  title={`${e.serviceName}で見る`}
+                                  aria-label={
+                                    search
+                                      ? `${e.serviceName}で「${searchTitle(w.title)}」を検索する（新しいタブで開きます）`
+                                      : `${e.serviceName}で「${w.title}」を見る（新しいタブで開きます）`
+                                  }
+                                  title={search ? `${e.serviceName}で検索` : `${e.serviceName}で見る`}
                                   className={`relative z-10 block rounded-[22%] transition hover:-translate-y-0.5 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-amber ${ring}`}
                                 >
                                   <ServiceIcon name={e.serviceName} size={28} />
-                                  <span aria-hidden className="absolute -right-1 -top-1 flex h-3.5 w-3.5 items-center justify-center rounded-full bg-white text-[8px] font-black text-ink shadow ring-1 ring-black/10">
-                                    ↗
-                                  </span>
+                                  {!search && (
+                                    <span aria-hidden className="absolute -right-1 -top-1 flex h-3.5 w-3.5 items-center justify-center rounded-full bg-white text-[8px] font-black text-ink shadow ring-1 ring-black/10">
+                                      ↗
+                                    </span>
+                                  )}
                                 </a>
                               ) : (
                                 <span className={`block rounded-[22%] ${ring}`}>
