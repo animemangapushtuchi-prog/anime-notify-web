@@ -73,3 +73,13 @@ export function adjacentSeasonKey(key: string, dir: -1 | 1): string {
   }
   return `${year}-${ORDER[i]}`;
 }
+
+// 配信一覧として表示してよい季節の範囲（2026-10-26）：データを持ち始めた 2026年以降、来期の次まで。
+// 範囲外（1967年冬 など）は 404 にして、Google が季節ページを無限にたどらないようにする
+export function servableSeason(key: string): SeasonInfo | null {
+  const info = parseSeasonKey(key);
+  if (!info) return null;
+  const nowYear = jstNow().getUTCFullYear();
+  if (info.year < 2026 || info.year > nowYear + 1) return null;
+  return info;
+}

@@ -261,7 +261,15 @@ query ($id: Int) {
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 export async function fetchAnimeDetail(id: number): Promise<AnimeDetail | null> {
-  const data = await gql<{ Media: any }>(DETAIL_QUERY, { id });
+  let data: { Media: any };
+  try {
+    data = await gql<{ Media: any }>(DETAIL_QUERY, { id });
+  } catch (err) {
+    // アニメ以外の ID（漫画・小説）や存在しない ID は AniList が 404 を返す → 「作品が見つからない」として扱う。
+    // 以前はここで例外になり、ページ全体が 500 エラーになっていた（2026-10-26 に Search Console で発覚）
+    if (err instanceof Error && /AniList 404|Not Found/i.test(err.message)) return null;
+    throw err;
+  }
   const m = data.Media;
   if (!m || m.isAdult) return null; // 18禁は全経路で除外
 

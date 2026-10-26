@@ -5,6 +5,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import {
   parseSeasonKey,
+  servableSeason,
   adjacentSeasonKey,
 } from "@/lib/season";
 import { getPublishedEntries, getSeasonMeta } from "@/lib/seasonStreaming";
@@ -21,7 +22,7 @@ const loadEntries = cache((key: string) => getPublishedEntries(key));
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { seasonKey } = await params;
-  const info = parseSeasonKey(seasonKey);
+  const info = servableSeason(seasonKey);
   if (!info) return { title: "今期アニメ配信一覧｜アニミル！" };
   const title = `${info.label}の配信一覧｜Prime Video・Netflix・ABEMA・dアニメ｜アニミル！`;
   const description = `${info.label}を配信サービス別に比較。Prime Video、Netflix、ABEMA、dアニメストアなどの確認済み配信作品、開始日、更新曜日を掲載。`;
@@ -45,15 +46,20 @@ function jstDate(sec: number): string {
 
 export default async function SeasonStreamingPage({ params }: Props) {
   const { seasonKey } = await params;
-  const info = parseSeasonKey(seasonKey);
+  const info = servableSeason(seasonKey);
   if (!info) notFound();
 
   const [entries, meta] = await Promise.all([
     loadEntries(info.key),
     getSeasonMeta(info.key),
   ]);
+  // 「← 前」「次 →」は、公開データがある季節にだけ出す。
+  // 以前は無条件に出していたため、Google が 1967年冬 まで季節ページをたどり続けていた（空のページが144件）
   const prev = parseSeasonKey(adjacentSeasonKey(info.key, -1))!;
   const next = parseSeasonKey(adjacentSeasonKey(info.key, 1))!;
+  const [prevMeta, nextMeta] = await Promise.all([getSeasonMeta(prev.key), getSeasonMeta(next.key)]);
+  const hasPrev = (prevMeta?.confirmedCount ?? 0) > 0;
+  const hasNext = (nextMeta?.confirmedCount ?? 0) > 0;
 
   const works = new Set(entries.map((e) => e.anilistId)).size;
   const services = new Set(entries.map((e) => e.serviceKey)).size;
@@ -89,9 +95,17 @@ export default async function SeasonStreamingPage({ params }: Props) {
         }
       >
         <nav aria-label="シーズン" className="mt-5 flex flex-wrap items-center justify-between gap-2 text-xs font-bold">
-          <Link href={`/streaming/${prev.key}`} className="rounded-full border border-line bg-white px-3.5 py-1.5 text-amber-ink transition hover:border-amber">← {prev.label}</Link>
+          {hasPrev ? (
+            <Link href={`/streaming/${prev.key}`} className="rounded-full border border-line bg-white px-3.5 py-1.5 text-amber-ink transition hover:border-amber">← {prev.label}</Link>
+          ) : (
+            <span />
+          )}
           <Link href="/streaming/weekly" className="rounded-full bg-ink px-3.5 py-1.5 text-white transition hover:bg-night-2">今週の放送・配信スケジュール ›</Link>
-          <Link href={`/streaming/${next.key}`} className="rounded-full border border-line bg-white px-3.5 py-1.5 text-amber-ink transition hover:border-amber">{next.label} →</Link>
+          {hasNext ? (
+            <Link href={`/streaming/${next.key}`} className="rounded-full border border-line bg-white px-3.5 py-1.5 text-amber-ink transition hover:border-amber">{next.label} →</Link>
+          ) : (
+            <span />
+          )}
         </nav>
       </PageHeader>
 

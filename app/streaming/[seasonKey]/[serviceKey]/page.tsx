@@ -3,7 +3,7 @@ import type { Metadata } from "next";
 import { OG_IMAGE } from "@/lib/seo";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { parseSeasonKey } from "@/lib/season";
+import { servableSeason } from "@/lib/season";
 import { STREAM_SERVICES, serviceNameOf } from "@/lib/streaming";
 import { getPublishedEntries, getSeasonMeta } from "@/lib/seasonStreaming";
 import StreamingList from "@/components/StreamingList";
@@ -22,7 +22,7 @@ const loadEntries = cache((key: string) => getPublishedEntries(key));
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { seasonKey, serviceKey } = await params;
-  const info = parseSeasonKey(seasonKey);
+  const info = servableSeason(seasonKey);
   if (!info || !isKnownService(serviceKey)) return { title: "今期アニメ配信一覧｜アニミル！" };
   const name = serviceNameOf(serviceKey);
   const title = `${info.label} ${name}で配信されるアニメ一覧｜アニミル！`;
@@ -43,7 +43,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 
 export default async function ServiceStreamingPage({ params }: Props) {
   const { seasonKey, serviceKey } = await params;
-  const info = parseSeasonKey(seasonKey);
+  const info = servableSeason(seasonKey);
   if (!info || !isKnownService(serviceKey)) notFound();
 
   const name = serviceNameOf(serviceKey);
