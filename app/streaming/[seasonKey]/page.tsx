@@ -87,8 +87,9 @@ export default async function SeasonStreamingPage({ params }: Props) {
           ) : null
         }
       >
-        <nav aria-label="シーズン" className="mt-5 flex items-center justify-between gap-2 text-xs font-bold">
+        <nav aria-label="シーズン" className="mt-5 flex flex-wrap items-center justify-between gap-2 text-xs font-bold">
           <Link href={`/streaming/${prev.key}`} className="rounded-full border border-line bg-white px-3.5 py-1.5 text-amber-ink transition hover:border-amber">← {prev.label}</Link>
+          <Link href="/streaming/weekly" className="rounded-full bg-ink px-3.5 py-1.5 text-white transition hover:bg-night-2">今週の放送・配信スケジュール ›</Link>
           <Link href={`/streaming/${next.key}`} className="rounded-full border border-line bg-white px-3.5 py-1.5 text-amber-ink transition hover:border-amber">{next.label} →</Link>
         </nav>
       </PageHeader>

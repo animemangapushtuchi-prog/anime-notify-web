@@ -49,6 +49,8 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       { key: sk, main: true },
       { key: adjacentSeasonKey(sk, -1), main: false },
     ];
+    // 今週の放送・配信スケジュール（毎日内容が変わる）
+    streaming.push({ url: `${BASE}/streaming/weekly`, lastModified: new Date(), changeFrequency: "daily" as const, priority: 0.9 });
     for (const { key: season, main } of seasons) {
       const entries = await getPublishedEntries(season);
       if (entries.length === 0) continue;

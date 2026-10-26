@@ -47,10 +47,8 @@ const loadConfirmed = cache(async (id: number, seasonLabelJa: string): Promise<P
   ]).catch(() => []);
 });
 
-// 検索結果に出る説明文を作る。
-// Wikipediaの導入部は「その作品の記事だと確認できたときだけ」使う（lib/wikipedia.ts で照合済み）。
-// 取れなかった場合でも空にせず、サイトが持っている情報から説明文を組み立てる。
-function buildDescription(d: AnimeDetail, wikiExtract?: string, confirmedNames: string[] = []): string {
+// 検索結果に出る説明文を作る。サイトが持っている情報（季節・形式・制作・配信サービス）だけで組み立てる。
+function buildDescription(d: AnimeDetail, confirmedNames: string[] = []): string {
   const facts: string[] = [];
   if (d.seasonLabel) facts.push(d.seasonLabel);
   if (d.type) facts.push(d.type);
@@ -66,13 +64,7 @@ function buildDescription(d: AnimeDetail, wikiExtract?: string, confirmedNames: 
     ? `${services.slice(0, 4).join("・")}などの配信状況と、最新話の放送予定をまとめています。`
     : "配信サービスの対応状況と、最新話の放送予定をまとめています。";
 
-  // Wikipediaのあらすじが取れていれば、残り文字数に収まる範囲で足す
-  const base = head + factLine + svcLine;
-  if (wikiExtract) {
-    const room = 150 - base.length;
-    if (room > 30) return (base + wikiExtract.replace(/\s+/g, " ").slice(0, room)).slice(0, 160);
-  }
-  return base.slice(0, 160);
+  return (head + factLine + svcLine).slice(0, 160);
 }
 
 export async function generateMetadata({
@@ -83,14 +75,10 @@ export async function generateMetadata({
   const { id } = await params;
   const r = await load(id);
   if (!r) return { title: "作品が見つかりません｜アニミル！" };
-  const { d, wiki } = r;
+  const { d } = r;
   const confirmed = await loadConfirmed(d.id, d.seasonLabel);
-  // 照合できたWikipedia本文だけを足す。AniListのsynopsisは英語やHTMLが混ざるので使わない。
-  const desc = buildDescription(
-    d,
-    wiki?.extract || "",
-    confirmed.map((c) => c.serviceName)
-  );
+  // 説明文はアニミル！が持っている情報だけで作る（Wikipedia の文章は足さない）
+  const desc = buildDescription(d, confirmed.map((c) => c.serviceName));
   // 「作品名 配信」「作品名 どこで見れる」で探している人に届く形にする
   const pageTitle = `${d.title}はどこで見れる？配信・放送情報｜アニミル！`;
   return {
@@ -184,15 +172,18 @@ export default async function WorkPage({
 
           <div className={`mt-7 gap-8 ${d.trailerVideoId ? "md:grid md:grid-cols-[1fr_0.9fr]" : ""}`}>
             <div className="min-w-0">
-              {(wiki?.extract || d.synopsis) && (
-                <div>
-                  <p className="whitespace-pre-line text-[13px] leading-[1.9] text-white/85 line-clamp-6">
-                    {wiki?.extract || d.synopsis}
-                  </p>
-                  <p className="mt-2 text-[10px] text-white/60">
-                    出典：{wiki ? "Wikipedia（CC BY-SA）" : "AniList"}
-                  </p>
-                </div>
+              {/* あらすじの本文は載せない（2026-10-26）。Wikipedia・AniList の文章をそのまま載せると、
+                  ほかのサイトと同じ文章になり「独自の情報が無いページ」と判断されやすいため（AdSense の審査で「有用性の低いコンテンツ」）。
+                  作品の記事だと照合できたときだけ、Wikipedia の記事へのリンクを出す */}
+              {wiki?.url && (
+                <a
+                  href={wiki.url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-1.5 rounded-full bg-white/10 px-3.5 py-1.5 text-[12px] font-bold text-white/90 ring-1 ring-white/15 transition hover:bg-white/20"
+                >
+                  あらすじを Wikipedia で読む <span aria-hidden="true">↗</span>
+                </a>
               )}
               {d.genres.length > 0 && (
                 <div className="mt-4 flex flex-wrap gap-1.5">
