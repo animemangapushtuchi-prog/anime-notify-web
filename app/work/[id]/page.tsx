@@ -2,7 +2,7 @@ import { cache } from "react";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import type { Metadata } from "next";
-import { getWorkEntries, seasonKeyFromLabel, type PublicEntry } from "@/lib/seasonStreaming";
+import { getWorkEntries, seasonKeyFromLabel, CATALOG_KEY, type PublicEntry } from "@/lib/seasonStreaming";
 import { currentSeasonKey, adjacentSeasonKey } from "@/lib/season";
 import { fetchAnimeDetail, genreJa, type AnimeDetail } from "@/lib/anilist";
 import { fetchWikipediaJa } from "@/lib/wikipedia";
@@ -44,6 +44,8 @@ const loadConfirmed = cache(async (id: number, seasonLabelJa: string): Promise<P
     now,
     adjacentSeasonKey(now, -1),
     adjacentSeasonKey(now, 1),
+    // 季節に属さない定番作品（ONE PIECE・DEATH NOTE など）の配信情報（2026-10-26〜）
+    CATALOG_KEY,
   ]).catch(() => []);
 });
 

@@ -160,6 +160,10 @@ export function seasonKeyFromLabel(label: string): string | null {
   return `${m[1]}-${s[m[2]]}`;
 }
 
+// 季節に属さない定番作品（ONE PIECE・DEATH NOTE など）の配信情報を入れる枠。
+// seasonStreamingPublic/catalog（＋/entries）に、季節と同じ形で入れる。/streaming/catalog は存在しない（季節の名前ではないので404）
+export const CATALOG_KEY = "catalog";
+
 // 1作品ぶんの確認済み配信情報。
 // 作品ページは「今期」だけでなく、作品自身のシーズンと前後のシーズンも見る
 // （公開直後の来期作品や、季節が変わった後の前期作品も表示できるように）。
@@ -169,6 +173,7 @@ export async function getWorkEntries(anilistId: number, seasonKeys: string[]): P
   const lists = await Promise.all(keys.map((k) => getPublishedEntries(k).then((l) => ({ k, l }))));
   const order = ["winter", "spring", "summer", "fall"];
   const rank = (k: string) => {
+    if (k === CATALOG_KEY) return 0; // 定番作品の枠はいちばん後回し（季節のデータがあればそちらを優先）
     const [y, s] = k.split("-");
     return Number(y) * 10 + order.indexOf(s);
   };
