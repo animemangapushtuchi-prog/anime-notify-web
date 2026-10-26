@@ -155,3 +155,11 @@ test("タイトルから何期目かを読む", () => {
   assert.equal(seasonNumberOf("片田舎のおっさん、剣聖になるII"), 2);
   assert.equal(seasonNumberOf("テスト作品Ⅲ"), 3);
 });
+
+test("「2Dアニメーション」「ニコニコしちゃう」「Netflix映画化」はサービスと読まない（2026-10-26）", () => {
+  assert.deepEqual(Object.keys(run("全編手描きによるフル2Dアニメーション映画").by), []);
+  assert.deepEqual(Object.keys(run("やりとりから感じられて、ニコニコしちゃいます。").by), []);
+  assert.deepEqual(Object.keys(run("主演のNetflix映画化でも話題の本格ミステリ").by), []);
+  // 通常の書き方は今までどおり読む
+  assert.deepEqual(Object.keys(run("dアニメストア・ニコニコチャンネルで配信").by).sort(), ["d-anime", "niconico"]);
+});

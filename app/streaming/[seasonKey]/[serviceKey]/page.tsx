@@ -36,7 +36,8 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     description,
     alternates: { canonical: `/streaming/${info.key}/${serviceKey}` },
     openGraph: { title, description, url: `/streaming/${info.key}/${serviceKey}`, images: [OG_IMAGE] },
-    ...(count === 0 ? { robots: { index: false, follow: true } } : {}),
+    // 作品がほとんど無いページ（このサービスで3作品未満、または季節全体で15作品未満）も検索に出さない
+    ...(count < 3 || new Set(all.map((e) => e.anilistId)).size < 15 ? { robots: { index: false, follow: true } } : {}),
   };
 }
 

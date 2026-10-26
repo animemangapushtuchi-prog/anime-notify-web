@@ -33,7 +33,8 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     description,
     alternates: { canonical: `/streaming/${info.key}` },
     openGraph: { title, description, url: `/streaming/${info.key}`, images: [OG_IMAGE] },
-    ...(entries.length === 0 ? { robots: { index: false, follow: true } } : {}),
+    // 作品が少ない季節（来期の発表が出始めたばかりなど）も、中身の薄いページになるので検索に出さない（15作品未満）
+    ...(new Set(entries.map((e) => e.anilistId)).size < 15 ? { robots: { index: false, follow: true } } : {}),
   };
 }
 

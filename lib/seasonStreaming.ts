@@ -75,6 +75,8 @@ export async function getSeasonMeta(seasonKey: string): Promise<SeasonMeta | nul
 // 「◯年秋アニメ どこで見れる」が検索されるのは開始前の2〜3週間なので、
 // データを先に公開しても10月1日まで夏のままだった問題を解消する。
 const LOOKAHEAD_DAYS = 21;
+// 来期に切り替えるのに必要な公開行数（1作品あたり平均8〜10行なので、およそ10〜15作品ぶん）
+const MIN_ROWS_TO_SWITCH = 100;
 const SEASON_START_MONTH: Record<string, number> = { winter: 1, spring: 4, summer: 7, fall: 10 };
 
 function seasonStartMs(key: string): number | null {
@@ -90,7 +92,9 @@ export async function latestSeasonKeyWithData(maxBack = 4): Promise<string> {
   const nextStart = seasonStartMs(next);
   if (nextStart !== null && Date.now() >= nextStart - LOOKAHEAD_DAYS * 86400000) {
     const meta = await getSeasonMeta(next);
-    if (meta && meta.confirmedCount > 0) return next;
+    // 来期は、配信先が発表された作品がある程度そろってから切り替える（2026-10-26）。
+    // 発表が出始めた数作品だけで切り替えると、中身の薄い一覧が表に出てしまうため
+    if (meta && meta.confirmedCount >= MIN_ROWS_TO_SWITCH) return next;
   }
   let key = current;
   for (let i = 0; i <= maxBack; i++) {

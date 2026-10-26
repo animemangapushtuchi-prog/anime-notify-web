@@ -37,7 +37,8 @@ const SERVICES: { key: string; re: RegExp }[] = [
   { key: "prime-video", re: /Prime\s*Video|プライム\s*[・･]?\s*ビデオ|Amazon\s*Prime|アマゾン\s*プライム/i },
   { key: "netflix", re: /Netflix|ネットフリックス/i },
   { key: "u-next", re: /U-?NEXT/i },
-  { key: "d-anime", re: /d\s*アニメ\s*ストア|dアニメ/i },
+  // 「フル2Dアニメーション」の「Dアニメ」を拾わないよう、前が英数字のときは除く（2026-10-26）
+  { key: "d-anime", re: /(?<![0-9A-Za-z])d\s*アニメ\s*ストア|(?<![0-9A-Za-z])dアニメ(?!ーション)/i },
   { key: "abema", re: /ABEMA|アベマ/i },
   { key: "hulu", re: /Hulu/i },
   { key: "dmm-tv", re: /DMM\s*TV/i },
@@ -45,7 +46,8 @@ const SERVICES: { key: string; re: RegExp }[] = [
   { key: "fod", re: /(?<![A-Za-z])FOD(?![A-Za-z])/ },
   { key: "telasa", re: /TELASA|テラサ/i },
   { key: "disney-plus", re: /Disney\s*(\+|＋|Plus)|ディズニー\s*(プラス|\+|＋)/i },
-  { key: "niconico", re: /ニコニコ|niconico/i },
+  // 「ニコニコしちゃう」「ニコニコと」のような笑顔の意味の言葉は除く（2026-10-26）
+  { key: "niconico", re: /ニコニコ(?![しとなでの顔笑])|niconico/i },
   { key: "bandai-channel", re: /バンダイチャンネル/ },
   { key: "anime-times", re: /アニメタイムズ/ },
 ];
@@ -61,7 +63,7 @@ function hasService(s: { key: string; re: RegExp }, line: string): boolean {
 
 // 本編の配信ではない案内（特番・PV・一挙放送・YouTube公開・グッズなど）の行は使わない
 const NOT_EPISODE =
-  /特番|直前|特別番組|PV|予告|先行上映|上映会|イベント|一挙|振り返り|YouTube|グッズ|Blu-?ray|DVD|キャンペーン|プレゼント/i;
+  /特番|直前|特別番組|PV|予告|先行上映|上映会|イベント|一挙|振り返り|YouTube|グッズ|Blu-?ray|DVD|キャンペーン|プレゼント|映画化|実写/i;
 
 // お知らせ欄の先頭にある掲載日（「2026/09/28 …」「2026.09.28 …」）は配信日ではないので外して読む
 const NEWS_DATE = /^\s*20\d{2}\s*[./年]\s*\d{1,2}\s*[./月]\s*\d{1,2}\s*日?\s+/;
