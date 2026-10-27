@@ -1,7 +1,7 @@
 import type { MetadataRoute } from "next";
 import { listOsusume, articleWorkIds } from "@/lib/osusume";
 import { fetchPopularAroundNow } from "@/lib/anilist";
-import { getPublishedEntries, latestSeasonKeyWithData } from "@/lib/seasonStreaming";
+import { getPublishedEntries, latestSeasonKeyWithData, CATALOG_KEY } from "@/lib/seasonStreaming";
 import { adjacentSeasonKey } from "@/lib/season";
 
 const BASE = "https://www.animiru.com";
@@ -42,6 +42,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const streaming: MetadataRoute.Sitemap = [];
   // 配信データに載っている作品も、確実な作品URLの供給源として使う
   const workIds = new Set<number>();
+  const withData = new Set<number>(); // 配信情報がある作品
   try {
     const sk = await latestSeasonKeyWithData();
     // 1つ前のシーズンも残す（季節が変わっても、前期アニメは1か月ほど検索され続けるため）
@@ -66,15 +67,25 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
           priority: main ? 0.7 : 0.5,
         });
       }
-      for (const e of entries) workIds.add(e.anilistId);
+      for (const e of entries) {
+        workIds.add(e.anilistId);
+        withData.add(e.anilistId);
+      }
     }
   } catch (err) {
     // 握りつぶすと「作品URLが0件のサイトマップ」が黙って出続けるため、必ずログに残す
     console.error("[sitemap] 配信データの取得に失敗しました", err);
   }
 
-  // 記事が紹介している作品も載せる（ローカルJSON由来なので必ず取れる）
-  for (const o of articles) for (const id of articleWorkIds(o)) workIds.add(id);
+  // 記事が紹介している作品のうち、配信情報がある（＝検索に出す）ものだけ載せる。
+  // 以前は配信情報の無い古い作品も載せていたが、作品ページ側で noindex になるため、ここでも外す（2026-10-27）
+  for (const o of articles) for (const id of articleWorkIds(o)) if (withData.has(id)) workIds.add(id);
+  // 定番作品の枠（catalog）に配信情報がある作品
+  try {
+    for (const e of await getPublishedEntries(CATALOG_KEY)) workIds.add(e.anilistId);
+  } catch (err) {
+    console.error("[sitemap] 定番作品の配信データの取得に失敗しました", err);
+  }
 
   // SEOの主役＝作品詳細。今期・来期・前期の人気作を足す。
   // AniListが落ちていても、上の2つの供給源だけで作品URLは0件にならない。

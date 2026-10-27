@@ -49,6 +49,18 @@ const loadConfirmed = cache(async (id: number, seasonLabelJa: string): Promise<P
   ]).catch(() => []);
 });
 
+// 検索に出す作品ページの条件（2026-10-27）：確認済みの配信情報がある、または今期・前後の季節の作品。
+// それ以外（配信情報の無い古い作品）は noindex にする。Google が「シリーズ・関連作品」や声優ページのリンクをたどって
+// 1,300件以上の古い作品ページを読み、875件を登録していた。中身が AniList の基本情報だけの薄いページが大量に登録され、
+// AdSense の「有用性の低いコンテンツ」の主因と考えられるため。ページ自体は残す（登録・通知は今までどおり使える）
+function isIndexableWork(d: AnimeDetail, confirmed: PublicEntry[]): boolean {
+  if (confirmed.length > 0) return true;
+  const key = seasonKeyFromLabel(d.seasonLabel);
+  if (!key) return false;
+  const now = currentSeasonKey();
+  return [now, adjacentSeasonKey(now, -1), adjacentSeasonKey(now, 1)].includes(key);
+}
+
 // 検索結果に出る説明文を作る。サイトが持っている情報（季節・形式・制作・配信サービス）だけで組み立てる。
 function buildDescription(d: AnimeDetail, confirmedNames: string[] = []): string {
   const facts: string[] = [];
@@ -94,6 +106,7 @@ export async function generateMetadata({
       images: d.coverUrl ? [d.coverUrl] : [],
       type: "article",
     },
+    ...(isIndexableWork(d, confirmed) ? {} : { robots: { index: false, follow: true } }),
   };
 }
 
