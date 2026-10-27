@@ -24,3 +24,10 @@
 - U-NEXT：`video.unext.jp/freeword?query=作品名` を作品ごとに開き、結果の `/title/SIDxxxxxxx` と作品名を照合（ブラウザの同じ画面内で iframe を使って順に読んだ）。55行中47行
 - ABEMA の検索は続けて使うと止められるので使っていない
 - 2026-10-23 時点：750行中258行に作品ページのリンク。リンクが無い行は「検索 ›」（検索結果へ）で補っている
+
+## robots.txt の確認（2026-10-27）
+
+- dアニメストア：`/animestore/sch`・`/animestore/sch_pc`（検索）は Disallow → **まとめて検索する収集には使わない**。季節ページ（`/animestore/CF/...`）は可
+- DMM TV：`/vod/list/*keyword=*`（検索）は Disallow → 収集には使わない
+- U-NEXT：`/freeword` は禁止されていない → 人気作の照合に使用（ブラウザの同じ画面で iframe を順に読む）
+- 利用者が押す「検索 ›」リンクは、人がブラウザで開くものなので対象外
