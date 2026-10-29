@@ -472,7 +472,7 @@ export default function MyListHome() {
           )}
       </div>
 
-      <AdSlot className="mt-8" />
+      <AdSlot name="mylist" className="mt-8" />
     </section>
   );
 

@@ -493,7 +493,7 @@ export default function SearchPage() {
         </>
       )}
 
-      {items.length > 0 && <AdSlot className="mt-8" />}
+      {items.length > 0 && <AdSlot name="search" className="mt-8" />}
 
       <p className="mt-6 text-[10px] text-black/40">出典：AniList</p>
     </main>

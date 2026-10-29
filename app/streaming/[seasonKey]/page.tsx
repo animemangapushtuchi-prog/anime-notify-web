@@ -12,6 +12,7 @@ import { getPublishedEntries, getSeasonMeta } from "@/lib/seasonStreaming";
 import StreamingList from "@/components/StreamingList";
 import Mascot from "@/components/Mascot";
 import PageHeader from "@/components/PageHeader";
+import AdSlot from "@/components/AdSlot";
 
 export const revalidate = 3600;
 
@@ -117,6 +118,8 @@ export default async function SeasonStreamingPage({ params }: Props) {
       ) : (
         <StreamingList entries={entries} />
       )}
+
+      <AdSlot name="streaming" className="mt-8" />
 
       <p className="mt-8 text-[11px] text-ink-2">出典：各作品の公式サイト・各配信サービス公式・AniList</p>
     </main>

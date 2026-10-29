@@ -14,6 +14,7 @@ import BroadcastInfo from "@/components/BroadcastInfo";
 import StreamingLinks from "@/components/StreamingLinks";
 import NextBroadcast from "@/components/NextBroadcast";
 import AdSlot from "@/components/AdSlot";
+import AffiliateLinks from "@/components/AffiliateLinks";
 
 // ISR：1時間ごとに再生成
 export const revalidate = 3600;
@@ -260,6 +261,8 @@ export default async function WorkPage({
           confirmed={confirmed}
           seasonKey={seasonKeyFromLabel(d.seasonLabel) ?? undefined}
         />
+        {/* 紹介リンク（PR）は、この作品で確認済みのサービスだけ。content/ads.json に登録が無ければ何も出ない */}
+        <AffiliateLinks serviceKeys={confirmed.map((c) => c.serviceKey)} className="mt-3" />
       </section>
 
       {/* 2カラム（ワイド）／縦積み（狭幅） */}
@@ -340,7 +343,7 @@ export default async function WorkPage({
         </div>
       </div>
 
-      <AdSlot className="mt-6" />
+      <AdSlot name="work" className="mt-6" />
     </main>
   );
 }

@@ -1,0 +1,13 @@
+{
+  "_説明": "広告とアフィリエイトの設定。ここに貼るだけでサイトに出る（コードの変更は不要）。空のままなら何も表示しない。詳しくは docs/HANDOFF.md の「広告・アフィリエイト」",
+  "affiliate": {
+    "_説明": "配信サービスの紹介リンク。キーは lib/streaming.ts のサービスキー（u-next / dmm-tv / abema / d-anime / hulu / prime-video など）。url は ASP（A8.net など）でもらった広告リンク、pixel はリンクと一緒に渡される 1x1 の画像URL（あれば）、text はボタンの文字（任意）",
+    "services": {},
+    "amazonAssociate": false
+  },
+  "display": {
+    "_説明": "AdSense 以外のディスプレイ広告。キーは枠の名前（work=作品ページ / search=検索 / mylist=マイリスト / streaming=配信一覧）。html は広告会社からもらったタグをそのまま、width と height は広告の大きさ（px）",
+    "slots": {}
+  },
+  "adsTxt": []
+}

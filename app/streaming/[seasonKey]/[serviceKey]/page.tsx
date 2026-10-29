@@ -10,6 +10,8 @@ import StreamingList from "@/components/StreamingList";
 import Mascot from "@/components/Mascot";
 import PageHeader from "@/components/PageHeader";
 import ServiceIcon from "@/components/ServiceIcon";
+import AdSlot from "@/components/AdSlot";
+import AffiliateLinks from "@/components/AffiliateLinks";
 
 export const revalidate = 3600;
 
@@ -104,6 +106,10 @@ export default async function ServiceStreamingPage({ params }: Props) {
         // カードにはその作品の全サービスを出し、このサービスを強調する（作品はこのサービスがあるものだけ）
         <StreamingList entries={all.filter((e) => entries.some((x) => x.anilistId === e.anilistId))} lockedServiceKey={serviceKey} />
       )}
+
+      {/* このサービスの紹介リンク（PR）。content/ads.json に登録が無ければ何も出ない */}
+      {entries.length > 0 && <AffiliateLinks serviceKeys={[serviceKey]} className="mt-8" />}
+      <AdSlot name="streaming" className="mt-8" />
 
       <p className="mt-8 text-[11px] text-ink-2">
         出典：各作品の公式サイト・{name}公式・AniList

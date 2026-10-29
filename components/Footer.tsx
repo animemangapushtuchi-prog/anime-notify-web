@@ -1,5 +1,6 @@
 import Link from "next/link";
 import Mascot from "./Mascot";
+import { hasAnyAd, isAmazonAssociate } from "@/lib/ads";
 
 // 全ページ共通のフッター。
 // 利用規約・プライバシー・お問い合わせはこれまでプロフィールメニューの中だけにあり、
@@ -65,6 +66,12 @@ export default function Footer() {
               放送・配信情報は各配信サービス公式・作品公式サイト・AniList・しょぼいカレンダーをもとに掲載しています。
               最新の配信状況は各サービスの公式ページでご確認ください。
             </p>
+            {hasAnyAd() ? (
+              <p className="mt-2 text-[11px] leading-relaxed text-white/60">
+                当サイトは広告およびアフィリエイトプログラム（PR）を利用しています。
+                {isAmazonAssociate() ? "Amazonのアソシエイトとして、アニミル！は適格販売により収入を得ています。" : ""}
+              </p>
+            ) : null}
             <p className="mt-2 text-[11px] text-white/60">
               © {new Date().getFullYear()} アニミル！（Animiru）
             </p>

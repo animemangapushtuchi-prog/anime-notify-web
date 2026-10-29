@@ -1,15 +1,16 @@
 import type { Metadata } from "next";
 import { OG_IMAGE } from "@/lib/seo";
+import { isAmazonAssociate } from "@/lib/ads";
 
 export const metadata: Metadata = {
   title: "プライバシーポリシー｜アニミル！",
   description:
-    "アニミル！（Animiru／アニメの放送・配信の新着通知サービス）における個人情報・Cookie・広告（Google AdSense）の取り扱いについて定めたプライバシーポリシーです。",
+    "アニミル！（Animiru／アニメの放送・配信の新着通知サービス）における個人情報・Cookie・広告・アフィリエイトプログラムの取り扱いについて定めたプライバシーポリシーです。",
   alternates: { canonical: "/privacy" },
   openGraph: { title: "プライバシーポリシー｜アニミル！", url: "/privacy", images: [OG_IMAGE] },
 };
 
-const REVISED = "2026年7月15日";
+const REVISED = "2026年10月29日";
 
 function Article({ title, children }: { title: string; children: React.ReactNode }) {
   return (
@@ -61,10 +62,16 @@ export default function PrivacyPage() {
           </p>
         </Article>
 
-        <Article title="4. 広告配信（Google AdSense等）について">
+        <Article title="4. 広告配信・アフィリエイトプログラムについて">
           <p>
-            本サービスは、第三者配信の広告サービスとして Google AdSense を利用することがあります。
+            本サービスは、第三者配信の広告サービス（Google AdSense その他の広告配信事業者）を利用することがあります。
           </p>
+          <p>
+            また、本サービスは、配信サービス等を紹介するアフィリエイトプログラムに参加することがあります。紹介リンクには「PR」と表示し、リンク先で登録・購入があった場合、当運営者が紹介料を受け取ることがあります。紹介リンクのクリックや成果の計測のため、アフィリエイトサービス提供事業者がCookie等を使用する場合があります。掲載する配信情報は、紹介料の有無にかかわらず、確認できた情報のみとしています。
+          </p>
+          {isAmazonAssociate() ? (
+            <p>Amazonのアソシエイトとして、アニミル！は適格販売により収入を得ています。</p>
+          ) : null}
           <p>
             Googleなどの第三者配信事業者は、Cookieを使用して、ユーザーが本サービスや他のウェブサイトに過去にアクセスした際の情報に基づき、適切な広告を表示します。
           </p>
@@ -101,7 +108,8 @@ export default function PrivacyPage() {
           <ol className="ml-4 list-decimal space-y-1">
             <li>Google（Firebase Authentication / Cloud Firestore / Cloud Messaging）— 認証・データ保存・通知配信</li>
             <li>Vercel — ホスティングおよびアクセス解析</li>
-            <li>Google AdSense — 広告配信</li>
+            <li>Google AdSense その他の広告配信事業者 — 広告配信</li>
+            <li>アフィリエイトサービス提供事業者 — 紹介リンクの成果の計測</li>
           </ol>
           <p>各社における情報の取り扱いは、それぞれのプライバシーポリシーに従います。</p>
         </Article>
