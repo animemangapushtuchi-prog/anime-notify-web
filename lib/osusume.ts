@@ -91,6 +91,7 @@ export type Osusume = {
   intro?: string;
   updatedAt?: string; // "2026-07-16"
   tags?: string[];
+  faq?: { q: string; a: string }[]; // よくある質問。本文の最後に出し、構造化データにも入れる
   body?: OsusumeSection[]; // 解説本文（任意）
   entries: OsusumeEntry[];
 };

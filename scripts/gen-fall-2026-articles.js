@@ -12,8 +12,8 @@ const auth = require(path.join(FT, "auth"));
 
 const OUT = "C:/Users/numas/dev/anime-notify-web/content/osusume/";
 const WRITE = process.argv.includes("--write");
-const AS_OF = "2026年10月19日";
-const UPDATED = "2026-10-19";
+const AS_OF = "2026年11月3日";
+const UPDATED = "2026-11-03";
 const BASE = "https://firestore.googleapis.com/v1/projects/anime-notify-app-86ccc/databases/(default)/documents";
 const MARRONNIER_NOTE =
   "9月29日の時点では「マロニエ王国の七人の騎士」も公式サイトに「世界独占配信」と書かれていましたが、10月9日に確認すると「Prime Video で世界配信」に変わり、NHK Eテレでの放送も案内されていたため、独占の一覧から外しました。";
@@ -225,6 +225,18 @@ const v = (o) => {
     ],
     entries: [],
   };
+
+  // ---- よくある質問（すべてデータから計算する） ----
+  a1.faq = [
+    { q: "2026年秋アニメをいちばん多く配信しているサービスはどこですか？", a: `${topSentence}（${AS_OF}時点、配信先を確認できた${total}作品での集計）` },
+    { q: "2社を組み合わせるならどれがいいですか？", a: pairSentence },
+    ...(exRows.length ? [{ q: "2026年秋アニメの独占配信はどの作品ですか？", a: `公式サイトに独占と書かれているのは、${exText}の${exWorks.length}作品です。` }] : []),
+  ];
+  a2.faq = [
+    { q: "Prime Videoで見られる2026年秋アニメは何作品ですか？", a: `配信先を確認できた${total}作品のうち、公式サイトにPrime Videoでの配信が書かれているのは${prime.length}作品です（${AS_OF}時点）。` },
+    { q: "Prime Videoの秋アニメはすべて見放題ですか？", a: `見放題と決まっているわけではありません。${avSentence}見る前にPrime Videoの作品ページで確かめてください。` },
+    ...(primeEx.length ? [{ q: "Prime Video独占の2026年秋アニメはありますか？", a: `はい。公式サイトに独占と書かれているのは${primeEx.map((r) => `「${r.t}」`).join("、")}です。` }] : []),
+  ];
 
   // ---- 「2026年秋アニメの追いかけ方」の該当段落 ----
   const guide = JSON.parse(fs.readFileSync(OUT + "2026-aki-anime.json", "utf8"));

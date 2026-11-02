@@ -138,7 +138,20 @@ export default async function OsusumeDetail({
           publisher: { "@type": "Organization", name: "アニミル！", url: SITE },
         };
 
-  const jsonLd = [breadcrumb, main];
+  const faq = o.faq ?? [];
+  const jsonLd = [
+    breadcrumb,
+    main,
+    ...(faq.length
+      ? [
+          {
+            "@context": "https://schema.org",
+            "@type": "FAQPage",
+            mainEntity: faq.map((f) => ({ "@type": "Question", name: f.q, acceptedAnswer: { "@type": "Answer", text: f.a } })),
+          },
+        ]
+      : []),
+  ];
 
   return (
     <main className="mx-auto max-w-2xl px-4 pb-6 lg:max-w-[1180px] lg:px-8">
@@ -292,7 +305,21 @@ export default async function OsusumeDetail({
               {/* 作品カード（表紙つき）。解説記事に絵を入れる主役 */}
               {s.works && s.works.ids.length > 0 && (
                 <div className="mt-3">
-                  <ul className="grid grid-cols-3 gap-2 sm:grid-cols-4 lg:grid-cols-5">
+                  {/* 1作品だけなら横組み。2作品以上は幅に合わせて並ぶ数を変える（固定の列数だと、最後の行に1枚だけ残って大きな余白ができていた） */}
+                  {s.works.ids.length === 1 && briefs[s.works.ids[0]] && (
+                    <Link href={`/work/${s.works.ids[0]}`} className="group flex items-center gap-3 rounded-2xl border border-line bg-white p-2.5 transition hover:border-amber">
+                      {briefs[s.works.ids[0]].cover && (
+                        // eslint-disable-next-line @next/next/no-img-element
+                        <img src={briefs[s.works.ids[0]].cover} alt="" loading="lazy" className="h-24 w-[68px] flex-none rounded-lg object-cover" />
+                      )}
+                      <span className="min-w-0">
+                        <span className="block text-sm font-bold leading-snug text-ink group-hover:text-amber-ink">{briefs[s.works.ids[0]].title}</span>
+                        <span className="mt-1 block text-xs font-bold text-amber-ink">配信先と放送予定を見る ›</span>
+                      </span>
+                    </Link>
+                  )}
+                  {s.works.ids.length > 1 && (
+                  <ul className="grid grid-cols-3 gap-2 sm:grid-cols-[repeat(auto-fill,minmax(104px,1fr))]">
                     {s.works.ids.map((id) => {
                       const b = briefs[id];
                       if (!b) return null;
@@ -317,6 +344,7 @@ export default async function OsusumeDetail({
                       );
                     })}
                   </ul>
+                  )}
                   {s.works.note && (
                     <p className="mt-2 text-[11px] text-[#625B6E]">{s.works.note}</p>
                   )}
@@ -410,6 +438,20 @@ export default async function OsusumeDetail({
             </section>
           ))}
         </article>
+      )}
+
+      {faq.length > 0 && (
+        <section aria-labelledby="faq-h" className="mt-12 rounded-3xl border border-line bg-white p-5">
+          <h2 id="faq-h" className="text-[17px] font-black text-ink">よくある質問</h2>
+          <dl className="mt-3 divide-y divide-line">
+            {faq.map((f) => (
+              <div key={f.q} className="py-3 first:pt-0 last:pb-0">
+                <dt className="text-sm font-bold text-ink">{f.q}</dt>
+                <dd className="mt-1 text-sm leading-relaxed text-[#3A3342]">{f.a}</dd>
+              </div>
+            ))}
+          </dl>
+        </section>
       )}
 
       {/* ランキング */}
