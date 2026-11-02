@@ -51,7 +51,8 @@ const SEARCH_URLS: Record<string, (q: string) => string> = {
   fod: (q) => `https://fod.fujitv.co.jp/search/?keyword=${q}`,
   "disney-plus": (q) => `https://www.disneyplus.com/ja-jp/search?q=${q}`,
   telasa: (q) => `https://www.telasa.jp/search?q=${q}`,
-  "bandai-channel": (q) => `https://www.b-ch.com/search/?word=${q}`,
+  // 2026-11-02 確認：/search/?word= は語が効かず全作品が並ぶ。作品名の検索は /search/text/
+  "bandai-channel": (q) => `https://www.b-ch.com/search/text/?search_txt=${q}`,
 };
 
 export function serviceSearchUrl(serviceKey: string, title: string): string | null {
@@ -60,9 +61,9 @@ export function serviceSearchUrl(serviceKey: string, title: string): string | nu
 }
 
 // 一般の利用者に見せてよい検索リンク：ログインなしで検索結果が出ることを確かめたサービスだけ（2026-10-23 確認）。
-// Netflix・Disney+ はログインしないと検索できない。Lemino・FOD は検索ページのアドレスが確かめられず、
-// バンダイチャンネルは確認時にメンテナンス中だったので、ここには入れない（作品ページのリンクが無ければ「リンクなし」）
-const PUBLIC_SEARCH_OK = new Set(["d-anime", "u-next", "abema", "hulu", "dmm-tv", "telasa", "prime-video"]);
+// Netflix・Disney+ はログインしないと検索できない。Lemino・FOD は検索ページのアドレスが確かめられなかったので、
+// ここには入れない（作品ページのリンクが無ければ「リンクなし」）。バンダイチャンネルは 2026-11-02 に確認して追加
+const PUBLIC_SEARCH_OK = new Set(["d-anime", "u-next", "abema", "hulu", "dmm-tv", "telasa", "prime-video", "bandai-channel"]);
 
 // 検索に使う作品名：「第3期」「Season2」などの期数より後ろを外す（続編も検索結果に並ぶように）
 export function searchTitle(title: string): string {

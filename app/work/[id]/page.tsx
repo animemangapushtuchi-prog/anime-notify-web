@@ -83,7 +83,7 @@ function buildDescription(d: AnimeDetail, confirmed: PublicEntry[]): string {
         ? `${weekly.serviceName}は${when}更新。`
         : "";
     const head = `「${d.title}」は${orderServices(confirmed).slice(0, 4).map((e) => e.serviceName).join("・")}${confirmed.length > 4 ? `など${confirmed.length}社` : ""}で${isUpcoming(confirmed, d.status) ? "配信予定" : "配信"}${checked ? `（${checked}確認）` : ""}。`;
-    return (head + extra + factLine + "放送予定もまとめています。").slice(0, 160);
+    return (head + extra + factLine + (d.status === "放送終了" ? "" : "放送予定もまとめています。")).slice(0, 160);
   }
 
   // 確認済みの情報が無い作品。AniList の配信先は海外向けが中心なので、サービス名は確認済みのものだけ書く
