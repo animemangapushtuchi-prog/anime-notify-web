@@ -1,0 +1,13 @@
+{
+  "dmm-tv": { "monthly": 550, "plan": "DMMプレミアム（Web登録）", "url": "https://support.dmm.com/premium/article/47489", "checkedAt": "2026-11-03" },
+  "prime-video": { "monthly": 600, "plan": "Amazonプライム 月額プラン", "url": "https://www.amazon.co.jp/gp/help/customer/display.html?nodeId=G34EUPKVMYFW8N2U", "checkedAt": "2026-11-03" },
+  "d-anime": { "monthly": 660, "plan": "Web登録", "url": "https://animestore.docomo.ne.jp/animestore/tp_pc", "checkedAt": "2026-11-03" },
+  "abema": { "monthly": 680, "plan": "ABEMAプレミアム 広告つき", "url": "https://abema.tv/about/premium", "checkedAt": "2026-09-29" },
+  "netflix": { "monthly": 890, "plan": "広告つきスタンダード", "url": "https://help.netflix.com/ja/node/24926", "checkedAt": "2026-11-03" },
+  "telasa": { "monthly": 990, "plan": "見放題プラン", "url": "https://www.telasa.jp/", "checkedAt": "2026-11-03" },
+  "disney-plus": { "monthly": 1250, "plan": "スタンダード", "url": "https://www.disneyplus.com/ja-jp", "checkedAt": "2026-11-03" },
+  "hulu": { "monthly": 1320, "plan": "月額プラン", "url": "https://news.hulu.jp/hulu_svod_rev_2026/", "checkedAt": "2026-11-03" },
+  "fod": { "monthly": 1320, "plan": "スタンダードコース", "url": "https://fod.fujitv.co.jp/", "checkedAt": "2026-11-03" },
+  "lemino": { "monthly": 1540, "plan": "Leminoプレミアム（Web登録）", "url": "https://lemino.docomo.ne.jp/leminonews/articles/lemino-premium-february-2026-revised-monthly-fee", "checkedAt": "2026-11-03" },
+  "u-next": { "monthly": 2189, "plan": "月額プラン（毎月1,200円分のポイントつき）", "url": "https://www.video.unext.jp/lp/introduction", "checkedAt": "2026-09-29" }
+}

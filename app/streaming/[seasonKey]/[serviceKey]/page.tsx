@@ -6,6 +6,7 @@ import { notFound } from "next/navigation";
 import { servableSeason } from "@/lib/season";
 import { STREAM_SERVICES, serviceNameOf } from "@/lib/streaming";
 import { getPublishedEntries, getSeasonMeta } from "@/lib/seasonStreaming";
+import prices from "@/content/service-prices.json";
 import StreamingList from "@/components/StreamingList";
 import Mascot from "@/components/Mascot";
 import PageHeader from "@/components/PageHeader";
@@ -19,6 +20,7 @@ export const revalidate = 3600;
 type Props = { params: Promise<{ seasonKey: string; serviceKey: string }> };
 
 const isKnownService = (k: string) => STREAM_SERVICES.some((s) => s.key === k);
+const PRICE = prices as Record<string, { monthly: number; plan: string; url: string; checkedAt: string } | undefined>;
 
 // generateMetadata と本体で二重に読まないようにまとめる
 const loadEntries = cache((key: string) => getPublishedEntries(key));
@@ -28,12 +30,13 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const info = servableSeason(seasonKey);
   if (!info || !isKnownService(serviceKey)) return { title: "今期アニメ配信一覧｜アニミル！" };
   const name = serviceNameOf(serviceKey);
-  const title = `${info.label} ${name}で配信されるアニメ一覧｜アニミル！`;
-  const description = `${info.label}に${name}で配信される（確認済み）アニメの一覧。開始日・更新曜日・見放題/無料などを掲載。`;
   // そのサービスの確認済みデータが1件も無いときは、中身が空のページになるので
   // 検索結果には出さない（データを公開すれば自動で戻る）。
   const all = await loadEntries(info.key).catch(() => []);
   const count = all.filter((e) => e.serviceKey === serviceKey).length;
+  const title = `${info.label} ${name}で配信されるアニメ一覧${count > 0 ? `（${count}作品）` : ""}｜アニミル！`;
+  const price = PRICE[serviceKey];
+  const description = `${info.label}に${name}で配信される${count > 0 ? `${count}作品` : "アニメ"}の一覧。開始日・更新曜日・見放題/無料などを掲載。${price ? `${name}の月額は${price.monthly.toLocaleString()}円（${price.plan}）。` : ""}`;
   return {
     title,
     description,
@@ -55,6 +58,11 @@ export default async function ServiceStreamingPage({ params }: Props) {
     getSeasonMeta(info.key),
   ]);
   const entries = all.filter((e) => e.serviceKey === serviceKey);
+  const seasonWorks = new Set(all.map((e) => e.anilistId)).size;
+  const exclusive = entries.filter((e) => e.isExclusive).length;
+  const fastest = entries.filter((e) => e.isFastest).length;
+  const included = entries.filter((e) => e.availability === "included").length;
+  const price = PRICE[serviceKey];
 
   return (
     <main className="mx-auto max-w-2xl px-4 pb-6 lg:max-w-[1400px] lg:px-8">
@@ -71,7 +79,24 @@ export default async function ServiceStreamingPage({ params }: Props) {
             <span>{name}で配信されるアニメ</span>
           </span>
         }
-        desc={<p>確認済みの情報を掲載しています。配信状況は変更される場合があります。</p>}
+        desc={
+          <>
+            {entries.length > 0 && (
+              <p>
+                アニミル！が確認した{info.label}{seasonWorks}作品のうち、{name}で配信されるのは{entries.length}作品です。
+                {[included > 0 && `見放題${included}作品`, exclusive > 0 && `独占${exclusive}作品`, fastest > 0 && `最速配信${fastest}作品`].filter(Boolean).join("・")}
+                {included + exclusive + fastest > 0 ? "を含みます。" : ""}
+              </p>
+            )}
+            {price && (
+              <p className="mt-1">
+                月額 <strong className="text-ink">{price.monthly.toLocaleString()}円</strong>（{price.plan}。
+                <a href={price.url} target="_blank" rel="noopener noreferrer" className="underline underline-offset-2">{price.checkedAt.replaceAll("-", "/")}確認</a>）
+              </p>
+            )}
+            <p className="mt-1 text-xs">確認済みの情報を掲載しています。配信状況は変更される場合があります。</p>
+          </>
+        }
         aside={
           entries.length > 0 ? (
             <div className="rounded-2xl border border-line bg-white px-5 py-3">
@@ -94,6 +119,12 @@ export default async function ServiceStreamingPage({ params }: Props) {
             className="inline-flex rounded-full border border-line bg-white px-3.5 py-1.5 text-xs font-bold text-amber-ink transition hover:border-amber"
           >
             ← {info.label} の全サービス一覧へ
+          </Link>
+          <Link
+            href="/streaming/planner"
+            className="ml-2 inline-flex rounded-full border border-line bg-white px-3.5 py-1.5 text-xs font-bold text-amber-ink transition hover:border-amber"
+          >
+            見たい作品からサブスク診断 ›
           </Link>
         </div>
       </PageHeader>

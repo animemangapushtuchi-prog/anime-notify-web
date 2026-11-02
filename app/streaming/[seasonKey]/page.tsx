@@ -128,7 +128,10 @@ export default async function SeasonStreamingPage({ params }: Props) {
           ) : (
             <span />
           )}
-          <Link href="/streaming/weekly" className="rounded-full bg-ink px-3.5 py-1.5 text-white transition hover:bg-night-2">今週の放送・配信スケジュール ›</Link>
+          <span className="flex flex-wrap justify-center gap-2">
+            <Link href="/streaming/weekly" className="rounded-full bg-ink px-3.5 py-1.5 text-white transition hover:bg-night-2">今週の放送・配信スケジュール ›</Link>
+            <Link href="/streaming/planner" className="rounded-full bg-ink px-3.5 py-1.5 text-white transition hover:bg-night-2">見たい作品からサブスク診断 ›</Link>
+          </span>
           {hasNext ? (
             <Link href={`/streaming/${next.key}`} className="rounded-full border border-line bg-white px-3.5 py-1.5 text-amber-ink transition hover:border-amber">{next.label} →</Link>
           ) : (

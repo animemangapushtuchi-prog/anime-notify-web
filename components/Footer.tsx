@@ -34,6 +34,8 @@ export default function Footer() {
               <ul className="mt-3 space-y-2 text-[13px]">
                 <li><Link href="/search" className={LINK}>作品を検索</Link></li>
                 <li><Link href="/streaming" className={LINK}>今期アニメの配信一覧</Link></li>
+                <li><Link href="/streaming/weekly" className={LINK}>今週の放送スケジュール</Link></li>
+                <li><Link href="/streaming/planner" className={LINK}>サブスク診断</Link></li>
                 <li><Link href="/osusume" className={LINK}>特集・読みもの</Link></li>
               </ul>
             </div>
