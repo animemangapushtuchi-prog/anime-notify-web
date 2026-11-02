@@ -1,9 +1,7 @@
-"use client";
-
 // テレビ放送（地上波・BS・CS）だけを局ごとにまとめて表示。しょぼいカレンダー由来。
 // ネット同時配信のチャンネルは lib/home.ts の共通分類で除外される。
-import { useEffect, useState } from "react";
-import { getTvPrograms, broadcastSlots, type BroadcastSlot } from "@/lib/home";
+// 番組表はサーバーで読んで受け取る（HTMLに入り、検索エンジンにも見える。2026-11-03〜）
+import type { BroadcastSlot } from "@/lib/home";
 
 const WD = ["日", "月", "火", "水", "木", "金", "土"];
 const fmtDate = (at: number) => {
@@ -11,20 +9,7 @@ const fmtDate = (at: number) => {
   return `${d.getUTCMonth() + 1}/${d.getUTCDate()}`;
 };
 
-export default function BroadcastInfo({ title }: { title: string }) {
-  const [slots, setSlots] = useState<BroadcastSlot[] | null>(null);
-
-  useEffect(() => {
-    let alive = true;
-    getTvPrograms()
-      .then((p) => alive && setSlots(broadcastSlots(title, p)))
-      .catch(() => alive && setSlots([]));
-    return () => {
-      alive = false;
-    };
-  }, [title]);
-
-  if (slots === null) return <p className="mt-2 text-xs text-[#625B6E]">確認中…</p>;
+export default function BroadcastInfo({ slots }: { slots: BroadcastSlot[] }) {
   if (slots.length === 0)
     return (
       <p className="mt-2 text-xs text-[#625B6E]">

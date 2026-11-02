@@ -2,7 +2,8 @@ import type { MetadataRoute } from "next";
 import { listOsusume, articleWorkIds } from "@/lib/osusume";
 import { fetchPopularAroundNow } from "@/lib/anilist";
 import { getPublishedEntries, latestSeasonKeyWithData, CATALOG_KEY } from "@/lib/seasonStreaming";
-import { adjacentSeasonKey } from "@/lib/season";
+import { adjacentSeasonKey, currentSeasonKey } from "@/lib/season";
+import { upcomingSeason } from "@/lib/upcoming";
 
 const BASE = "https://www.animiru.com";
 
@@ -85,6 +86,16 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     for (const e of await getPublishedEntries(CATALOG_KEY)) workIds.add(e.anilistId);
   } catch (err) {
     console.error("[sitemap] 定番作品の配信データの取得に失敗しました", err);
+  }
+
+  // 来期の放送日一覧（公式サイトで確かめた作品があるとき）
+  const nextKey = adjacentSeasonKey(currentSeasonKey(), 1);
+  const next = upcomingSeason(nextKey);
+  if (next) {
+    if (!streaming.some((s) => s.url === `${BASE}/streaming/${nextKey}`)) {
+      streaming.push({ url: `${BASE}/streaming/${nextKey}`, changeFrequency: "weekly" as const, priority: 0.8 });
+    }
+    for (const w of next.works) workIds.add(w.id);
   }
 
   // SEOの主役＝作品詳細。今期・来期・前期の人気作を足す。

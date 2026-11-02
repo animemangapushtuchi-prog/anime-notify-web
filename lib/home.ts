@@ -87,7 +87,18 @@ export function isTvBroadcastChannel(ch: string): boolean {
   return !!name && !INTERNET_CHANNEL_PATTERNS.some((pattern) => pattern.test(name));
 }
 
-export async function getTvPrograms(): Promise<TvProgram[]> {
+// サーバーでは作品ページごとに読むので、番組表は10分だけ使い回す（Firestore の読み取り回数を増やさない）
+let serverPrograms: { at: number; list: Promise<TvProgram[]> } | null = null;
+
+export function getTvPrograms(): Promise<TvProgram[]> {
+  if (typeof window !== "undefined") return readTvPrograms();
+  if (serverPrograms && Date.now() - serverPrograms.at < 600_000) return serverPrograms.list;
+  const list = readTvPrograms();
+  serverPrograms = { at: Date.now(), list };
+  return list;
+}
+
+async function readTvPrograms(): Promise<TvProgram[]> {
   try {
     const snap = await getDoc(doc(db, "cache", "tvSchedule"));
     const list = (snap.data()?.programs ?? []) as any[];
@@ -134,13 +145,15 @@ export type BroadcastSlot = {
 export function broadcastSlots(workTitle: string, progs: TvProgram[]): BroadcastSlot[] {
   const w = normTitle(workTitle);
   if (!w) return [];
+  // 短い題名は別の番組にも含まれてしまうので、4文字未満は完全一致だけ（matchPrograms と同じ考え方）
+  const sameWork = (t: string) => t === w || (Math.min(t.length, w.length) >= 4 && (t.includes(w) || w.includes(t)));
   const now = Date.now() / 1000;
   const map = new Map<string, BroadcastSlot>();
   for (const p of progs) {
     if (!isTvBroadcastChannel(p.ch)) continue;
     const t = normTitle(p.title);
     if (!t) continue;
-    if (!(t.includes(w) || w.includes(t))) continue;
+    if (!sameWork(t)) continue;
     const d = new Date((p.st + 9 * 3600) * 1000); // JST
     let hh = d.getUTCHours();
     let wd = d.getUTCDay();

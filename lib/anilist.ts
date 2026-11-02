@@ -19,6 +19,8 @@ export type AnimeDetail = {
   id: number;
   title: string;
   titleRomaji: string;
+  titleEnglish: string;
+  synonyms: string[]; // AniList の別名（各国語が混ざる。表示は lib/workMeta.ts の pickAltNames を通す）
   type: string; // 日本語化した種別
   episodes: number | null;
   status: string; // 日本語化
@@ -241,6 +243,7 @@ query ($id: Int) {
   Media(id: $id, type: ANIME) {
     id
     title { native romaji english }
+    synonyms
     format episodes status averageScore
     description(asHtml: false)
     genres season seasonYear source
@@ -362,6 +365,8 @@ export async function fetchAnimeDetail(id: number): Promise<AnimeDetail | null> 
     id: m.id,
     title: String(t.native ?? t.romaji ?? t.english ?? "（無題）"),
     titleRomaji: String(t.romaji ?? t.english ?? ""),
+    titleEnglish: String(t.english ?? ""),
+    synonyms: (m.synonyms ?? []).map((s: any) => String(s ?? "")).filter(Boolean),
     type: formatJa(String(m.format ?? "")),
     episodes: typeof m.episodes === "number" ? m.episodes : null,
     status: statusJa(String(m.status ?? "")),

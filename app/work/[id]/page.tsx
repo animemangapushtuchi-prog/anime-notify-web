@@ -3,8 +3,10 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import type { Metadata } from "next";
 import { getWorkEntries, seasonKeyFromLabel, weeklyLabel, CATALOG_KEY, type PublicEntry } from "@/lib/seasonStreaming";
-import { currentSeasonKey, adjacentSeasonKey } from "@/lib/season";
-import { isUpcoming, latestCheckedLabel, orderServices, whereLine } from "@/lib/workMeta";
+import { currentSeasonKey, adjacentSeasonKey, servableSeason } from "@/lib/season";
+import { isUpcoming, latestCheckedLabel, orderServices, pickAltNames, whereLine, workFaq, type Faq } from "@/lib/workMeta";
+import { broadcastSlots, getTvPrograms, type BroadcastSlot } from "@/lib/home";
+import { scheduledWork, startLabel } from "@/lib/upcoming";
 import { fetchAnimeDetail, genreJa, type AnimeDetail } from "@/lib/anilist";
 import { fetchWikipediaJa } from "@/lib/wikipedia";
 import Trailer from "@/components/Trailer";
@@ -20,6 +22,7 @@ import AffiliateLinks from "@/components/AffiliateLinks";
 // ISR：1時間ごとに再生成
 export const revalidate = 3600;
 
+const SITE = "https://www.animiru.com";
 const CARD = "rounded-3xl border border-line bg-white p-5 lg:p-6";
 const CARD_TITLE = "flex items-center gap-2 text-[15px] font-black text-ink";
 
@@ -51,6 +54,13 @@ const loadConfirmed = cache(async (id: number, seasonLabelJa: string): Promise<P
   ]).catch(() => []);
 });
 
+// テレビ放送の枠。放送が終わった作品は出さない：題名の一致だけで見ているので、
+// 第1期のページに第3期の放送枠が出てしまうため
+const loadSlots = cache(async (title: string, status: string): Promise<BroadcastSlot[]> => {
+  if (status === "放送終了" || status === "中止") return [];
+  return broadcastSlots(title, await getTvPrograms().catch(() => []));
+});
+
 // 検索に出す作品ページの条件（2026-10-27）：確認済みの配信情報がある、または今期・前後の季節の作品。
 // それ以外（配信情報の無い古い作品）は noindex にする。Google が「シリーズ・関連作品」や声優ページのリンクをたどって
 // 1,300件以上の古い作品ページを読み、875件を登録していた。中身が AniList の基本情報だけの薄いページが大量に登録され、
@@ -61,6 +71,13 @@ function isIndexableWork(d: AnimeDetail, confirmed: PublicEntry[]): boolean {
   if (!key) return false;
   const now = currentSeasonKey();
   return [now, adjacentSeasonKey(now, -1), adjacentSeasonKey(now, 1)].includes(key);
+}
+
+// 公式サイトで確かめた放送予定を1文にする
+function planLine(title: string, p: NonNullable<ReturnType<typeof scheduledWork>>): string {
+  const when = `${startLabel(p.start)}${p.start.length === 10 ? "から" : "に"}`;
+  if (p.kind === "movie") return `「${title}」は${when}${p.tv || "公開"}の予定です。`;
+  return `「${title}」は${when}${p.tv ? `${p.tv}で` : ""}放送開始の予定です。${p.slot ? `放送枠は${p.slot}です。` : ""}`;
 }
 
 // 検索結果に出る説明文を作る。サイトが持っている情報（季節・形式・制作・配信サービス）だけで組み立てる。
@@ -100,12 +117,17 @@ export async function generateMetadata({
   if (!r) return { title: "作品が見つかりません｜アニミル！" };
   const { d } = r;
   const confirmed = await loadConfirmed(d.id, d.seasonLabel);
+  const plan = scheduledWork(d.id);
   // 説明文はアニミル！が持っている情報だけで作る（Wikipedia の文章は足さない）
-  const desc = buildDescription(d, confirmed);
+  const desc = plan
+    ? (planLine(d.title, plan) + (confirmed.length > 0 ? buildDescription(d, confirmed) : "配信サービスは発表され次第掲載します。")).slice(0, 160)
+    : buildDescription(d, confirmed);
   // 「作品名 配信」「作品名 どこで見れる」で探している人に届く形にする。確認済みの配信先があれば題名に答えを入れる
-  const pageTitle = `${d.title}はどこで見れる？${
-    confirmed.length > 0 ? whereLine(confirmed, d.status) : "配信・放送情報"
-  }｜アニミル！`;
+  // 放送前で配信先の発表が無い作品は「いつから」が知りたいことなので、題名に開始時期を入れる
+  const pageTitle =
+    confirmed.length === 0 && plan
+      ? `${d.title}はいつから？${startLabel(plan.start)}${plan.kind === "movie" ? "公開" : "放送開始"}｜アニミル！`
+      : `${d.title}はどこで見れる？${confirmed.length > 0 ? whereLine(confirmed, d.status) : "配信・放送情報"}｜アニミル！`;
   return {
     title: pageTitle,
     description: desc,
@@ -133,9 +155,42 @@ export default async function WorkPage({
   const confirmed = await loadConfirmed(d.id, d.seasonLabel);
   const checkedLabel = latestCheckedLabel(confirmed);
   const upcoming = isUpcoming(confirmed, d.status);
+  const slots = await loadSlots(d.title, d.status);
+  const altNames = pickAltNames(d.title, d.synonyms);
+  const plan = scheduledWork(d.id);
+  const faq = [
+    ...(plan ? [{ q: `「${d.title}」はいつから${plan.kind === "movie" ? "公開" : "放送"}されますか？`, a: `${planLine(d.title, plan)}（公式サイトで${plan.checkedAt.replaceAll("-", "/")}に確認）` }] : []),
+    ...workFaq(
+      { title: d.title, status: d.status, episodes: d.episodes, isSeries: !["映画", "MV"].includes(d.type) },
+      confirmed,
+      slots
+    ),
+  ];
+  // 作品の季節の配信一覧へのリンク。2026年以降の季節にだけページがある
+  const season = servableSeason(seasonKeyFromLabel(d.seasonLabel) ?? "");
+  const seasonServices = season ? orderServices(confirmed).slice(0, 3) : [];
+  const showTv = d.status !== "放送終了" && d.status !== "中止";
 
   return (
     <main className="mx-auto max-w-5xl px-3 pb-6 sm:px-4 lg:px-8 xl:max-w-6xl 2xl:max-w-[1280px]">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(workJsonLd(d, altNames, faq, season)).replace(/</g, "\\u003c") }}
+      />
+      <nav aria-label="パンくずリスト" className="px-1 pb-3 pt-3 text-[11px] text-ink-2">
+        <ol className="flex flex-wrap items-center gap-1">
+          <li><Link href="/" className="transition hover:text-amber-ink">ホーム</Link></li>
+          {season && (
+            <>
+              <li aria-hidden="true" className="text-ink-2/60">/</li>
+              <li><Link href={`/streaming/${season.key}`} className="transition hover:text-amber-ink">{season.label}</Link></li>
+            </>
+          )}
+          <li aria-hidden="true" className="text-ink-2/60">/</li>
+          <li aria-current="page" className="line-clamp-1 text-ink">{d.title}</li>
+        </ol>
+      </nav>
+
       {/* ヒーロー：表紙をぼかして夜空のように敷く。上段＝表紙＋基本情報、下段＝紹介文＋動画 */}
       <section className="relative isolate overflow-hidden rounded-[28px] bg-night text-white shadow-[0_30px_80px_-40px_rgba(21,17,42,0.9)]">
         {d.coverUrl && (
@@ -165,6 +220,7 @@ export default async function WorkPage({
               </p>
               <h1 className="mt-3 text-[24px] font-black leading-[1.25] sm:text-[34px] lg:text-[42px]">{d.title}</h1>
               {d.titleRomaji && <p className="mt-1.5 text-xs text-white/60 sm:text-sm">{d.titleRomaji}</p>}
+              {altNames.length > 0 && <p className="mt-1 text-xs text-white/70">別名：{altNames.join("、")}</p>}
               <dl className="mt-4 flex flex-wrap gap-x-6 gap-y-2 text-sm">
                 {d.seasonLabel && (
                   <div>
@@ -253,8 +309,9 @@ export default async function WorkPage({
       {/* 次回のテレビ放送（ネット配信チャンネルは除外） */}
       <NextBroadcast
         title={d.title}
-        fallbackAt={d.nextAiringAt ?? null}
-        fallbackEp={d.nextEpisode ?? null}
+        // 公式サイトで確かめた放送予定があるときは、AniList の予定（日付がずれていることがある）を出さない
+        fallbackAt={plan ? null : (d.nextAiringAt ?? null)}
+        fallbackEp={plan ? null : (d.nextEpisode ?? null)}
       />
 
       {/* ネット配信はテレビ放送と混ぜない。
@@ -282,20 +339,31 @@ export default async function WorkPage({
         <AffiliateLinks serviceKeys={confirmed.map((c) => c.serviceKey)} className="mt-3" />
       </section>
 
-      {/* 2カラム（ワイド）／縦積み（狭幅） */}
-      <div className="mt-4 md:grid md:grid-cols-2 md:items-start md:gap-4">
+      {/* 2カラム（ワイド）／縦積み（狭幅）。放送が終わった作品にはテレビ放送の欄を出さない */}
+      <div className={`mt-4 md:gap-4 ${showTv ? "md:grid md:grid-cols-2 md:items-start" : ""}`}>
         {/* 左列 */}
-        <div className="space-y-4">
-          {/* テレビ放送（地上波・BS・CS） */}
-          <section className={CARD}>
-            <h2 className={CARD_TITLE}><span aria-hidden="true" className="h-4 w-1 rounded-full bg-night-3" />テレビ放送<span className="text-xs font-bold text-ink-2">地上波・BS・CS</span></h2>
-            <BroadcastInfo title={d.title} />
-            <p className="mt-1 text-[10px] text-[#625B6E]">出典：しょぼいカレンダー</p>
-          </section>
-        </div>
+        {showTv && (
+          <div className="mb-4 space-y-4 md:mb-0">
+            {/* テレビ放送（地上波・BS・CS） */}
+            <section className={CARD}>
+              <h2 className={CARD_TITLE}><span aria-hidden="true" className="h-4 w-1 rounded-full bg-night-3" />テレビ放送<span className="text-xs font-bold text-ink-2">地上波・BS・CS</span></h2>
+              {plan && slots.length === 0 ? (
+                <p className="mt-2 text-sm leading-relaxed text-[#3A3342]">
+                  {planLine(d.title, plan)}
+                  <a href={plan.sourceUrl} target="_blank" rel="noopener noreferrer" className="ml-1 text-xs font-bold text-amber-ink underline-offset-2 hover:underline">公式サイト ↗</a>
+                </p>
+              ) : (
+                <>
+                  <BroadcastInfo slots={slots} />
+                  <p className="mt-1 text-[10px] text-[#625B6E]">出典：しょぼいカレンダー</p>
+                </>
+              )}
+            </section>
+          </div>
+        )}
 
         {/* 右列 */}
-        <div className="mt-4 space-y-4 md:mt-0">
+        <div className="space-y-4">
           {/* 公式リンク（X） */}
           {d.xHandle && (
             <section className={CARD}>
@@ -360,7 +428,78 @@ export default async function WorkPage({
         </div>
       </div>
 
+      {/* よくある質問：確認済みのデータだけで作る。1問だけだと上の文と同じになるので2問以上のときに出す */}
+      {faq.length >= 2 && (
+        <section className={`${CARD} mt-4`}>
+          <h2 className={CARD_TITLE}><span aria-hidden="true" className="h-4 w-1 rounded-full bg-amber" />よくある質問</h2>
+          <dl className="mt-3 divide-y divide-line">
+            {faq.map((f) => (
+              <div key={f.q} className="py-3 first:pt-0 last:pb-0">
+                <dt className="text-sm font-bold text-ink">{f.q}</dt>
+                <dd className="mt-1 text-sm leading-relaxed text-[#3A3342]">{f.a}</dd>
+              </div>
+            ))}
+          </dl>
+        </section>
+      )}
+
+      {/* 同じ季節のほかの作品へ */}
+      {season && confirmed.length > 0 && (
+        <nav aria-label="関連ページ" className="mt-4 flex flex-wrap gap-2 text-xs font-bold">
+          <Link href={`/streaming/${season.key}`} className="rounded-full border border-line bg-white px-3.5 py-1.5 text-amber-ink transition hover:border-amber">
+            {season.label}の配信一覧 ›
+          </Link>
+          {seasonServices.map((c) => (
+            <Link key={c.serviceKey} href={`/streaming/${season.key}/${c.serviceKey}`} className="rounded-full border border-line bg-white px-3.5 py-1.5 text-amber-ink transition hover:border-amber">
+              {c.serviceName}の{season.label} ›
+            </Link>
+          ))}
+        </nav>
+      )}
+
       <AdSlot name="work" className="mt-6" />
     </main>
   );
+}
+
+// 検索エンジン向けの構造化データ。画面に出している内容だけを書く
+function workJsonLd(d: AnimeDetail, altNames: string[], faq: Faq[], season: ReturnType<typeof servableSeason>) {
+  const url = `${SITE}/work/${d.id}`;
+  const alternateName = [...altNames, d.titleRomaji].filter((x, i, a) => x && x !== d.title && a.indexOf(x) === i);
+  return [
+    {
+      "@context": "https://schema.org",
+      "@type": "BreadcrumbList",
+      itemListElement: [
+        { name: "ホーム", item: SITE },
+        ...(season ? [{ name: season.label, item: `${SITE}/streaming/${season.key}` }] : []),
+        { name: d.title, item: url },
+      ].map((x, i) => ({ "@type": "ListItem", position: i + 1, ...x })),
+    },
+    {
+      "@context": "https://schema.org",
+      "@type": d.type === "映画" ? "Movie" : "TVSeries",
+      name: d.title,
+      url,
+      inLanguage: "ja",
+      ...(alternateName.length ? { alternateName } : {}),
+      ...(d.coverUrl ? { image: d.coverUrl } : {}),
+      ...(d.genres.length ? { genre: d.genres.map(genreJa) } : {}),
+      ...(d.type !== "映画" && d.episodes != null ? { numberOfEpisodes: d.episodes } : {}),
+      ...(d.studios.length ? { productionCompany: d.studios.map((name) => ({ "@type": "Organization", name })) } : {}),
+    },
+    ...(faq.length >= 2
+      ? [
+          {
+            "@context": "https://schema.org",
+            "@type": "FAQPage",
+            mainEntity: faq.map((f) => ({
+              "@type": "Question",
+              name: f.q,
+              acceptedAnswer: { "@type": "Answer", text: f.a },
+            })),
+          },
+        ]
+      : []),
+  ];
 }

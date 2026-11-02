@@ -1,0 +1,496 @@
+{
+ "season": "2027-winter",
+ "checkedAt": "2026-11-03",
+ "works": [
+  {
+   "id": 207251,
+   "title": "魔入りました！入間くん if Episode of 魔フィア",
+   "cover": "https://s4.anilist.co/file/anilistcdn/media/anime/cover/large/bx207251-1opGPW7xVHQ8.jpg",
+   "kind": "tv",
+   "start": "2027-01-04",
+   "slot": "毎週月曜 23:00〜",
+   "tv": "NHK総合",
+   "sourceUrl": "https://www.nhk-character.com/chara/irumafia/"
+  },
+  {
+   "id": 209661,
+   "title": "雑用付与術師が自分の最強に気付くまで",
+   "cover": "https://s4.anilist.co/file/anilistcdn/media/anime/cover/large/bx209661-RHN7Jp3VPdFV.jpg",
+   "kind": "tv",
+   "start": "2027-01-04",
+   "slot": "",
+   "tv": "TOKYO MX・MBS・BS11ほか全国約20局",
+   "sourceUrl": "https://zatsuyofuyo-pr.com/"
+  },
+  {
+   "id": 216858,
+   "title": "ハルとゲン ～70歳、はじめての子育て～",
+   "cover": "https://s4.anilist.co/file/anilistcdn/media/anime/cover/large/bx216858-NzPvwHTaYzID.png",
+   "kind": "tv",
+   "start": "2027-01-04",
+   "slot": "毎週月曜 21:55〜",
+   "tv": "tvkテレビ神奈川",
+   "sourceUrl": "https://animationid.com/haruandgen/"
+  },
+  {
+   "id": 217433,
+   "title": "メラ×デス 死神と僕の異常な恋",
+   "cover": "https://s4.anilist.co/file/anilistcdn/media/anime/cover/large/bx217433-FMRlzJZ64Yzw.jpg",
+   "kind": "tv",
+   "start": "2027-01-05",
+   "slot": "",
+   "tv": "TOKYO MXほか",
+   "sourceUrl": "https://anime.monster-strike.com/meradeath/"
+  },
+  {
+   "id": 204579,
+   "title": "地雷なんですか？地原さん",
+   "cover": "https://s4.anilist.co/file/anilistcdn/media/anime/cover/large/bx204579-eIieS4KuQN9x.jpg",
+   "kind": "tv",
+   "start": "2027-01-07",
+   "slot": "毎週木曜 0:26〜",
+   "tv": "MBS/TBS系28局（スーパーアニメイズム TURBO）",
+   "sourceUrl": "https://chiharasan-anime.com/"
+  },
+  {
+   "id": 203116,
+   "title": "カリスマ",
+   "cover": "https://s4.anilist.co/file/anilistcdn/media/anime/cover/large/bx203116-d21HYBfgobvp.png",
+   "kind": "tv",
+   "start": "2027-01-07",
+   "slot": "毎週木曜 23:56〜",
+   "tv": "TBS系28局",
+   "sourceUrl": "https://anime.charisma-house.com/"
+  },
+  {
+   "id": 186822,
+   "title": "気になってる人が男じゃなかった",
+   "cover": "https://s4.anilist.co/file/anilistcdn/media/anime/cover/large/bx186822-9zsR5NtOP0yJ.jpg",
+   "kind": "tv",
+   "start": "2027-01-08",
+   "slot": "毎週金曜 23:00〜",
+   "tv": "日本テレビ系（FRIDAY ANIME NIGHT）",
+   "sourceUrl": "https://kinioto-anime.com/onair/"
+  },
+  {
+   "id": 189121,
+   "title": "BanG Dream! MyGO!!!!! // Ave Mujica",
+   "cover": "https://s4.anilist.co/file/anilistcdn/media/anime/cover/large/bx189121-m3EHJ33Y8jgT.png",
+   "kind": "tv",
+   "start": "2027-01-08",
+   "slot": "毎週金曜 23:30〜",
+   "tv": "全国同時放送",
+   "sourceUrl": "https://anime.bang-dream.com/mygo-avemujica/onair/"
+  },
+  {
+   "id": 210199,
+   "title": "ザ・ファブル 第2期",
+   "cover": "https://s4.anilist.co/file/anilistcdn/media/anime/cover/large/bx210199-THddm86dG5PI.jpg",
+   "kind": "tv",
+   "start": "2027-01-09",
+   "slot": "毎週土曜 24:55〜",
+   "tv": "日本テレビ系（順次全国放送）",
+   "sourceUrl": "https://www.vap.co.jp/the-fable-anime/"
+  },
+  {
+   "id": 199337,
+   "title": "真•侍伝 YAIBA 第二期",
+   "cover": "https://s4.anilist.co/file/anilistcdn/media/anime/cover/large/bx199337-ZGs9fsoxYT6N.jpg",
+   "kind": "tv",
+   "start": "2027-01-09",
+   "slot": "毎週土曜 17:30〜",
+   "tv": "",
+   "sourceUrl": "https://www.yaiba-pr.com/"
+  },
+  {
+   "id": 214049,
+   "title": "傷口と包帯",
+   "cover": "https://s4.anilist.co/file/anilistcdn/media/anime/cover/large/bx214049-8lsk5vf0XIdu.jpg",
+   "kind": "tv",
+   "start": "2027-01-09",
+   "slot": "毎週土曜 26:00〜",
+   "tv": "AT-Xで毎週土曜23:00〜先行放送",
+   "sourceUrl": "https://houtaidoumei.com/news/22/"
+  },
+  {
+   "id": 189323,
+   "title": "シャングリラ・フロンティア 3rd season",
+   "cover": "https://s4.anilist.co/file/anilistcdn/media/anime/cover/large/bx189323-gHXhqIOBUY8F.jpg",
+   "kind": "tv",
+   "start": "2027-01-10",
+   "slot": "毎週日曜 17:00〜",
+   "tv": "MBS/TBS系全国28局ネット",
+   "sourceUrl": "https://anime.shangrilafrontier.com/"
+  },
+  {
+   "id": 213814,
+   "title": "アイカツスターズ！ ～星々のProgress～",
+   "cover": "https://s4.anilist.co/file/anilistcdn/media/anime/cover/large/bx213814-nBNN9ikMHj9Y.png",
+   "kind": "movie",
+   "start": "2027-01-22",
+   "slot": "",
+   "tv": "劇場公開",
+   "sourceUrl": "https://www.aikatsu.net/aikatsustars_movie_progress/"
+  },
+  {
+   "id": 219237,
+   "title": "ポールプリンセス!! -Croix du Nord-",
+   "cover": "https://s4.anilist.co/file/anilistcdn/media/anime/cover/large/bx219237-2iP7ZQ569DDK.png",
+   "kind": "movie",
+   "start": "2027-01-29",
+   "slot": "",
+   "tv": "2週間限定上映",
+   "sourceUrl": "https://poleprincess.jp/"
+  },
+  {
+   "id": 204363,
+   "title": "SAKAMOTO DAYS 第2期",
+   "cover": "https://s4.anilist.co/file/anilistcdn/media/anime/cover/large/bx204363-rDHWhXs48Ygl.jpg",
+   "kind": "tv",
+   "start": "2027-01",
+   "slot": "",
+   "tv": "",
+   "sourceUrl": "https://sakamotodays.jp/onair/"
+  },
+  {
+   "id": 169579,
+   "title": "世界最高の暗殺者、異世界貴族に転生する 2ndシーズン",
+   "cover": "https://s4.anilist.co/file/anilistcdn/media/anime/cover/large/bx169579-KxMH0iq7jlPr.png",
+   "kind": "tv",
+   "start": "2027-01",
+   "slot": "",
+   "tv": "",
+   "sourceUrl": "https://ansatsu-kizoku.jp/"
+  },
+  {
+   "id": 177704,
+   "title": "マッシュル-MASHLE- 三魔対争神覚者最終試験編",
+   "cover": "https://s4.anilist.co/file/anilistcdn/media/anime/cover/large/bx177704-y10Nw7MUXCHD.jpg",
+   "kind": "tv",
+   "start": "2027-01",
+   "slot": "",
+   "tv": "",
+   "sourceUrl": "https://mashle.pw/news/?id=70740"
+  },
+  {
+   "id": 204747,
+   "title": "ワンパンマン 第3期第2クール",
+   "cover": "https://s4.anilist.co/file/anilistcdn/media/anime/cover/large/bx204747-INMrngH10Kwq.png",
+   "kind": "tv",
+   "start": "2027-01",
+   "slot": "",
+   "tv": "",
+   "sourceUrl": "https://onepunchman-anime.net/onair/"
+  },
+  {
+   "id": 202564,
+   "title": "描くなるうえは",
+   "cover": "https://s4.anilist.co/file/anilistcdn/media/anime/cover/large/bx202564-gLnCiyS8vHsB.jpg",
+   "kind": "tv",
+   "start": "2027-01",
+   "slot": "",
+   "tv": "",
+   "sourceUrl": "https://kakunaru-anime.com/"
+  },
+  {
+   "id": 209980,
+   "title": "異世界でチート能力を手にした俺は、現実世界をも無双する ～レベルアップは人生を変えた～ 2nd Season",
+   "cover": "https://s4.anilist.co/file/anilistcdn/media/anime/cover/large/bx209980-CTTwiweBKBS2.png",
+   "kind": "tv",
+   "start": "2027-01",
+   "slot": "",
+   "tv": "TOKYO MX・BS11ほか",
+   "sourceUrl": "https://www.iseleve.com/onair/2nd/"
+  },
+  {
+   "id": 217070,
+   "title": "ふつつかな悪女ではございますが ～雛宮蝶鼠とりかえ伝～ 第二幕",
+   "cover": "https://s4.anilist.co/file/anilistcdn/media/anime/cover/large/bx217070-Muh7Kjw4RQsi.jpg",
+   "kind": "tv",
+   "start": "2027-01",
+   "slot": "",
+   "tv": "",
+   "sourceUrl": "https://futsutsuka.net/"
+  },
+  {
+   "id": 216624,
+   "title": "死して生きるSSS級ハンター",
+   "cover": "https://s4.anilist.co/file/anilistcdn/media/anime/cover/large/bx216624-ZgSowlLTtu3G.png",
+   "kind": "tv",
+   "start": "2027-01",
+   "slot": "",
+   "tv": "フジテレビ「+Ultra」",
+   "sourceUrl": "https://sss-revival.com/"
+  },
+  {
+   "id": 213360,
+   "title": "あかね噺 第2期",
+   "cover": "https://s4.anilist.co/file/anilistcdn/media/anime/cover/large/bx213360-xNEWCLeQkXkI.jpg",
+   "kind": "tv",
+   "start": "2027-01",
+   "slot": "",
+   "tv": "テレビ朝日系全国24局ネット（IMAnimation）・BS朝日ほか",
+   "sourceUrl": "https://akane-banashi.com/"
+  },
+  {
+   "id": 186741,
+   "title": "姫騎士様のヒモ",
+   "cover": "https://s4.anilist.co/file/anilistcdn/media/anime/cover/large/bx186741-jfAFI71jie1x.jpg",
+   "kind": "tv",
+   "start": "2027-01",
+   "slot": "",
+   "tv": "",
+   "sourceUrl": "https://himehimo.jp/"
+  },
+  {
+   "id": 196333,
+   "title": "ひらやすみ",
+   "cover": "https://s4.anilist.co/file/anilistcdn/media/anime/cover/large/bx196333-HRmwgn8j8tvi.jpg",
+   "kind": "tv",
+   "start": "2027-01",
+   "slot": "",
+   "tv": "NHK総合",
+   "sourceUrl": "https://hirayasumi-anime.jp/"
+  },
+  {
+   "id": 208766,
+   "title": "ブレス",
+   "cover": "https://s4.anilist.co/file/anilistcdn/media/anime/cover/large/bx208766-FIvJRb63ztBJ.jpg",
+   "kind": "tv",
+   "start": "2027-01",
+   "slot": "",
+   "tv": "フジテレビ系（ノイタミナ）",
+   "sourceUrl": "https://bless-anime.com/"
+  },
+  {
+   "id": 205130,
+   "title": "ヒストリエ",
+   "cover": "https://s4.anilist.co/file/anilistcdn/media/anime/cover/large/bx205130-dC5WuIvGMMgr.png",
+   "kind": "tv",
+   "start": "2027-01",
+   "slot": "",
+   "tv": "",
+   "sourceUrl": "https://www.historie.info/"
+  },
+  {
+   "id": 197619,
+   "title": "結界師の一輪華",
+   "cover": "https://s4.anilist.co/file/anilistcdn/media/anime/cover/large/bx197619-dxMkg18OwS7r.png",
+   "kind": "tv",
+   "start": "2027-01",
+   "slot": "",
+   "tv": "",
+   "sourceUrl": "https://kekkaishi-ichirinka-anime.com/"
+  },
+  {
+   "id": 200578,
+   "title": "一式さんは恋を知りたい。",
+   "cover": "https://s4.anilist.co/file/anilistcdn/media/anime/cover/large/bx200578-F1U6GNXA0p3l.png",
+   "kind": "tv",
+   "start": "2027-01",
+   "slot": "",
+   "tv": "",
+   "sourceUrl": "https://isshikisan-anime.com/"
+  },
+  {
+   "id": 213877,
+   "title": "ムルシエラゴ",
+   "cover": "https://s4.anilist.co/file/anilistcdn/media/anime/cover/large/bx213877-NK48aPaVO29y.jpg",
+   "kind": "tv",
+   "start": "2027-01",
+   "slot": "",
+   "tv": "",
+   "sourceUrl": "https://murcielago-anime.com/"
+  },
+  {
+   "id": 213052,
+   "title": "電撃デイジー",
+   "cover": "https://s4.anilist.co/file/anilistcdn/media/anime/cover/large/bx213052-RzCXgG576ilW.jpg",
+   "kind": "tv",
+   "start": "2027-01",
+   "slot": "",
+   "tv": "",
+   "sourceUrl": "https://dengeki-daisy.com/"
+  },
+  {
+   "id": 174427,
+   "title": "ゾンビのあふれた世界で俺だけが襲われない",
+   "cover": "https://s4.anilist.co/file/anilistcdn/media/anime/cover/large/bx174427-ozv3bFtwB08m.jpg",
+   "kind": "tv",
+   "start": "2027-01",
+   "slot": "",
+   "tv": "AT-X",
+   "sourceUrl": "https://zom-ore.com/onair/"
+  },
+  {
+   "id": 213497,
+   "title": "すだちの魔王城",
+   "cover": "https://s4.anilist.co/file/anilistcdn/media/anime/cover/large/bx213497-bi5uWSWWtGmH.jpg",
+   "kind": "tv",
+   "start": "2027-01",
+   "slot": "",
+   "tv": "TOKYO MX・MBS・BS11ほか",
+   "sourceUrl": "https://www.sudachi-anime.com/"
+  },
+  {
+   "id": 207782,
+   "title": "おデブ悪女に転生したら、なぜかラスボス王子様に執着されています",
+   "cover": "https://s4.anilist.co/file/anilistcdn/media/anime/cover/large/bx207782-wKac51K7adn3.jpg",
+   "kind": "tv",
+   "start": "2027-01",
+   "slot": "",
+   "tv": "TOKYO MX・BS日テレ・AT-X・CBCテレビほか",
+   "sourceUrl": "https://odebuakujo-anime.com/onair/"
+  },
+  {
+   "id": 198728,
+   "title": "風を継ぐもの",
+   "cover": "https://s4.anilist.co/file/anilistcdn/media/anime/cover/large/bx198728-1tasIeJ995QJ.jpg",
+   "kind": "tv",
+   "start": "2027-01",
+   "slot": "毎週日曜 23:30〜",
+   "tv": "CBC/TBS系全国28局ネット（アガルアニメ）",
+   "sourceUrl": "https://kaze-tsugu.com/"
+  },
+  {
+   "id": 197095,
+   "title": "欠けた月のメルセデス",
+   "cover": "https://s4.anilist.co/file/anilistcdn/media/anime/cover/large/bx197095-NultpVkKUJWz.jpg",
+   "kind": "tv",
+   "start": "2027-01",
+   "slot": "",
+   "tv": "",
+   "sourceUrl": "https://mercedes-anime.com/"
+  },
+  {
+   "id": 199590,
+   "title": "茉莉花官吏伝",
+   "cover": "https://s4.anilist.co/file/anilistcdn/media/anime/cover/large/bx199590-gMBbisGLCZxa.png",
+   "kind": "tv",
+   "start": "2027-01",
+   "slot": "",
+   "tv": "TOKYO MX・MBS・テレビ愛知・BS11",
+   "sourceUrl": "https://matsurika-anime.com/"
+  },
+  {
+   "id": 209221,
+   "title": "異世界転生騒動記",
+   "cover": "https://s4.anilist.co/file/anilistcdn/media/anime/cover/large/bx209221-QBpwh553rVNr.png",
+   "kind": "tv",
+   "start": "2027-01",
+   "slot": "",
+   "tv": "",
+   "sourceUrl": "https://www.soudouki.com/"
+  },
+  {
+   "id": 206798,
+   "title": "同居している剣聖の女師匠が可愛すぎて毎日幸せです",
+   "cover": "https://s4.anilist.co/file/anilistcdn/media/anime/cover/large/bx206798-WBoAkt6k7sx9.png",
+   "kind": "tv",
+   "start": "2027-01",
+   "slot": "",
+   "tv": "",
+   "sourceUrl": "https://onnashisho.deregula.com/"
+  },
+  {
+   "id": 188546,
+   "title": "俺と悠兄！",
+   "cover": "https://s4.anilist.co/file/anilistcdn/media/anime/cover/large/bx188546-unC9pna5yjl7.jpg",
+   "kind": "tv",
+   "start": "2027-01",
+   "slot": "",
+   "tv": "",
+   "sourceUrl": "https://oretoyunii.com/"
+  },
+  {
+   "id": 205430,
+   "title": "冒険者ライセンスを剥奪されたおっさんだけど、愛娘ができたのでのんびり人生を謳歌する",
+   "cover": "https://s4.anilist.co/file/anilistcdn/media/anime/cover/large/bx205430-u0DOkPrpzBOI.jpg",
+   "kind": "tv",
+   "start": "2027-01",
+   "slot": "",
+   "tv": "",
+   "sourceUrl": "https://boukensha-license-anime.com/"
+  },
+  {
+   "id": 211070,
+   "title": "ペンと手錠と事実婚",
+   "cover": "https://s4.anilist.co/file/anilistcdn/media/anime/cover/large/bx211070-ECOdD6WOC6gF.jpg",
+   "kind": "tv",
+   "start": "2027-01",
+   "slot": "",
+   "tv": "",
+   "sourceUrl": "https://pentowappa-anime.com/"
+  },
+  {
+   "id": 185697,
+   "title": "アルカナディア",
+   "cover": "https://s4.anilist.co/file/anilistcdn/media/anime/cover/large/bx185697-hAEKGqiaUF2N.jpg",
+   "kind": "tv",
+   "start": "2027-01",
+   "slot": "",
+   "tv": "テレビ朝日系全国24局ネット（NUMAnimation）・BS朝日",
+   "sourceUrl": "https://www.arcanadea-anime.com/"
+  },
+  {
+   "id": 211258,
+   "title": "アラフォー賢者の異世界生活日記",
+   "cover": "https://s4.anilist.co/file/anilistcdn/media/anime/cover/large/bx211258-nY111T5KZCr2.png",
+   "kind": "tv",
+   "start": "2027-01",
+   "slot": "",
+   "tv": "",
+   "sourceUrl": "https://arafo-kenja.com/news/index00050000.html"
+  },
+  {
+   "id": 214461,
+   "title": "真の聖女である私は追放されました。だからこの国はもう終わりです",
+   "cover": "https://s4.anilist.co/file/anilistcdn/media/anime/cover/large/bx214461-BoVsaagZiyLJ.png",
+   "kind": "tv",
+   "start": "2027-01",
+   "slot": "",
+   "tv": "",
+   "sourceUrl": "https://www.shinnoseijo-anime.com/"
+  },
+  {
+   "id": 209224,
+   "title": "ゲーム世界転生〈ダン活〉～ゲーマーは【ダンジョン就活のススメ】を〈はじめから〉プレイする～",
+   "cover": "https://s4.anilist.co/file/anilistcdn/media/anime/cover/large/bx209224-Q3pJqC9NA66l.jpg",
+   "kind": "tv",
+   "start": "2027-01",
+   "slot": "",
+   "tv": "",
+   "sourceUrl": "https://dankatsu.com/"
+  },
+  {
+   "id": 214969,
+   "title": "赤ずきん、旅の途中で死体と出会う。",
+   "cover": "https://s4.anilist.co/file/anilistcdn/media/anime/cover/large/bx214969-1bRdzmZnYFbq.png",
+   "kind": "tv",
+   "start": "2027-01",
+   "slot": "",
+   "tv": "TOKYO MX・BS日テレ・読売テレビ",
+   "sourceUrl": "https://akazukin-anime.com/"
+  },
+  {
+   "id": 194213,
+   "title": "ghost／夜の果て",
+   "cover": "https://s4.anilist.co/file/anilistcdn/media/anime/cover/large/bx194213-hbKL5BMfdtcK.jpg",
+   "kind": "movie",
+   "start": "2027-02-11",
+   "slot": "",
+   "tv": "劇場公開",
+   "sourceUrl": "https://www.ghost-yoruhate.com/"
+  },
+  {
+   "id": 190244,
+   "title": "デート・ア・ライブF Last Date",
+   "cover": "https://s4.anilist.co/file/anilistcdn/media/anime/cover/large/bx190244-u2yo4hPmVp6Z.png",
+   "kind": "movie",
+   "start": "2027-03-26",
+   "slot": "",
+   "tv": "劇場上映",
+   "sourceUrl": "https://date-a-livef-anime.com/"
+  }
+ ]
+}
