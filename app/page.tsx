@@ -17,7 +17,8 @@ import Hero from "@/components/home/Hero";
 import { fetchSeasonPopular, fetchCovers } from "@/lib/anilist";
 import { listOsusume, thumbWorkIds } from "@/lib/osusume";
 import { latestSeasonKeyWithData, getPublishedEntries } from "@/lib/seasonStreaming";
-import { seasonInfo } from "@/lib/season";
+import { adjacentSeasonKey, currentSeasonKey, seasonInfo } from "@/lib/season";
+import { upcomingSeason } from "@/lib/upcoming";
 import { serviceNameOf, STREAM_SERVICES } from "@/lib/streaming";
 import { getTonight, lateNightTime, todayIndexMon, type Tonight } from "@/lib/tonight";
 import { OG_IMAGE } from "@/lib/seo";
@@ -54,6 +55,19 @@ export default async function HomePage() {
     getTonight(popular).catch((): Tonight => ({ label: "今夜", dateLabel: "", items: [] })),
   ]);
   const season = seasonKey ? seasonInfo(seasonKey) : null;
+  // 来期の放送日一覧への入口（公式サイトで確かめた作品があるときだけ）
+  const nextSeason = upcomingSeason(adjacentSeasonKey(currentSeasonKey(), 1));
+  const shortcuts = [
+    ...(nextSeason
+      ? [{
+          href: `/streaming/${nextSeason.season}`,
+          title: `${seasonInfo(nextSeason.season).label}の放送日`,
+          desc: `公式サイトで確かめた${nextSeason.works.length}作品の開始日と放送局`,
+        }]
+      : []),
+    { href: "/streaming/weekly", title: "今週の放送・配信", desc: "曜日ごとに時刻順で見られるスケジュール" },
+    { href: "/streaming/planner", title: "サブスク診断", desc: "見たい作品から一番安い組み合わせを計算" },
+  ];
   // サービスごとの作品数（確認済みの配信データから数える）
   const countBy = new Map<string, Set<number>>();
   for (const e of entries) {
@@ -132,6 +146,19 @@ export default async function HomePage() {
                       <span className="num text-sm font-bold text-ink">{s.count}</span> 作品
                     </span>
                   </span>
+                </Link>
+              </li>
+            ))}
+          </ul>
+          <ul className="mt-3 grid gap-2.5 sm:grid-cols-3 lg:gap-3">
+            {shortcuts.map((c) => (
+              <li key={c.href} className="reveal">
+                <Link href={c.href} className="group block h-full rounded-2xl bg-night px-4 py-3.5 text-white transition hover:-translate-y-0.5 hover:bg-night-2">
+                  <span className="flex items-center justify-between gap-2 text-sm font-black">
+                    {c.title}
+                    <span aria-hidden="true" className="text-bell transition group-hover:translate-x-0.5">→</span>
+                  </span>
+                  <span className="mt-0.5 block text-[11px] leading-snug text-white/70">{c.desc}</span>
                 </Link>
               </li>
             ))}
