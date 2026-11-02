@@ -1,7 +1,7 @@
 import type { MetadataRoute } from "next";
 import { listOsusume, articleWorkIds } from "@/lib/osusume";
 import { fetchPopularAroundNow } from "@/lib/anilist";
-import { getPublishedEntries, latestSeasonKeyWithData, CATALOG_KEY } from "@/lib/seasonStreaming";
+import { getPublishedEntries, latestSeasonKeyWithData, CATALOG_KEY, type PublicEntry } from "@/lib/seasonStreaming";
 import { adjacentSeasonKey, currentSeasonKey } from "@/lib/season";
 import { upcomingSeason } from "@/lib/upcoming";
 import { libraryServices, getLibrary } from "@/lib/library";
@@ -45,6 +45,11 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   // 配信データに載っている作品も、確実な作品URLの供給源として使う
   const workIds = new Set<number>();
   const withData = new Set<number>(); // 配信情報がある作品
+  // 作品ごとの最終確認日。サイトマップの更新日に入れて、配信情報が増えたページを読み直してもらう
+  const checked = new Map<number, number>();
+  const noteChecked = (e: PublicEntry) => {
+    if (e.sourceCheckedAt && e.sourceCheckedAt > (checked.get(e.anilistId) ?? 0)) checked.set(e.anilistId, e.sourceCheckedAt);
+  };
   try {
     const sk = await latestSeasonKeyWithData();
     // 1つ前のシーズンも残す（季節が変わっても、前期アニメは1か月ほど検索され続けるため）
@@ -73,6 +78,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       for (const e of entries) {
         workIds.add(e.anilistId);
         withData.add(e.anilistId);
+        noteChecked(e);
       }
     }
   } catch (err) {
@@ -85,7 +91,10 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   for (const o of articles) for (const id of articleWorkIds(o)) if (withData.has(id)) workIds.add(id);
   // 定番作品の枠（catalog）に配信情報がある作品
   try {
-    for (const e of await getPublishedEntries(CATALOG_KEY)) workIds.add(e.anilistId);
+    for (const e of await getPublishedEntries(CATALOG_KEY)) {
+      workIds.add(e.anilistId);
+      noteChecked(e);
+    }
     const { works: library } = await getLibrary();
     streaming.push({ url: `${BASE}/streaming/library`, changeFrequency: "weekly" as const, priority: 0.8 });
     for (const s of libraryServices(library)) {
@@ -118,6 +127,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     .filter((id) => Number.isFinite(id))
     .map((id) => ({
       url: `${BASE}/work/${id}`,
+      ...(checked.has(id) ? { lastModified: new Date(checked.get(id)! * 1000) } : {}),
       changeFrequency: "weekly" as const,
       priority: 0.7,
     }));
