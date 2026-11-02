@@ -4,6 +4,7 @@ import { fetchPopularAroundNow } from "@/lib/anilist";
 import { getPublishedEntries, latestSeasonKeyWithData, CATALOG_KEY } from "@/lib/seasonStreaming";
 import { adjacentSeasonKey, currentSeasonKey } from "@/lib/season";
 import { upcomingSeason } from "@/lib/upcoming";
+import { libraryServices, getLibrary } from "@/lib/library";
 
 const BASE = "https://www.animiru.com";
 
@@ -85,6 +86,11 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   // 定番作品の枠（catalog）に配信情報がある作品
   try {
     for (const e of await getPublishedEntries(CATALOG_KEY)) workIds.add(e.anilistId);
+    const { works: library } = await getLibrary();
+    streaming.push({ url: `${BASE}/streaming/library`, changeFrequency: "weekly" as const, priority: 0.8 });
+    for (const s of libraryServices(library)) {
+      if (s.count >= 10) streaming.push({ url: `${BASE}/streaming/library/${s.key}`, changeFrequency: "weekly" as const, priority: 0.7 });
+    }
   } catch (err) {
     console.error("[sitemap] 定番作品の配信データの取得に失敗しました", err);
   }

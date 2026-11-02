@@ -674,6 +674,20 @@ export async function fetchWorkBriefs(ids: number[]): Promise<Record<number, Wor
   }
 }
 
+// 作品の人気（AniList の登録者数）。一覧を人気順に並べるのに使う。50件ずつ順に問い合わせる
+export async function fetchPopularity(ids: number[]): Promise<Record<number, number>> {
+  const uniq = [...new Set(ids)].filter((n) => Number.isFinite(n));
+  const query = `query ($ids: [Int]) { Page(perPage: 50) { media(id_in: $ids) { id popularity } } }`;
+  const map: Record<number, number> = {};
+  for (let i = 0; i < uniq.length; i += 50) {
+    const res = await anilistFetch(JSON.stringify({ query, variables: { ids: uniq.slice(i, i + 50) } }));
+    if (!res.ok) continue;
+    const media = ((await res.json())?.data?.Page?.media ?? []) as { id: number; popularity?: number }[];
+    for (const m of media) map[m.id] = m.popularity ?? 0;
+  }
+  return map;
+}
+
 // ---- スタジオ / 人物（声優・スタッフ）検索＋入力補完 ----
 type MediaNode = {
   id: number;

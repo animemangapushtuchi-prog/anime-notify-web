@@ -443,17 +443,32 @@ export default async function WorkPage({
         </section>
       )}
 
-      {/* 同じ季節のほかの作品へ */}
-      {season && confirmed.length > 0 && (
+      {/* 同じ季節のほかの作品へ。季節のページが無い古い作品は、人気アニメの早見表へ */}
+      {confirmed.length > 0 && (
         <nav aria-label="関連ページ" className="mt-4 flex flex-wrap gap-2 text-xs font-bold">
-          <Link href={`/streaming/${season.key}`} className="rounded-full border border-line bg-white px-3.5 py-1.5 text-amber-ink transition hover:border-amber">
-            {season.label}の配信一覧 ›
-          </Link>
-          {seasonServices.map((c) => (
-            <Link key={c.serviceKey} href={`/streaming/${season.key}/${c.serviceKey}`} className="rounded-full border border-line bg-white px-3.5 py-1.5 text-amber-ink transition hover:border-amber">
-              {c.serviceName}の{season.label} ›
-            </Link>
-          ))}
+          {season ? (
+            <>
+              <Link href={`/streaming/${season.key}`} className="rounded-full border border-line bg-white px-3.5 py-1.5 text-amber-ink transition hover:border-amber">
+                {season.label}の配信一覧 ›
+              </Link>
+              {seasonServices.map((c) => (
+                <Link key={c.serviceKey} href={`/streaming/${season.key}/${c.serviceKey}`} className="rounded-full border border-line bg-white px-3.5 py-1.5 text-amber-ink transition hover:border-amber">
+                  {c.serviceName}の{season.label} ›
+                </Link>
+              ))}
+            </>
+          ) : (
+            <>
+              <Link href="/streaming/library" className="rounded-full border border-line bg-white px-3.5 py-1.5 text-amber-ink transition hover:border-amber">
+                人気アニメの配信早見表 ›
+              </Link>
+              {orderServices(confirmed).slice(0, 3).map((c) => (
+                <Link key={c.serviceKey} href={`/streaming/library/${c.serviceKey}`} className="rounded-full border border-line bg-white px-3.5 py-1.5 text-amber-ink transition hover:border-amber">
+                  {c.serviceName}で見られる人気アニメ ›
+                </Link>
+              ))}
+            </>
+          )}
         </nav>
       )}
 
