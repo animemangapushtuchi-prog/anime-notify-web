@@ -12,6 +12,7 @@ import { getPublishedEntries, getSeasonMeta } from "@/lib/seasonStreaming";
 import StreamingList from "@/components/StreamingList";
 import Mascot from "@/components/Mascot";
 import PageHeader from "@/components/PageHeader";
+import UpcomingStarts from "@/components/UpcomingStarts";
 import AdSlot from "@/components/AdSlot";
 
 export const revalidate = 3600;
@@ -109,6 +110,8 @@ export default async function SeasonStreamingPage({ params }: Props) {
           )}
         </nav>
       </PageHeader>
+
+      <UpcomingStarts entries={entries} />
 
       {entries.length === 0 ? (
         <div className="mt-8 flex flex-col items-center gap-3 rounded-3xl border border-line bg-white p-10 text-center text-sm text-ink-2">

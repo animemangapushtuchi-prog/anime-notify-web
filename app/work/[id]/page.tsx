@@ -2,8 +2,9 @@ import { cache } from "react";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import type { Metadata } from "next";
-import { getWorkEntries, seasonKeyFromLabel, CATALOG_KEY, type PublicEntry } from "@/lib/seasonStreaming";
+import { getWorkEntries, seasonKeyFromLabel, weeklyLabel, CATALOG_KEY, type PublicEntry } from "@/lib/seasonStreaming";
 import { currentSeasonKey, adjacentSeasonKey } from "@/lib/season";
+import { isUpcoming, latestCheckedLabel, orderServices, whereLine } from "@/lib/workMeta";
 import { fetchAnimeDetail, genreJa, type AnimeDetail } from "@/lib/anilist";
 import { fetchWikipediaJa } from "@/lib/wikipedia";
 import Trailer from "@/components/Trailer";
@@ -63,23 +64,30 @@ function isIndexableWork(d: AnimeDetail, confirmed: PublicEntry[]): boolean {
 }
 
 // 検索結果に出る説明文を作る。サイトが持っている情報（季節・形式・制作・配信サービス）だけで組み立てる。
-function buildDescription(d: AnimeDetail, confirmedNames: string[] = []): string {
+function buildDescription(d: AnimeDetail, confirmed: PublicEntry[]): string {
   const facts: string[] = [];
   if (d.seasonLabel) facts.push(d.seasonLabel);
   if (d.type) facts.push(d.type);
   if (d.studios?.length) facts.push(`${d.studios.slice(0, 2).join("・")}制作`);
-
-  // 管理画面で確認済みの国内配信サービスを優先（AniListは海外配信が中心のため）
-  const services = [
-    ...new Set([...confirmedNames, ...(d.streaming ?? []).map((s) => s.name)].filter(Boolean)),
-  ];
-  const head = `「${d.title}」の配信・放送情報。`;
   const factLine = facts.length ? `${facts.join("／")}。` : "";
-  const svcLine = services.length
-    ? `${services.slice(0, 4).join("・")}などの配信状況と、最新話の放送予定をまとめています。`
-    : "配信サービスの対応状況と、最新話の放送予定をまとめています。";
 
-  return (head + factLine + svcLine).slice(0, 160);
+  if (confirmed.length > 0) {
+    // 確認済みの配信先を先頭に書く（検索結果だけで答えが分かるように）
+    const checked = latestCheckedLabel(confirmed);
+    const fastest = confirmed.find((e) => e.isFastest);
+    const weekly = fastest ?? confirmed.find((e) => e.weeklyDay != null);
+    const when = weekly ? weeklyLabel(weekly.weeklyDay, weekly.weeklyTime) : null;
+    const extra = fastest
+      ? `最速は${fastest.serviceName}${when ? `（${when}）` : ""}。`
+      : weekly && when
+        ? `${weekly.serviceName}は${when}更新。`
+        : "";
+    const head = `「${d.title}」は${orderServices(confirmed).slice(0, 4).map((e) => e.serviceName).join("・")}${confirmed.length > 4 ? `など${confirmed.length}社` : ""}で${isUpcoming(confirmed, d.status) ? "配信予定" : "配信"}${checked ? `（${checked}確認）` : ""}。`;
+    return (head + extra + factLine + "放送予定もまとめています。").slice(0, 160);
+  }
+
+  // 確認済みの情報が無い作品。AniList の配信先は海外向けが中心なので、サービス名は確認済みのものだけ書く
+  return (`「${d.title}」の配信・放送情報。` + factLine + "配信サービスの対応状況と、最新話の放送予定をまとめています。").slice(0, 160);
 }
 
 export async function generateMetadata({
@@ -93,9 +101,11 @@ export async function generateMetadata({
   const { d } = r;
   const confirmed = await loadConfirmed(d.id, d.seasonLabel);
   // 説明文はアニミル！が持っている情報だけで作る（Wikipedia の文章は足さない）
-  const desc = buildDescription(d, confirmed.map((c) => c.serviceName));
-  // 「作品名 配信」「作品名 どこで見れる」で探している人に届く形にする
-  const pageTitle = `${d.title}はどこで見れる？配信・放送情報｜アニミル！`;
+  const desc = buildDescription(d, confirmed);
+  // 「作品名 配信」「作品名 どこで見れる」で探している人に届く形にする。確認済みの配信先があれば題名に答えを入れる
+  const pageTitle = `${d.title}はどこで見れる？${
+    confirmed.length > 0 ? whereLine(confirmed, d.status) : "配信・放送情報"
+  }｜アニミル！`;
   return {
     title: pageTitle,
     description: desc,
@@ -121,6 +131,8 @@ export default async function WorkPage({
   if (!r) notFound();
   const { d, wiki } = r;
   const confirmed = await loadConfirmed(d.id, d.seasonLabel);
+  const checkedLabel = latestCheckedLabel(confirmed);
+  const upcoming = isUpcoming(confirmed, d.status);
 
   return (
     <main className="mx-auto max-w-5xl px-3 pb-6 sm:px-4 lg:px-8 xl:max-w-6xl 2xl:max-w-[1280px]">
@@ -251,7 +263,12 @@ export default async function WorkPage({
         <h2 className={CARD_TITLE}><span aria-hidden="true" className="h-4 w-1 rounded-full bg-amber" />ネット配信</h2>
         {confirmed.length > 0 && (
           <p className="mt-1 text-sm leading-relaxed text-[#1A1523]">
-            「{d.title}」は、{confirmed.map((c) => c.serviceName).join("・")}で配信されています。
+            「{d.title}」は、{orderServices(confirmed).map((c) => c.serviceName).join("・")}で{upcoming ? "配信予定です" : "配信されています"}。
+            {checkedLabel && <span className="text-xs text-ink-2">（{checkedLabel}確認）</span>}
+            {/* 定番作品は U-NEXT だけを照合している。そのサービスだけという意味に読まれないように書く */}
+            {confirmed.length === 1 && !confirmed[0].isExclusive && (
+              <span className="text-xs text-ink-2"> ほかのサービスでも配信されている場合があります。</span>
+            )}
           </p>
         )}
         <StreamingLinks

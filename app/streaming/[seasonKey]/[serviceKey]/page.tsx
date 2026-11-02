@@ -10,6 +10,7 @@ import StreamingList from "@/components/StreamingList";
 import Mascot from "@/components/Mascot";
 import PageHeader from "@/components/PageHeader";
 import ServiceIcon from "@/components/ServiceIcon";
+import UpcomingStarts from "@/components/UpcomingStarts";
 import AdSlot from "@/components/AdSlot";
 import AffiliateLinks from "@/components/AffiliateLinks";
 
@@ -96,6 +97,8 @@ export default async function ServiceStreamingPage({ params }: Props) {
           </Link>
         </div>
       </PageHeader>
+
+      <UpcomingStarts entries={entries} showService={false} />
 
       {entries.length === 0 ? (
         <div className="mt-8 flex flex-col items-center gap-3 rounded-3xl border border-line bg-white p-10 text-center text-sm text-ink-2">
