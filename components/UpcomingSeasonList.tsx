@@ -19,6 +19,9 @@ export default function UpcomingSeasonList({ data, entries }: { data: UpcomingSe
 
   return (
     <div className="mt-8 space-y-10">
+      <p className="rounded-2xl bg-amber-wash px-4 py-3 text-sm leading-relaxed text-ink">
+        気になる作品は、作品ページで通知登録しておくと、放送が始まったときや新しい話が出たときにお知らせします。
+      </p>
       {days.size > 0 && (
         <section aria-labelledby="dated-h">
           <h2 id="dated-h" className="text-xl font-black text-ink">放送開始日が決まっている作品<span className="num ml-2 text-sm text-ink-2">{dated.length}</span></h2>
