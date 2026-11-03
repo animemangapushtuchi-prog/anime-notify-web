@@ -43,14 +43,19 @@ const monthDay = (s) => {
 
   // 公開中の配信データ（作品ごと）
   const rows = new Map();
+  const serviceName = new Map();
   for (const k of SEASONS) {
     const d = await (await fetch(`${BASE}/${k}`)).json();
     for (const v of d.fields?.entries?.arrayValue?.values ?? []) {
       const f = v.mapValue.fields;
       const id = Number(f.anilistId.integerValue);
       const name = f.serviceName?.stringValue;
+      serviceName.set(f.serviceKey.stringValue, name);
       const r = rows.get(id) ?? { title: f.title?.stringValue, names: new Set(), keys: new Set() };
-      if ((f.availability?.stringValue ?? "") !== "rental") {
+      // レンタルは見放題の社数には数えないが、見られることは書く
+      if ((f.availability?.stringValue ?? "") === "rental") {
+        r.names.add(`${name}（レンタル）`);
+      } else {
         r.names.add(name);
         r.keys.add(f.serviceKey.stringValue);
       }
@@ -81,10 +86,7 @@ const monthDay = (s) => {
     const seen = w.pre.filter((p) => p.names.length);
     const keys = new Set(seen[0].keys);
     for (const p of seen) for (const k of [...keys]) if (!p.keys.includes(k)) keys.delete(k);
-    for (const k of keys) {
-      const n = seen[0].names[seen[0].keys.indexOf(k)];
-      cover.set(n, (cover.get(n) ?? 0) + 1);
-    }
+    for (const k of keys) cover.set(serviceName.get(k), (cover.get(serviceName.get(k)) ?? 0) + 1);
   }
   const ranking = [...cover.entries()].sort((a, b) => b[1] - a[1]);
   const bars = ranking.slice(0, 6).map(([label, value]) => ({ label, value, max: known.length, suffix: "作品" }));
@@ -112,7 +114,7 @@ const monthDay = (s) => {
             {
               heading: "1社でいちばん多く前作を見られるサービス",
               text: `配信先を確認できた${known.length}作品のうち、前作をいちばん多く見られるのは${topTied.join("・")}で、${top[1]}作品でした。`,
-              bars: { items: bars, note: "複数シーズンある作品は、確認できた前作をすべて見られるときに1作品と数えています。" },
+              bars: { items: bars, note: "複数シーズンある作品は、確認できた前作をすべて見られるときに1作品と数えています。作品によって確認できたサービスの数が違うので、順位は目安です。" },
             },
           ]
         : []),
@@ -134,7 +136,7 @@ const monthDay = (s) => {
     ],
     faq: [
       { q: "2027年冬アニメの続編は何作品ありますか？", a: `アニミル！が公式サイトで放送時期を確かめた作品のうち、前作が分かる続編は${list.length}作品です（${AS_OF}時点）。` },
-      ...(top ? [{ q: "前作をまとめて見るならどのサービスがいいですか？", a: `確認できた${known.length}作品のうち、いちばん多く見られるのは${topTied.join("・")}で${top[1]}作品です。` }] : []),
+      ...(top ? [{ q: "前作をまとめて見るならどのサービスがいいですか？", a: `確認できた${known.length}作品のうち、いちばん多く見られるのは${topTied.join("・")}で${top[1]}作品です。作品によって確認できたサービスの数が違うので、目安として見てください。` }] : []),
       { q: "続編の配信先はいつ分かりますか？", a: "多くの作品は放送の少し前に発表されます。発表され次第「2027年冬アニメ 放送日一覧」に追加します。" },
     ],
     entries: [],
