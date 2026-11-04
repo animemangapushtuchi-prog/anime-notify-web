@@ -674,14 +674,14 @@ export async function fetchWorkBriefs(ids: number[]): Promise<Record<number, Wor
   }
 }
 
-// 番組表の題名ごとに AniList を検索した結果（題名の一致は呼び出し側で確かめる）。
+// 検索語ごとに AniList を検索した結果（題名の一致は呼び出し側で確かめる）。
 // 1回の問い合わせに複数の検索をまとめる（別名を付けて並べる）ので、何作品あっても1回で済む
 export type TitleCandidate = { id: number; cover: string; native: string; status: string };
 export async function searchAnimeTitles(titles: string[]): Promise<TitleCandidate[][]> {
   if (titles.length === 0) return [];
   const parts = titles.map(
     (t, i) =>
-      `q${i}: Page(perPage: 6) { media(search: ${JSON.stringify(t)}, type: ANIME, isAdult: false) { id status title { native } coverImage { large } } }`
+      `q${i}: Page(perPage: 8) { media(search: ${JSON.stringify(t)}, type: ANIME, isAdult: false) { id status title { native } coverImage { large } } }`
   );
   const res = await anilistFetch(JSON.stringify({ query: `query {\n${parts.join("\n")}\n}` }));
   if (!res.ok) return titles.map(() => []);

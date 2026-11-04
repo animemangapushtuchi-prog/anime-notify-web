@@ -111,11 +111,13 @@ export default function Hero({ tonight }: { tonight: Tonight }) {
                         // eslint-disable-next-line @next/next/no-img-element
                         <img src={it.cover} alt="" loading="lazy" className="h-full w-full object-cover" />
                       ) : (
+                        // 表紙が無い番組（アニメ以外の番組や、作品を決められないもの）は、テレビを見ているミーアキャットの絵
                         <span
-                          className="font-display flex h-full items-center justify-center text-xl font-black text-white/90"
-                          style={{ background: `linear-gradient(160deg, hsl(${hueOf(it.title)} 45% 42%), hsl(${(hueOf(it.title) + 40) % 360} 50% 22%))` }}
+                          className="flex h-full items-end justify-center"
+                          style={{ background: `linear-gradient(160deg, hsl(${hueOf(it.title)} 40% 38%), hsl(${(hueOf(it.title) + 40) % 360} 45% 18%))` }}
                         >
-                          {it.title.slice(0, 1)}
+                          {/* eslint-disable-next-line @next/next/no-img-element */}
+                          <img src="/mascot/w/device.webp" alt="" loading="lazy" className="h-[60px] w-auto object-contain" />
                         </span>
                       )}
                     </div>
