@@ -1,9 +1,10 @@
 // トップページの「今夜の放送」。しょぼいカレンダー由来の番組表（cache/tvSchedule）から、
 // これから翌朝5時（JST）までのテレビ放送を、作品ごとに1件（いちばん早い放送）にまとめて返す。
 // AniList の今期作品とタイトルが一致したものには、表紙と作品ページへのリンクを付ける。
-// 一致しない作品は表紙なし・リンクなしで出す（推測でリンクを作らない）。
+// 今期の作品に無いもの（再放送・子ども向けなど）は AniList をまとめて検索し、題名が完全に一致する作品が
+// 1つだけのときに付ける（2026-11-04〜）。一致しない・候補が複数あるときは表紙なし・リンクなし（推測でリンクを作らない）。
 import { getTvPrograms, isTvBroadcastChannel, normTitle } from "@/lib/home";
-import type { SeasonAnime } from "@/lib/anilist";
+import { searchAnimeTitles, type SeasonAnime } from "@/lib/anilist";
 
 export type TonightItem = {
   title: string;
@@ -66,6 +67,26 @@ export async function getTonight(works: SeasonAnime[], now = Math.floor(Date.now
       return { ...rest, chCount: chs.size, workId: hit?.w.id ?? null, cover: hit?.w.coverUrl ?? "" };
     })
     .sort((a, b) => a.st - b.st);
+
+  // 表紙が無い作品（トップに出す先頭24件のうち）を AniList で探す
+  const missing = items.slice(0, 24).filter((it) => !it.cover);
+  if (missing.length > 0) {
+    const found = await searchAnimeTitles(missing.map((it) => it.title)).catch(() => []);
+    missing.forEach((it, i) => {
+      const key = normTitle(it.title);
+      const list = found[i] ?? [];
+      // 正式な日本語題名の完全一致だけ使う（別名は使わない：「ウルトラマン」が別作品の ULTRAMAN に一致していた）
+      const exact = list.filter((c) => normTitle(c.native) === key);
+      // 同じ題名で始まる作品が放送中なら、新しいシリーズの可能性があるので決めない
+      // （「ポケットモンスター」が1997年版に一致していた。いま放送しているのは新しいシリーズ）
+      const airingNamesake = list.some((c) => c.status === "RELEASING" && normTitle(c.native).startsWith(key) && !exact.includes(c));
+      // 同じ題名の作品が複数ある（旧作とリメイクなど）ときも、どれか決められないので付けない
+      if (exact.length === 1 && exact[0].cover && !airingNamesake) {
+        it.workId = exact[0].id;
+        it.cover = exact[0].cover;
+      }
+    });
+  }
 
   return { label: h >= 15 || h < 5 ? "今夜" : "今日これから", dateLabel, items };
 }
