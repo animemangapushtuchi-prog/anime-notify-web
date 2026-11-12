@@ -293,6 +293,16 @@
    "sourceUrl": "https://akazukin-anime.com/"
   },
   {
+   "id": 215695,
+   "title": "こまどり モフモフパレード",
+   "cover": "https://s4.anilist.co/file/anilistcdn/media/anime/cover/large/bx215695-yMA5eRI5lz9f.png",
+   "kind": "tv",
+   "start": "2027-01",
+   "slot": "",
+   "tv": "テレ東系列6局ネット",
+   "sourceUrl": "https://mofmofparade.bn-ent.net/news-detail/?id=9qb29c9lif9d"
+  },
+  {
    "id": 216624,
    "title": "死して生きるSSS級ハンター",
    "cover": "https://s4.anilist.co/file/anilistcdn/media/anime/cover/large/bx216624-ZgSowlLTtu3G.png",
@@ -473,6 +483,16 @@
    "sourceUrl": "https://anime.shangrilafrontier.com/"
   },
   {
+   "id": 210157,
+   "title": "ラブライブ！蓮ノ空女学院スクールアイドルクラブ",
+   "cover": "https://s4.anilist.co/file/anilistcdn/media/anime/cover/large/bx210157-imNeWrCSUsez.jpg",
+   "kind": "tv",
+   "start": "2027-01-10",
+   "slot": "毎週日曜 22:30〜",
+   "tv": "TOKYO MX・BS11ほか全9局",
+   "sourceUrl": "https://www.lovelive-anime.jp/hasunosora/onair/"
+  },
+  {
    "id": 213814,
    "title": "アイカツスターズ！ ～星々のProgress～",
    "cover": "https://s4.anilist.co/file/anilistcdn/media/anime/cover/large/bx213814-nBNN9ikMHj9Y.png",
@@ -501,6 +521,16 @@
    "slot": "",
    "tv": "劇場公開",
    "sourceUrl": "https://www.ghost-yoruhate.com/"
+  },
+  {
+   "id": 206298,
+   "title": "劇場版 メダリスト",
+   "cover": "https://s4.anilist.co/file/anilistcdn/media/anime/cover/large/bx206298-q8wPQWpcT4WV.png",
+   "kind": "movie",
+   "start": "2027-02-19",
+   "slot": "",
+   "tv": "劇場公開",
+   "sourceUrl": "https://medalist-pr.com/"
   },
   {
    "id": 190244,

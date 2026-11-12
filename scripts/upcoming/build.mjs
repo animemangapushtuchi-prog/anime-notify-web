@@ -19,6 +19,7 @@ if (!media) throw new Error(`先に node scripts/upcoming/scan.mjs を実行し�
 const mediaOf = new Map(media.map((m) => [m.id, m]));
 
 const errors = [];
+let manualCount = 0; // 人がブラウザで確かめた行の数
 const pagesCache = new Map();
 function pagesFor(id) {
   if (!pagesCache.has(id)) pagesCache.set(id, pagesOf(readJson(join(CACHE_DIR, `${id}.json`), null)));
@@ -31,6 +32,16 @@ function check(kind, r, extra) {
   const problems = [...extra];
   if (!mediaOf.has(r.id)) problems.push("AniList の冬の作品一覧に無い（scan.mjs を実行し直すか、台帳から外す）");
   if (!r.evidence || !String(r.evidence).trim()) problems.push("evidence が空");
+  // manual：自動で読めないサイトを、人がブラウザで開いて確かめた行。機械の照合はできないので、
+  // 確かめたページのアドレスと日付を必ず書く（古くなったら見直せるように、30日を過ぎたら止める）
+  if (r.manual) {
+    if (!/^https?:\/\//.test(r.manual.url ?? "")) problems.push("manual.url（確かめたページ）が無い");
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(r.manual.checkedAt ?? "")) problems.push("manual.checkedAt（確かめた日）が無い");
+    else if (Date.now() - Date.parse(r.manual.checkedAt) > 30 * 86400000) problems.push(`manual の確認が30日より前（${r.manual.checkedAt}）。ブラウザで見直して日付を更新する`);
+    if (problems.length) errors.push(`${where}：${problems.join("／")}`);
+    else manualCount++;
+    return problems.length ? "" : r.manual.url;
+  }
   const page = r.evidence ? findEvidence(pagesFor(r.id), r.evidence) : null;
   if (r.evidence && !page) problems.push(`evidence が保存した本文に見つからない：「${r.evidence}」`);
   if (problems.length) errors.push(`${where}：${problems.join("／")}`);
@@ -117,4 +128,5 @@ console.log(`OK：放送予定 ${works.length}作品（日付まで決まった�
 rmSync(CHECKED_DIR, { recursive: true, force: true });
 cpSync(CACHE_DIR, CHECKED_DIR, { recursive: true });
 
+if (manualCount) console.log(`うち人がブラウザで確かめた行：${manualCount}（機械の照合なし。30日ごとに見直す）`);
 console.log(`OK：配信 ${rows.length}行・${new Set(rows.map((r) => r.anilistId)).size}作品 → ${rowsPath}`);
