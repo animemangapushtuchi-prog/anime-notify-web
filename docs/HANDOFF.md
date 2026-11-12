@@ -433,7 +433,7 @@ cd $env:USERPROFILE\dev\anime-notify-web
    2〜3週間後に「クロール済み・インデックス未登録」が減っているかを見る
 8. **検索からの訪問者を増やす案**：2026-11-03 に、来期の放送日一覧・別名・放送局のサーバー描画・よくある質問・内部リンク（早見表）・IndexNow を実施。Bing Webmaster Tools は新規サイト登録なので未実施（IndexNow で代わりになる部分が多い）
 0. **受け口の配置（シンさんの作業・1回だけ）**：`cd ..\anime_notify_app; firebase deploy --only functions:pv,firestore:rules` → 終わったら `lib/track.ts` の SERVER_READY を true に（§9）
-9. **定期の作業**：冬アニメの更新を週2回（月・木の朝に自動実行の予約あり。アプリが開いているときだけ動く。§0・§6）／冬アニメの放送予定と配信先を2週間おきに足す／料金の確認（content/service-prices.json）／Search Console の表示が増えた作品に配信情報を足す／人気順の照合を AniList の人気上位420位より下へ広げる（§6 の「人気順に足す手順」）
+9. **定期の作業**：冬アニメの更新を週2回（自動実行の予約は Claude の権限では作れなかった。シンさんが週2回「冬アニメを更新して」と頼むか、アプリの予約機能で自分で登録する。手順は scripts/upcoming/README.md。§0・§6）／冬アニメの放送予定と配信先を2週間おきに足す／料金の確認（content/service-prices.json）／Search Console の表示が増えた作品に配信情報を足す／人気順の照合を AniList の人気上位420位より下へ広げる（§6 の「人気順に足す手順」）
 
 ## 12. 2026-09-29 の一括改修（SEO・完成度）
 
