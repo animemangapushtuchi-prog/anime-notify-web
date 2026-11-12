@@ -9,6 +9,7 @@ import { getWeekly, type WeeklyDay } from "@/lib/weekly";
 import PageHeader from "@/components/PageHeader";
 import ServiceIcon from "@/components/ServiceIcon";
 import Mascot from "@/components/Mascot";
+import MyServicesFilter from "@/components/MyServicesFilter";
 
 // 1時間ごとに作り直す（日付が変わると「今日から7日間」も自動で進む）
 export const revalidate = 3600;
@@ -37,6 +38,9 @@ export default async function WeeklyPage() {
   const days: WeeklyDay[] = await getWeekly(entries, seasonWorks).catch(() => []);
   const season = seasonKey ? seasonInfo(seasonKey) : null;
   const total = days.reduce((n, d) => n + d.items.length, 0);
+  // 今週の一覧に出てくるサービス（絞り込みの選択肢）。並びはサービス一覧の順
+  const present = new Set(days.flatMap((d) => d.items.flatMap((it) => it.services.map((e) => e.serviceKey))));
+  const filterServices = STREAM_SERVICES.filter((x) => present.has(x.key));
 
   return (
     <main className="mx-auto max-w-2xl px-4 pb-6 lg:max-w-5xl lg:px-8">
@@ -65,7 +69,7 @@ export default async function WeeklyPage() {
                 }`}
               >
                 {d.isToday ? `今日 ${d.label}` : d.label}
-                <span className="num ml-1 opacity-70">{d.items.length}</span>
+                <span data-count-for="weekly-list" className="num ml-1 opacity-70">{d.items.length}</span>
               </a>
             ))}
           </nav>
@@ -78,13 +82,15 @@ export default async function WeeklyPage() {
           <p>今週の放送・配信の予定を準備しています。しばらくしてからもう一度ご覧ください。</p>
         </div>
       ) : (
-        <div className="mt-6 space-y-8">
+        <>
+        {filterServices.length > 0 && <MyServicesFilter services={filterServices} target="weekly-list" />}
+        <div id="weekly-list" className="mt-6 space-y-8">
           {days.map((d, i) => (
             <section key={d.date} id={`day-${i}`} className="scroll-mt-20" aria-labelledby={`day-${i}-h`}>
               <h2 id={`day-${i}-h`} className="flex items-baseline gap-2 text-lg font-black text-ink">
                 {d.isToday && <span className="rounded-full bg-[#C0392B] px-2 py-0.5 text-[11px] font-bold text-white">今日</span>}
                 {d.label}
-                <span className="num text-xs font-bold text-ink-2">{d.items.length}作品</span>
+                <span data-count className="num text-xs font-bold text-ink-2">{d.items.length}作品</span>
               </h2>
               {d.items.length === 0 ? (
                 <p className="mt-2 rounded-2xl border border-line bg-white px-4 py-3 text-sm text-ink-2">
@@ -95,7 +101,7 @@ export default async function WeeklyPage() {
                   {d.items.map((it) => {
                     const services = sortServices(it.services);
                     return (
-                      <li key={`${d.date}-${it.workId ?? it.title}`} className="flex gap-3 px-4 py-3 sm:gap-4">
+                      <li key={`${d.date}-${it.workId ?? it.title}`} data-svc={services.map((e) => e.serviceKey).join(" ")} className="flex gap-3 px-4 py-3 sm:gap-4">
                         <p className="num w-12 flex-none pt-0.5 text-[15px] font-black text-ink">{it.timeLabel || "—"}</p>
                         <div className="h-[60px] w-[42px] flex-none overflow-hidden rounded-lg bg-paper-2 ring-1 ring-black/5">
                           {it.cover && (
@@ -167,6 +173,7 @@ export default async function WeeklyPage() {
             </section>
           ))}
         </div>
+        </>
       )}
 
       <div className="mt-8 flex flex-wrap gap-2 text-xs font-bold">
