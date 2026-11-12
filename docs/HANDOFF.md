@@ -393,9 +393,8 @@ cd $env:USERPROFILE\dev\anime-notify-web
   行動（`events`：reg＝作品登録、push＝通知オン、out＝配信サービスへ移動、filter＝絞り込み）、移動先のサービス（`outSvc`）、
   ページごとの数（`statsDaily/{日付}` の paths・land＝検索から来た人の入口・out）。名乗っている巡回プログラム（User-Agent）は数えない
 - 見る場所：管理画面 /admin、または `node scripts/read-stats.js [日数]`（直近7日とその前の7日の比較も出る）
-- **受け口の配置がまだ（2026-11-12 時点）**：Functions と firestore.rules の変更は別リポジトリにコミット済み（fdf6d2d）だが、本番への配置は Claude の権限では実行できなかった。
-  シンさんが `cd ..\anime_notify_app; firebase deploy --only functions:pv,firestore:rules` を実行したら、`lib/track.ts` の `SERVER_READY` を true にして push する。
-  それまでは読んだ訪問・行動の通知は送られない（古い受け口は ev つきの通知を「表示1回」と数えてしまうため止めてある）。表示数・ページ名・初回/再訪は送っているが、古い受け口はページ名と初回/再訪を捨てる
+- 受け口（Functions の pv と firestore.rules）は 2026-11-12 にシンさんが配置済み。本番への配置は Claude の権限では実行できないので、Functions を変えたときは
+  `cd ..anime_notify_app; firebase deploy --only functions:pv,firestore:rules` をシンさんに頼む。`lib/track.ts` の `SERVER_READY` は true（受け口を古い版に戻すときだけ false）
 - Search Console は 2026-11-12 に Claude in Chrome で開けなかった（ページが開いた直後に戻される）。数字はサイト自身の計測で見る
 
 - Search Console: animemangapushtuchi アカウント（`/u/3`）。サイトマップは `https://www.animiru.com/sitemap.xml`
@@ -432,7 +431,6 @@ cd $env:USERPROFILE\dev\anime-notify-web
    noindex と 404 の変更が反映されると登録済みは減る（古い作品ページが外れる）が、それが正しい方向。
    2〜3週間後に「クロール済み・インデックス未登録」が減っているかを見る
 8. **検索からの訪問者を増やす案**：2026-11-03 に、来期の放送日一覧・別名・放送局のサーバー描画・よくある質問・内部リンク（早見表）・IndexNow を実施。Bing Webmaster Tools は新規サイト登録なので未実施（IndexNow で代わりになる部分が多い）
-0. **受け口の配置（シンさんの作業・1回だけ）**：`cd ..\anime_notify_app; firebase deploy --only functions:pv,firestore:rules` → 終わったら `lib/track.ts` の SERVER_READY を true に（§9）
 9. **定期の作業**：冬アニメの更新を週2回（自動実行の予約は Claude の権限では作れなかった。シンさんが週2回「冬アニメを更新して」と頼むか、アプリの予約機能で自分で登録する。手順は scripts/upcoming/README.md。§0・§6）／冬アニメの放送予定と配信先を2週間おきに足す／料金の確認（content/service-prices.json）／Search Console の表示が増えた作品に配信情報を足す／人気順の照合を AniList の人気上位420位より下へ広げる（§6 の「人気順に足す手順」）
 
 ## 12. 2026-09-29 の一括改修（SEO・完成度）

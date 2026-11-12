@@ -12,9 +12,9 @@ const PROD_HOST = "www.animiru.com";
 // 名乗っている巡回プログラム（検索エンジン・表示速度の検査など）は数えない
 const BOT_UA = /bot|crawl|spider|slurp|headless|lighthouse|pagespeed|gtmetrix|preview|monitor/i;
 
-// 受け口（Functions の pv）を 2026-11-12 の版に入れ替えるまでは false にしておく。
-// 古い受け口は ev つきの通知も「表示1回」と数えてしまうため。入れ替えたら true にする（docs/HANDOFF.md §9）
-const SERVER_READY = false;
+// 受け口（Functions の pv）は 2026-11-12 にシンさんが新しい版を配置した。古い受け口は ev つきの通知も「表示1回」と数えるため、
+// 受け口を古い版に戻すことがあれば false にする
+const SERVER_READY = true;
 
 export type TrackEvent = "reg" | "push" | "filter";
 
