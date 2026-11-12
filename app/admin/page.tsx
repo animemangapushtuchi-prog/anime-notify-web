@@ -24,7 +24,45 @@ type Stats = {
   uv?: Record<string, number>;
   pages?: Record<string, Record<string, number>>; // 日付 → ページの種類 → 表示数（2026-10-09〜）
   refs?: Record<string, Record<string, number>>; // 日付 → どこから来たか → 訪問数（2026-10-09〜）
+  // 2026-11-12〜
+  visitors?: Record<string, Record<string, number>>; // 日付 → new / back → その日初めての訪問
+  human?: Record<string, Record<string, number>>; // 日付 → new / back → 読んだ訪問（動かす・押す・15秒とどまる）
+  humanRefs?: Record<string, Record<string, number>>; // 日付 → どこから来たか → 読んだ訪問
+  events?: Record<string, Record<string, number>>; // 日付 → reg / push / out / filter
+  outSvc?: Record<string, Record<string, number>>; // 日付 → 配信サービス → 移動した回数
 };
+// ページごとの数（statsDaily/{日付}）
+type Daily = { paths?: Record<string, number>; land?: Record<string, number>; out?: Record<string, number> };
+
+const EVENT_JA: Record<string, string> = { reg: "作品を登録した", push: "通知をオンにした", out: "配信サービスへ移動した", filter: "絞り込みを使った" };
+const VISITOR_JA: Record<string, string> = { new: "初めて来た人", back: "前にも来た人" };
+
+// 「work:123」→「/work/123」
+const keyToPath = (k: string) => (k === "top" ? "/" : "/" + k.split(":").join("/"));
+
+// 日ごとのページ別の数を合計して、多い順に上位を返す
+function topPaths(daily: Record<string, Daily>, days: string[], field: keyof Daily, n = 15) {
+  const tot: Record<string, number> = {};
+  for (const d of days) for (const [k, v] of Object.entries(daily[d]?.[field] ?? {})) tot[k] = (tot[k] ?? 0) + v;
+  return Object.entries(tot)
+    .sort((a, b) => b[1] - a[1])
+    .slice(0, n)
+    .map(([k, v]) => ({ path: keyToPath(k), value: v }));
+}
+
+function PathList({ rows, empty }: { rows: { path: string; value: number }[]; empty: string }) {
+  if (rows.length === 0) return <p className="mt-2 text-xs text-black/40">{empty}</p>;
+  return (
+    <ol className="mt-2 space-y-1">
+      {rows.map((r) => (
+        <li key={r.path} className="flex items-baseline justify-between gap-3 text-xs">
+          <a href={r.path} target="_blank" rel="noopener noreferrer" className="min-w-0 truncate text-[#8A5518] underline-offset-2 hover:underline">{r.path}</a>
+          <span className="flex-none font-bold text-[#1A1523]">{r.value}</span>
+        </li>
+      ))}
+    </ol>
+  );
+}
 
 const PAGE_JA: Record<string, string> = {
   top: "トップ", work: "作品ページ", streaming: "配信一覧", osusume: "記事", search: "検索",
@@ -86,13 +124,19 @@ export default function AdminPage() {
   const { user, loading } = useAuth();
   const [s, setS] = useState<Stats | null>(null);
   const [copied, setCopied] = useState(false);
+  const [daily, setDaily] = useState<Record<string, Daily>>({});
 
   const admin = isAdminUid(user?.uid);
 
-  const load = () =>
-    getDoc(doc(db, "cache", "stats"))
+  const load = () => {
+    // ページごとの数（過去7日ぶん）。読めなくても、ほかの表示は出す
+    Promise.all(last14().slice(-7).map((d) => getDoc(doc(db, "statsDaily", d)).then((x) => [d, (x.data() ?? {}) as Daily] as const)))
+      .then((list) => setDaily(Object.fromEntries(list)))
+      .catch(() => setDaily({}));
+    return getDoc(doc(db, "cache", "stats"))
       .then((d) => setS(((d.data() as Stats) || {}) as Stats))
       .catch(() => setS({}));
+  };
 
   useEffect(() => {
     if (!admin) return;
@@ -147,6 +191,14 @@ export default function AdminPage() {
   const last7 = days.slice(-7);
   const pageBars = sumDays(st.pages, last7, PAGE_JA);
   const refBars = sumDays(st.refs, last7, REF_JA);
+  const humanBars = days.map((d) => ({ label: d.slice(5), value: (st.human?.[d]?.new ?? 0) + (st.human?.[d]?.back ?? 0) }));
+  const humanKind = sumDays(st.human, last7, VISITOR_JA);
+  const humanRefBars = sumDays(st.humanRefs, last7, REF_JA);
+  const eventBars = sumDays(st.events, last7, EVENT_JA);
+  const outBars = sumDays(st.outSvc, last7, {});
+  const landRows = topPaths(daily, last7, "land");
+  const pathRows = topPaths(daily, last7, "paths");
+  const outRows = topPaths(daily, last7, "out", 10);
   const platforms = Object.entries(st.platforms ?? {}).map(([k, v]) => ({ label: k, value: v }));
   const works = (st.worksTop ?? []).map((w) => ({ label: w.title || `#${w.id}`, value: w.count }));
   const updated = st.updatedAt?.seconds ? new Date(st.updatedAt.seconds * 1000).toLocaleString("ja-JP") : "—";
@@ -203,6 +255,37 @@ export default function AdminPage() {
               </div>
             )}
             <p className="mt-3 text-[11px] text-[#625B6E]">本番サイトでの表示だけを数えています（確認用サイト・自動操作のブラウザ・管理画面は除外）。</p>
+          </section>
+
+          {/* 読んだ訪問・再訪・行動（2026-11-12〜） */}
+          <section className="mt-6 rounded-2xl border border-[#ECE5DA] bg-white p-4">
+            <h2 className="text-xs font-bold text-[#625B6E]">読んだ訪問（過去14日）</h2>
+            <p className="mt-1 text-[11px] text-[#625B6E]">画面を動かす・押す、または15秒とどまった訪問だけを数えます。巡回プログラムが混ざりにくい、いちばん信用できる数です。</p>
+            <div className="mt-2">
+              <Bars data={humanBars} />
+            </div>
+            <h2 className="mt-4 text-xs font-bold text-[#625B6E]">初めて来た人と、前にも来た人（読んだ訪問・過去7日）</h2>
+            {humanKind.length === 0 ? <p className="mt-2 text-xs text-black/40">まだデータがありません（2026年11月12日から記録）。</p> : <div className="mt-2"><Bars data={humanKind} /></div>}
+            <h2 className="mt-4 text-xs font-bold text-[#625B6E]">どこから来たか（読んだ訪問・過去7日）</h2>
+            {humanRefBars.length === 0 ? <p className="mt-2 text-xs text-black/40">まだデータがありません。</p> : <div className="mt-2"><Bars data={humanRefBars} /></div>}
+            <h2 className="mt-4 text-xs font-bold text-[#625B6E]">訪問者がしたこと（過去7日）</h2>
+            {eventBars.length === 0 ? <p className="mt-2 text-xs text-black/40">まだデータがありません。</p> : <div className="mt-2"><Bars data={eventBars} /></div>}
+            {outBars.length > 0 && (
+              <>
+                <h2 className="mt-4 text-xs font-bold text-[#625B6E]">移動先の配信サービス（過去7日）</h2>
+                <div className="mt-2"><Bars data={outBars} /></div>
+              </>
+            )}
+          </section>
+
+          {/* ページごとの数（2026-11-12〜） */}
+          <section className="mt-6 rounded-2xl border border-[#ECE5DA] bg-white p-4">
+            <h2 className="text-xs font-bold text-[#625B6E]">検索から来た人が最初に開いたページ（過去7日・上位15）</h2>
+            <PathList rows={landRows} empty="まだデータがありません（2026年11月12日から記録）。" />
+            <h2 className="mt-4 text-xs font-bold text-[#625B6E]">よく見られたページ（過去7日・上位15）</h2>
+            <PathList rows={pathRows} empty="まだデータがありません。" />
+            <h2 className="mt-4 text-xs font-bold text-[#625B6E]">配信サービスへの移動が多かったページ（過去7日・上位10）</h2>
+            <PathList rows={outRows} empty="まだデータがありません。" />
           </section>
 
           {/* 登録作品ランキング */}

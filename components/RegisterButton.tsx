@@ -19,6 +19,7 @@ import {
 import StatusPicker from "@/components/StatusPicker";
 import EnablePush from "@/components/EnablePush";
 import EpisodeProgress from "@/components/EpisodeProgress";
+import { trackEvent } from "@/lib/track";
 
 type NoticeSettings = {
   enabled: boolean;
@@ -103,7 +104,10 @@ export default function RegisterButton({ work }: { work: Work }) {
     addWork(user.uid, work)
       .then((next) => {
         setWorks(next);
-        if (next.some((w) => w.id === work.id)) setJustRegistered(true);
+        if (next.some((w) => w.id === work.id)) {
+          setJustRegistered(true);
+          trackEvent("reg");
+        }
       })
       .finally(() => setBusy(false));
   }, [slotCap, user, work, works]);
@@ -122,6 +126,7 @@ export default function RegisterButton({ work }: { work: Work }) {
         if (next.some((w) => w.id === work.id)) {
           setWorks(next);
           setJustRegistered(true);
+          trackEvent("reg");
           setGuestMsg(`この端末へ保存しました（${next.length}/${GUEST_SLOTS}）`);
         } else {
           setGuestMsg("登録できませんでした。時間をおいて再度お試しください。");
@@ -174,7 +179,9 @@ export default function RegisterButton({ work }: { work: Work }) {
         ? await removeWork(user.uid, work.id)
         : await addWork(user.uid, work);
       setWorks(next);
-      setJustRegistered(!registered && next.some((w) => w.id === work.id));
+      const added = !registered && next.some((w) => w.id === work.id);
+      setJustRegistered(added);
+      if (added) trackEvent("reg");
     } finally {
       setBusy(false);
     }

@@ -1,75 +1,97 @@
 "use client";
 
-// ページビュー計測。ページ遷移ごとにビーコンでFunctionsのpvエンドポイントへ送る。
-// 1日1回だけ u=1（ユニーク訪問者）を付ける（localStorage判定）。
+// アクセス計測。ページを開くたびに Functions の pv へ小さな通知を送る（中身は lib/track.ts）。
 //
-// 2026-10-09 から：
-// - 本番（www.animiru.com）以外と、自動操作のブラウザ（navigator.webdriver）からは送らない。
-//   以前は手元の確認用サイトでの動作確認や画面撮影まで本番の数字に入り、作業日だけ数字が跳ねていた
-// - 管理画面（/admin）は運営者自身のアクセスなので送らない
-// - p＝ページの種類、r＝どこから来たか（ページを開いた最初の1回だけ）も送る。
-//   個人を特定する情報やURLそのものは送らない（決まった分類名だけ）
+// - 本番（www.animiru.com）だけ。自動操作のブラウザ・巡回プログラム・管理画面は数えない
+// - 個人を特定する情報やアドレスそのものは送らない（決まった分類名と「work:123」の形のページ名だけ）
+// - 2026-11-12〜：初めて来た人／前にも来た人の区別、「読んだ訪問」（画面を動かす・押す、または15秒とどまる）、
+//   配信サービスへ移動した回数、ページごとの数を足した。11/9 に巡回プログラムが474人ぶん数えられたため
 import { useEffect } from "react";
 import { usePathname } from "next/navigation";
+import { canTrack, jstToday, pageKind, pathKey, refKindOf, send, serviceOfUrl, visitorKind } from "@/lib/track";
 
-const PV_URL = "https://asia-northeast1-anime-notify-app-86ccc.cloudfunctions.net/pv";
-const PROD_HOST = "www.animiru.com";
+let entryRef: string | null = null; // どこから来たか。ページを開いた最初の1回で決める
+let refSent = false; // サイト内の移動では送らない
 
-// ページの種類（Functions 側も同じ一覧だけを受け付ける）
-function pageKind(path: string): string {
-  if (path === "/") return "top";
-  const first = path.split("/")[1] ?? "";
-  const known = [
-    "work", "streaming", "osusume", "search", "calendar", "me", "notifications",
-    "settings", "login", "guide", "survey", "terms", "privacy",
-  ];
-  return known.includes(first) ? first : "other";
+function getEntryRef(): string {
+  if (entryRef === null) entryRef = refKindOf(document.referrer);
+  return entryRef;
 }
-
-// どこから来たか（document.referrer のドメインを分類名にする）
-function refKind(): string {
-  const ref = document.referrer;
-  if (!ref) return "direct";
-  let host = "";
-  try {
-    host = new URL(ref).hostname;
-  } catch {
-    return "other";
-  }
-  if (host.endsWith("animiru.com")) return "internal";
-  if (/(^|\.)google\./.test(host)) return "google";
-  if (/(^|\.)yahoo\.(co\.jp|com)$/.test(host)) return "yahoo";
-  if (/(^|\.)bing\.com$/.test(host)) return "bing";
-  if (/(^|\.)(t\.co|x\.com|twitter\.com)$/.test(host)) return "x";
-  if (/(^|\.)(line\.me|facebook\.com|instagram\.com|threads\.net|youtube\.com|reddit\.com)$/.test(host)) return "sns";
-  return "other";
-}
-
-let refSent = false; // 参照元はページを開いた最初の1回だけ送る（サイト内の移動では送らない）
 
 export default function PageView() {
   const path = usePathname();
+
+  // 表示のたびに送る
   useEffect(() => {
     try {
-      if (window.location.hostname !== PROD_HOST || navigator.webdriver) return;
-      if (path.startsWith("/admin")) return;
-      const today = new Date().toISOString().slice(0, 10);
-      let u = "0";
-      if (window.localStorage.getItem("uvDate") !== today) {
-        window.localStorage.setItem("uvDate", today);
-        u = "1";
+      if (!canTrack()) return;
+      const today = jstToday();
+      const store = window.localStorage;
+      const q: Record<string, string> = { u: "0", p: pageKind(path), k: pathKey(path) };
+      if (store.getItem("uvDate") !== today) {
+        q.v = visitorKind(store, today); // uvDate を書き換える前に判定する
+        store.setItem("uvDate", today);
+        q.u = "1";
       }
-      const q = new URLSearchParams({ u, p: pageKind(path) });
       if (!refSent) {
-        q.set("r", refKind());
+        q.r = getEntryRef();
         refSent = true;
       }
-      const url = `${PV_URL}?${q.toString()}`;
-      if (navigator.sendBeacon) navigator.sendBeacon(url);
-      else fetch(url, { method: "POST", keepalive: true }).catch(() => {});
+      send(q);
     } catch {
       /* noop */
     }
   }, [path]);
+
+  // 「読んだ訪問」：その日の最初に、画面を動かす・押す、または15秒とどまったら1回だけ送る
+  useEffect(() => {
+    let cleanup = () => {};
+    try {
+      if (!canTrack()) return;
+      const today = jstToday();
+      const store = window.localStorage;
+      if (store.getItem("humanDate") === today) return;
+      const events = ["scroll", "pointerdown", "keydown", "touchstart"] as const;
+      let done = false;
+      const fire = () => {
+        if (done) return;
+        done = true;
+        cleanup();
+        try {
+          store.setItem("humanDate", today);
+          send({ ev: "human", v: visitorKind(store, today), r: getEntryRef() });
+        } catch {
+          /* noop */
+        }
+      };
+      const timer = window.setTimeout(() => {
+        if (document.visibilityState === "visible") fire();
+      }, 15000);
+      cleanup = () => {
+        window.clearTimeout(timer);
+        events.forEach((e) => window.removeEventListener(e, fire));
+      };
+      events.forEach((e) => window.addEventListener(e, fire, { passive: true }));
+    } catch {
+      /* noop */
+    }
+    return () => cleanup();
+  }, []);
+
+  // 配信サービスへのリンクが押された回数（どのサービスへ送り出せたか）
+  useEffect(() => {
+    const onClick = (e: MouseEvent) => {
+      try {
+        const a = (e.target as Element | null)?.closest?.("a[href]") as HTMLAnchorElement | null;
+        const s = a ? serviceOfUrl(a.href) : null;
+        if (s) send({ ev: "out", s, k: pathKey(window.location.pathname) });
+      } catch {
+        /* noop */
+      }
+    };
+    document.addEventListener("click", onClick, true);
+    return () => document.removeEventListener("click", onClick, true);
+  }, []);
+
   return null;
 }

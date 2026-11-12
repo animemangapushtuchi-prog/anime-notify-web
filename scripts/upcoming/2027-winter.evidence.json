@@ -1,0 +1,597 @@
+{
+ "season": "2027-winter",
+ "schedule": [
+  {
+   "id": 189323,
+   "kind": "tv",
+   "start": "2027-01-10",
+   "slot": "毎週日曜 17:00〜",
+   "tv": "MBS/TBS系全国28局ネット",
+   "evidence": "2027年01月10日からMBS / TBS系全国28局ネットにて"
+  },
+  {
+   "id": 186822,
+   "kind": "tv",
+   "start": "2027-01-08",
+   "slot": "毎週金曜 23:00〜",
+   "tv": "日本テレビ系（FRIDAY ANIME NIGHT）",
+   "evidence": "2027年1月8日（金）より日本テレビ系FRIDAY ANIME NIGHT"
+  },
+  {
+   "id": 204579,
+   "kind": "tv",
+   "start": "2027-01-07",
+   "slot": "毎週木曜 0:26〜",
+   "tv": "MBS/TBS系28局（スーパーアニメイズム TURBO）",
+   "evidence": "2027年1月7日(木)0時26分よりMBS/TBS系28局"
+  },
+  {
+   "id": 207251,
+   "kind": "tv",
+   "start": "2027-01-04",
+   "slot": "毎週月曜 23:00〜",
+   "tv": "NHK総合",
+   "evidence": "NHK総合 2027年1月4日（月）夜11時放送開始"
+  },
+  {
+   "id": 209661,
+   "kind": "tv",
+   "start": "2027-01-04",
+   "slot": "",
+   "tv": "TOKYO MX・MBS・BS11ほか全国約20局",
+   "evidence": "2027年1月4日（月）からTOKYO MX、MBS、BS11ほか全国約20局にて放送開始"
+  },
+  {
+   "id": 210199,
+   "kind": "tv",
+   "start": "2027-01-09",
+   "slot": "毎週土曜 24:55〜",
+   "tv": "日本テレビ系（順次全国放送）",
+   "evidence": "2027年1月9日(土)より毎週土曜24:55〜日本テレビ系にて順次全国放送"
+  },
+  {
+   "id": 189121,
+   "kind": "tv",
+   "start": "2027-01-08",
+   "slot": "毎週金曜 23:30〜",
+   "tv": "全国同時放送",
+   "evidence": "2027年1月8日（金）23:30〜全国同時放送スタート"
+  },
+  {
+   "id": 199337,
+   "kind": "tv",
+   "start": "2027-01-09",
+   "slot": "毎週土曜 17:30〜",
+   "tv": "",
+   "evidence": "2027年1月9日(土)夕方5時30分〜放送開始"
+  },
+  {
+   "id": 214049,
+   "kind": "tv",
+   "start": "2027-01-09",
+   "slot": "毎週土曜 26:00〜",
+   "tv": "AT-Xで毎週土曜23:00〜先行放送",
+   "evidence": "2027年1月9日（土）より毎週土曜26時～"
+  },
+  {
+   "id": 203116,
+   "kind": "tv",
+   "start": "2027-01-07",
+   "slot": "毎週木曜 23:56〜",
+   "tv": "TBS系28局",
+   "evidence": "2027年1月7日から毎週木曜よる11時56分～TBS系28局にて全国同時放送開始"
+  },
+  {
+   "id": 217433,
+   "kind": "tv",
+   "start": "2027-01-05",
+   "slot": "",
+   "tv": "TOKYO MXほか",
+   "evidence": "2027年1月5日(火)より放送開始"
+  },
+  {
+   "id": 216858,
+   "kind": "tv",
+   "start": "2027-01-04",
+   "slot": "毎週月曜 21:55〜",
+   "tv": "tvkテレビ神奈川",
+   "evidence": "tvkテレビ神奈川 1月4日(月)より 毎週月曜21時55分～放送"
+  },
+  {
+   "id": 204363,
+   "kind": "tv",
+   "start": "2027-01",
+   "slot": "",
+   "tv": "",
+   "evidence": "第2期 2027年1月放送 決定"
+  },
+  {
+   "id": 169579,
+   "kind": "tv",
+   "start": "2027-01",
+   "slot": "",
+   "tv": "",
+   "evidence": "2027 年 1 月 放送決定"
+  },
+  {
+   "id": 177704,
+   "kind": "tv",
+   "start": "2027-01-09",
+   "slot": "毎週土曜 24:00〜",
+   "tv": "TOKYO MX・BS11ほか",
+   "evidence": "2027年1月9日(土)24時より放送開始"
+  },
+  {
+   "id": 204747,
+   "kind": "tv",
+   "start": "2027-01",
+   "slot": "",
+   "tv": "",
+   "evidence": "2027年1月から放送決定"
+  },
+  {
+   "id": 202564,
+   "kind": "tv",
+   "start": "2027-01",
+   "slot": "",
+   "tv": "",
+   "evidence": "2027年1月放送"
+  },
+  {
+   "id": 209980,
+   "kind": "tv",
+   "start": "2027-01",
+   "slot": "",
+   "tv": "TOKYO MX・BS11ほか",
+   "evidence": "2027年1月よりTOKYO MX、BS11ほかにて放送開始"
+  },
+  {
+   "id": 217070,
+   "kind": "tv",
+   "start": "2027-01",
+   "slot": "",
+   "tv": "",
+   "evidence": "2027年1月より第2クール放送決定"
+  },
+  {
+   "id": 216624,
+   "kind": "tv",
+   "start": "2027-01",
+   "slot": "",
+   "tv": "フジテレビ「+Ultra」",
+   "evidence": "2027年1月フジテレビ「+Ultra」にて放送決定"
+  },
+  {
+   "id": 213360,
+   "kind": "tv",
+   "start": "2027-01",
+   "slot": "",
+   "tv": "テレビ朝日系全国24局ネット（IMAnimation）・BS朝日ほか",
+   "evidence": "テレビ朝日系全国24局ネット“IMAnimation”枠・BS朝日ほかにて2027年1月より第2期放送"
+  },
+  {
+   "id": 186741,
+   "kind": "tv",
+   "start": "2027-01",
+   "slot": "",
+   "tv": "",
+   "evidence": "キービジュアル公開＆2027年1月放送決定"
+  },
+  {
+   "id": 196333,
+   "kind": "tv",
+   "start": "2027-01",
+   "slot": "",
+   "tv": "NHK総合",
+   "evidence": "2027年1月より NHK総合テレビにて放送予定"
+  },
+  {
+   "id": 208766,
+   "kind": "tv",
+   "start": "2027-01-08",
+   "slot": "毎週金曜 23:30〜",
+   "tv": "フジテレビ系（ノイタミナ）",
+   "evidence": "2027年1月8日より毎週金曜23時30分放送"
+  },
+  {
+   "id": 205130,
+   "kind": "tv",
+   "start": "2027-01",
+   "slot": "",
+   "tv": "",
+   "evidence": "2027年1月放送開始"
+  },
+  {
+   "id": 197619,
+   "kind": "tv",
+   "start": "2027-01",
+   "slot": "",
+   "tv": "",
+   "evidence": "2027年1月放送開始"
+  },
+  {
+   "id": 200578,
+   "kind": "tv",
+   "start": "2027-01",
+   "slot": "",
+   "tv": "",
+   "evidence": "2027年1月放送開始"
+  },
+  {
+   "id": 213877,
+   "kind": "tv",
+   "start": "2027-01",
+   "slot": "",
+   "tv": "",
+   "evidence": "2027年1月より放送＆配信開始決定"
+  },
+  {
+   "id": 213052,
+   "kind": "tv",
+   "start": "2027-01",
+   "slot": "",
+   "tv": "",
+   "evidence": "2027年1月より連続2クールにて放送開始"
+  },
+  {
+   "id": 174427,
+   "kind": "tv",
+   "start": "2027-01",
+   "slot": "",
+   "tv": "AT-X",
+   "evidence": "2027年1月AT-Xでアニメ放送開始"
+  },
+  {
+   "id": 213497,
+   "kind": "tv",
+   "start": "2027-01",
+   "slot": "",
+   "tv": "TOKYO MX・MBS・BS11ほか",
+   "evidence": "2027年1月TOKYO MX、MBS、BS11ほかにて放送開始"
+  },
+  {
+   "id": 207782,
+   "kind": "tv",
+   "start": "2027-01",
+   "slot": "",
+   "tv": "TOKYO MX・BS日テレ・AT-X・CBCテレビほか",
+   "evidence": "TOKYO MX、ＢＳ日テレ、AT-X、CBCテレビほかにて放送開始"
+  },
+  {
+   "id": 198728,
+   "kind": "tv",
+   "start": "2027-01",
+   "slot": "毎週日曜 23:30〜",
+   "tv": "CBC/TBS系全国28局ネット（アガルアニメ）",
+   "evidence": "CBC/TBS系全国28局ネット「アガルアニメ」枠（日曜夜11時30分〜）にて2027年1月放送決定"
+  },
+  {
+   "id": 197095,
+   "kind": "tv",
+   "start": "2027-01",
+   "slot": "",
+   "tv": "",
+   "evidence": "2027年1月放送開始"
+  },
+  {
+   "id": 199590,
+   "kind": "tv",
+   "start": "2027-01",
+   "slot": "",
+   "tv": "TOKYO MX・MBS・テレビ愛知・BS11",
+   "evidence": "2027年1月よりTOKYO MX、MBS、テレビ愛知、BS11にて放送開始"
+  },
+  {
+   "id": 209221,
+   "kind": "tv",
+   "start": "2027-01",
+   "slot": "",
+   "tv": "",
+   "evidence": "2027年1月放送開始"
+  },
+  {
+   "id": 206798,
+   "kind": "tv",
+   "start": "2027-01",
+   "slot": "",
+   "tv": "",
+   "evidence": "2027年1月 放送開始"
+  },
+  {
+   "id": 188546,
+   "kind": "tv",
+   "start": "2027-01",
+   "slot": "",
+   "tv": "",
+   "evidence": "2027年1月放送予定"
+  },
+  {
+   "id": 205430,
+   "kind": "tv",
+   "start": "2027-01",
+   "slot": "",
+   "tv": "",
+   "evidence": "2027年1月放送決定"
+  },
+  {
+   "id": 211070,
+   "kind": "tv",
+   "start": "2027-01",
+   "slot": "",
+   "tv": "",
+   "evidence": "2027年1月より放送開始"
+  },
+  {
+   "id": 185697,
+   "kind": "tv",
+   "start": "2027-01",
+   "slot": "",
+   "tv": "テレビ朝日系全国24局ネット（NUMAnimation）・BS朝日",
+   "evidence": "テレビ朝日系全国24局ネット “NUMAnimation”枠＆ BS朝日にて放送"
+  },
+  {
+   "id": 211258,
+   "kind": "tv",
+   "start": "2027-01",
+   "slot": "",
+   "tv": "",
+   "evidence": "本作の放送時期が2027年1月に決定"
+  },
+  {
+   "id": 214461,
+   "kind": "tv",
+   "start": "2027-01",
+   "slot": "",
+   "tv": "",
+   "evidence": "TVアニメ2027年1月放送決定"
+  },
+  {
+   "id": 209224,
+   "kind": "tv",
+   "start": "2027-01",
+   "slot": "",
+   "tv": "",
+   "evidence": "2027年1月放送スタート"
+  },
+  {
+   "id": 214969,
+   "kind": "tv",
+   "start": "2027-01",
+   "slot": "",
+   "tv": "TOKYO MX・BS日テレ・読売テレビ",
+   "evidence": "2027年1月TOKYO MX、BS日テレ、読売テレビにて放送開始"
+  },
+  {
+   "id": 190244,
+   "kind": "movie",
+   "start": "2027-03-26",
+   "slot": "",
+   "tv": "劇場上映",
+   "evidence": "2027年3月26日"
+  },
+  {
+   "id": 194213,
+   "kind": "movie",
+   "start": "2027-02-11",
+   "slot": "",
+   "tv": "劇場公開",
+   "evidence": "2027年2月11日(木・祝)公開"
+  },
+  {
+   "id": 213814,
+   "kind": "movie",
+   "start": "2027-01-22",
+   "slot": "",
+   "tv": "劇場公開",
+   "evidence": "2027年1月22日（金）公開"
+  },
+  {
+   "id": 219237,
+   "kind": "movie",
+   "start": "2027-01-29",
+   "slot": "",
+   "tv": "2週間限定上映",
+   "evidence": "2027年1月29日より2週間限定上映"
+  },
+  {
+   "id": 219621,
+   "kind": "tv",
+   "start": "2027-01",
+   "slot": "",
+   "tv": "",
+   "evidence": "2027年1月放送開始"
+  },
+  {
+   "id": 219505,
+   "kind": "tv",
+   "start": "2027-01",
+   "slot": "",
+   "tv": "",
+   "evidence": "2027年1月放送開始"
+  }
+ ],
+ "streaming": [
+  {
+   "id": 214049,
+   "serviceKey": "abema",
+   "availability": "unknown",
+   "firstDate": "2027-01-09",
+   "weeklyDay": 6,
+   "weeklyTime": "26:30",
+   "isFastest": true,
+   "isExclusive": false,
+   "evidence": "ABEMA 2027年1月9日（土）より毎週土曜26時30分～最速配信",
+   "watchUrl": ""
+  },
+  {
+   "id": 197619,
+   "serviceKey": "netflix",
+   "availability": "unknown",
+   "firstDate": null,
+   "weeklyDay": null,
+   "weeklyTime": null,
+   "isFastest": false,
+   "isExclusive": false,
+   "evidence": "Netflix ほか 各配信サイトでも配信予定",
+   "watchUrl": ""
+  },
+  {
+   "id": 207782,
+   "serviceKey": "d-anime",
+   "availability": "unknown",
+   "firstDate": null,
+   "weeklyDay": null,
+   "weeklyTime": null,
+   "isFastest": false,
+   "isExclusive": false,
+   "evidence": "dアニメストアでの配信も決定",
+   "watchUrl": ""
+  },
+  {
+   "id": 209661,
+   "serviceKey": "netflix",
+   "availability": "unknown",
+   "firstDate": null,
+   "weeklyDay": null,
+   "weeklyTime": null,
+   "isFastest": false,
+   "isExclusive": false,
+   "evidence": "Netflixほかにて配信開始",
+   "watchUrl": ""
+  },
+  {
+   "id": 177704,
+   "serviceKey": "abema",
+   "availability": "unknown",
+   "firstDate": null,
+   "weeklyDay": null,
+   "weeklyTime": null,
+   "isFastest": false,
+   "isExclusive": false,
+   "evidence": "ABEMA・dアニメストアほか各配信プラットフォームにて順次配信開始",
+   "watchUrl": ""
+  },
+  {
+   "id": 177704,
+   "serviceKey": "d-anime",
+   "availability": "unknown",
+   "firstDate": null,
+   "weeklyDay": null,
+   "weeklyTime": null,
+   "isFastest": false,
+   "isExclusive": false,
+   "evidence": "ABEMA・dアニメストアほか各配信プラットフォームにて順次配信開始",
+   "watchUrl": ""
+  },
+  {
+   "id": 196333,
+   "serviceKey": "netflix",
+   "availability": "unknown",
+   "firstDate": null,
+   "weeklyDay": null,
+   "weeklyTime": null,
+   "isFastest": false,
+   "isExclusive": false,
+   "evidence": "2027年1月より、Netflixでの世界配信とU-NEXTでの配信が決定しました",
+   "watchUrl": ""
+  },
+  {
+   "id": 196333,
+   "serviceKey": "u-next",
+   "availability": "unknown",
+   "firstDate": null,
+   "weeklyDay": null,
+   "weeklyTime": null,
+   "isFastest": false,
+   "isExclusive": false,
+   "evidence": "2027年1月より、Netflixでの世界配信とU-NEXTでの配信が決定しました",
+   "watchUrl": ""
+  }
+ ],
+ "skip": [
+  {
+   "id": 171630,
+   "reason": "AniList に公式サイトの登録なし"
+  },
+  {
+   "id": 202282,
+   "reason": "AniList に公式サイトの登録なし"
+  },
+  {
+   "id": 219063,
+   "reason": "AniList に公式サイトの登録なし"
+  },
+  {
+   "id": 197620,
+   "reason": "公開日の記載なし（本文は「ついに公開」のみ）"
+  },
+  {
+   "id": 213752,
+   "reason": "放送時期の記載なし。配信一覧は「第1期配信中」の案内"
+  },
+  {
+   "id": 188892,
+   "reason": "放送時期の記載なし（「第2期放送決定」のみ）"
+  },
+  {
+   "id": 206298,
+   "reason": "本文が取れない（JavaScript で描くサイトの可能性）"
+  },
+  {
+   "id": 210073,
+   "reason": "暴走列車編の放送時期の記載なし。「最終章 配信情報」（Prime Video 見放題独占）はこれまでの最終章の案内の可能性があり不採用"
+  },
+  {
+   "id": 219548,
+   "reason": "公式は「2026年12月より放送・配信開始」（冬の開始ではない）"
+  },
+  {
+   "id": 202503,
+   "reason": "放送時期の記載なし"
+  },
+  {
+   "id": 194030,
+   "reason": "放送日の記載なし（2027年1月10日は先行上映会の日付）"
+  },
+  {
+   "id": 187303,
+   "reason": "本文が取れない（JavaScript で描くサイトの可能性）"
+  },
+  {
+   "id": 210157,
+   "reason": "公式サイトが自動の読み取りを断っている（HTTP 403）"
+  },
+  {
+   "id": 183692,
+   "reason": "AniList の公式サイトが英語版で、本文が取れない"
+  },
+  {
+   "id": 207328,
+   "reason": "放送時期の記載なし"
+  },
+  {
+   "id": 185699,
+   "reason": "本文が取れない（JavaScript で描くサイトの可能性）"
+  },
+  {
+   "id": 203141,
+   "reason": "公式ページは前作（2025年4月）の案内のみ"
+  },
+  {
+   "id": 219618,
+   "reason": "放送時期の記載なし"
+  },
+  {
+   "id": 212653,
+   "reason": "公開日の記載なし。「U-NEXT にて独占配信中」は既存の File の案内"
+  },
+  {
+   "id": 215695,
+   "reason": "本文が取れない（JavaScript で描くサイトの可能性）"
+  },
+  {
+   "id": 217129,
+   "reason": "2027年の放送の記載なし（過去の案内のみ）"
+  }
+ ]
+}

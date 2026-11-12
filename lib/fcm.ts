@@ -62,7 +62,10 @@ export async function requestAndRegisterPush(uid: string): Promise<PushStatus> {
   let perm = Notification.permission;
   if (perm === "default") perm = await Notification.requestPermission();
   if (perm !== "granted") return "denied";
-  return registerPushToken(uid);
+  const status = await registerPushToken(uid);
+  // 通知をオンにできた回数を数える（ボタンを押してオンにしたときだけ。個人は特定しない）
+  if (status === "enabled") import("@/lib/track").then((m) => m.trackEvent("push")).catch(() => {});
+  return status;
 }
 
 // この端末の現在のトークンを（許可済みの場合のみ）取得する。ダイアログは出ない。
