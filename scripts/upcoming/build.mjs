@@ -2,9 +2,9 @@
 //   node scripts/upcoming/build.mjs
 // 1行でも根拠が見つからなければ、何も書かずにエラーで止まる。
 // 書き出すもの：content/upcoming/2027-winter.json（放送予定）と scripts/upcoming/out/2027-winter.rows.json（配信の行）
-import { mkdirSync, writeFileSync } from "node:fs";
+import { cpSync, mkdirSync, rmSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
-import { SEASON, CACHE_DIR, CONTENT, OUT_DIR, readJson, readLedger, findEvidence, pagesOf, todayJst } from "./common.mjs";
+import { SEASON, CACHE_DIR, CHECKED_DIR, CONTENT, OUT_DIR, readJson, readLedger, findEvidence, pagesOf, todayJst } from "./common.mjs";
 
 const SERVICE_KEYS = new Set([
   "d-anime", "abema", "netflix", "prime-video", "u-next", "hulu", "fod", "dmm-tv",
@@ -113,4 +113,8 @@ writeFileSync(rowsPath, JSON.stringify({ season: SEASON, note: `${today} 公式�
 
 const dated = works.filter((w) => /^\d{4}-\d{2}-\d{2}$/.test(w.start)).length;
 console.log(`OK：放送予定 ${works.length}作品（日付まで決まった作品 ${dated}）→ ${CONTENT}`);
+// 根拠を確かめ終えた本文を写しておく（次回、diff.mjs が「前回から変わった作品」を出すのに使う）
+rmSync(CHECKED_DIR, { recursive: true, force: true });
+cpSync(CACHE_DIR, CHECKED_DIR, { recursive: true });
+
 console.log(`OK：配信 ${rows.length}行・${new Set(rows.map((r) => r.anilistId)).size}作品 → ${rowsPath}`);

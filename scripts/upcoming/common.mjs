@@ -11,6 +11,8 @@ export const CONTENT = join(ROOT, "content", "upcoming", `${SEASON}.json`);
 export const OUT_DIR = fileURLToPath(new URL("./out/", import.meta.url));
 // 読んだ公式ページの本文の保存先（OS の一時フォルダ）
 export const CACHE_DIR = join(tmpdir(), "animiru-upcoming", SEASON);
+// 前回 build が通ったときの本文の写し（diff.mjs が今回の本文と比べる）
+export const CHECKED_DIR = join(tmpdir(), "animiru-upcoming", `${SEASON}-checked`);
 
 export function readJson(path, fallback) {
   if (!existsSync(path)) return fallback;

@@ -7,6 +7,7 @@
 
 ```
 node scripts/upcoming/scan.mjs      # 1. 公式サイトを読む（5分ほど）。作品ごとの「放送・配信」の行が出る
+node scripts/upcoming/diff.mjs      #    前回確かめたときから本文が変わった作品だけを出す（2回目以降はこれを読めば足りる）
                                     # 2. 出力を読んで 2027-winter.evidence.json（台帳）を直す
 node scripts/upcoming/build.mjs     # 3. 根拠を機械で確かめて書き出す
 ```

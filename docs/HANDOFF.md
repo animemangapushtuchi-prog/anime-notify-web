@@ -245,7 +245,8 @@ docs/HANDOFF.md            このファイル
 - 作り方：公式サイトの文を取り出し（`lib/officialSite.ts` の collectOfficialPages）、**根拠の文字列が本文にあることを機械で確かめてから**書き出す。無い行は止まる。2026-11-03：AniList の冬68作品のうち49作品（テレビ45・劇場4）。来期の開始前に2週間おきに足すと、日付が決まった作品が増える
 - **続編の公式サイトの配信案内はほぼ前のシーズンのもの**（シャンフロ・マリッジトキシン・マッシュル・ワンパンマン・ふつつかな悪女・YAIBA など）。自動抽出では候補が12〜14行出るが、**続編の行として使わない**。一方「第1期配信中」のように書かれていれば前作の行としては正しいので、前作に入れる（2026-11-03 に9作品84行）
 - **更新の手順（2026-11-12〜。道具は `scripts/upcoming/`、くわしくは同じ場所の README.md）**：
-  1. `node scripts/upcoming/scan.mjs`（約5分）で AniList の冬の全作品の公式サイトを読む。【新】は台帳に無い作品、【消】は根拠の文が消えた作品
+  1. `node scripts/upcoming/scan.mjs`（約5分）で AniList の冬の全作品の公式サイトを読む。【新】は台帳に無い作品、【消】は根拠の文が消えた作品。
+     続けて `node scripts/upcoming/diff.mjs` を実行すると、前回確かめたときから公式ページの本文が変わった作品だけが出る（2回目以降はこれを読めば足りる。2026-11-12 の2回目は72作品中2作品で、どちらも放送・配信と関係ない変化だった）
   2. 出力を読んで台帳 `scripts/upcoming/2027-winter.evidence.json` を直す（schedule＝放送予定、streaming＝配信、skip＝入れない理由）
   3. `node scripts/upcoming/build.mjs` が根拠の文を機械で確かめ、`content/upcoming/2027-winter.json` と配信の行（`scripts/upcoming/out/`、git には入らない）を書き出す。1行でも根拠が無いと止まる
   4. `node scripts/publish-rows.js scripts/upcoming/out/2027-winter.rows.json --write` で配信の行を公開し、commit・push する
